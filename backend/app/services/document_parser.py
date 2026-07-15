@@ -177,8 +177,7 @@ class DocumentParser:
 
         cleaned_text = self.normalize_text(self.clean_text(raw_text))
 
-        # Validation Stage: Only validate documents and scanned content (PDF and Images)
-        is_val_target = ext in [".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"]
+        is_val_target = ext in [".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".txt", ".docx", ".doc"]
         if is_val_target:
             words = cleaned_text.split()
             if len(words) < 30 or "ocr_failed" in cleaned_text.lower() or "no readable text" in cleaned_text.lower():

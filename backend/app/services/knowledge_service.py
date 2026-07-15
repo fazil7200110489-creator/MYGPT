@@ -325,25 +325,300 @@ class KnowledgeBuilder:
         sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
         return [item[0] for item in sorted_freqs[:10]]
 
-    def build_knowledge(self, text: str, file_type: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def extract_title(self, text: str, file_type: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Heuristically extracts document title."""
+        if metadata and metadata.get("filename"):
+            name, _ = os.path.splitext(metadata["filename"])
+            name = name.replace("_", " ").replace("-", " ")
+            return name.title()
+        
+        lines = [l.strip() for l in text.split('\n') if l.strip()]
+        for line in lines[:3]:
+            cleaned = line.lstrip('#').strip()
+            if len(cleaned) > 2 and len(cleaned) < 80:
+                return cleaned
+        return "Untitled Document"
+
+    def extract_headings(self, sections: Dict[str, str]) -> List[str]:
+        """Collects all headings from sections dictionary."""
+        headings = list(sections.keys())
+        return [h for h in headings if h not in ["Content", "Introduction"]]
+
+    def extract_paragraphs(self, text: str) -> List[str]:
+        """Splits document text into clean paragraphs, removing table rows and headings."""
+        blocks = text.split('\n\n')
+        paragraphs = []
+        for b in blocks:
+            b_strip = b.strip()
+            if not b_strip:
+                continue
+            if '|' in b_strip or b_strip.startswith('#') or b_strip.startswith('-') or b_strip.startswith('•') or b_strip.startswith('*'):
+                continue
+            if len(b_strip) < 60 and b_strip.isupper():
+                continue
+            paragraphs.append(b_strip)
+        return paragraphs
+
+    def extract_page_references(self, pages: Optional[List[Dict[str, Any]]], text: str) -> List[Dict[str, Any]]:
+        """Maps content blocks to page numbers if page metadata is available."""
+        if not pages:
+            return [{"page_number": 1, "text": text}]
+        
+        refs = []
+        for p in pages:
+            page_text = p.get("text", "").strip()
+            if page_text:
+                refs.append({
+                    "page_number": p.get("page_number", 1),
+                    "text": page_text
+                })
+        return refs
+
+    def extract_type_specific_facts(
+        self,
+        doc_type: str,
+        text: str,
+        entities: Dict[str, List[str]],
+        sections: Dict[str, str],
+        tables: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Extracts structured facts specific to the document type (Resume, Invoice, Excel, etc.)."""
+        facts = {}
+        text_lower = text.lower()
+        
+        if doc_type == "Resume":
+            email = entities["emails"][0] if entities.get("emails") else None
+            phone = entities["phones"][0] if entities.get("phones") else None
+            
+            name = None
+            name_match = re.search(r'(?i)\bname\s*:\s*([A-Za-z\s]+)(?:\n|$)', text)
+            if name_match:
+                name = name_match.group(1).strip()
+            else:
+                lines = [l.strip() for l in text.split('\n') if l.strip()]
+                for l in lines[:3]:
+                    if len(l) < 40 and re.match(r'^[A-Z][a-zA-Z]*\s+[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)?$', l):
+                        name = l
+                        break
+                if not name and email:
+                    user_part = email.split('@')[0]
+                    name = user_part.replace('.', ' ').replace('_', ' ').replace('-', ' ').title()
+            
+            address = None
+            addr_match = re.search(r'(?i)(?:address|location)\s*:\s*([^\n]+)', text)
+            if addr_match:
+                address = addr_match.group(1).strip()
+            
+            def get_section_content(keywords: List[str]) -> str:
+                for sec_name, content in sections.items():
+                    if any(k in sec_name.lower() for k in keywords):
+                        return content.strip()
+                return ""
+            
+            skills_sec = get_section_content(["skill", "technolog", "stack", "language", "tool"])
+            exp_sec = get_section_content(["experience", "work", "employment", "career", "job"])
+            edu_sec = get_section_content(["education", "academic", "degree", "university", "college", "school"])
+            proj_sec = get_section_content(["project", "portfolio", "built", "developed"])
+            cert_sec = get_section_content(["certificat", "award", "achievement"])
+            summary_sec = get_section_content(["summary", "profile", "objective", "about me"])
+            
+            skills_list = []
+            if skills_sec:
+                items = re.split(r'[,•\-*]|\n', skills_sec)
+                skills_list = [i.strip() for i in items if i.strip() and len(i.strip()) < 50]
+            
+            facts.update({
+                "name": name,
+                "phones": entities.get("phones", []),
+                "emails": entities.get("emails", []),
+                "address": address,
+                "summary": summary_sec or None,
+                "experience": exp_sec or None,
+                "education": edu_sec or None,
+                "projects": proj_sec or None,
+                "skills": skills_list or None,
+                "certifications": cert_sec or None,
+                "technologies": skills_list or None,
+                "companies": entities.get("companies", []),
+                "organizations": entities.get("companies", []),
+                "links": entities.get("urls", []),
+                "dates": entities.get("dates", [])
+            })
+            
+        elif doc_type == "Invoice":
+            inv_num = None
+            inv_num_match = re.search(r'(?i)(?:invoice\s*number\s*:\s*|invoice\s*id\s*:\s*|invoice\s*#\s*|inv\s*#\s*|invoice\s*|inv\s*[:#]?\s*)([a-z0-9-]+)', text)
+            if inv_num_match:
+                inv_num = inv_num_match.group(1).strip()
+            
+            vendor = None
+            customer = None
+            lines = [l.strip() for l in text.split('\n') if l.strip()]
+            for i, l in enumerate(lines):
+                if re.search(r'(?i)\b(?:bill\s*to|to|client|customer)\b', l):
+                    if ":" in l:
+                        customer = l.split(":", 1)[1].strip()
+                    elif i + 1 < len(lines):
+                        customer = lines[i+1]
+                if re.search(r'(?i)\b(?:from|vendor|seller|issued\s*by)\b', l):
+                    if ":" in l:
+                        vendor = l.split(":", 1)[1].strip()
+                    elif i + 1 < len(lines):
+                        vendor = lines[i+1]
+            
+            if not vendor and entities.get("companies"):
+                vendor = entities["companies"][0]
+            if not customer and len(entities.get("companies", [])) > 1:
+                customer = entities["companies"][1]
+            
+            inv_date = None
+            due_date = None
+            for l in lines:
+                if re.search(r'(?i)\b(?:invoice\s*date|date)\b', l):
+                    dates_found = re.findall(r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{1,2},?\s+\d{2,4}\b', l, re.IGNORECASE)
+                    if dates_found:
+                        inv_date = dates_found[0]
+                if re.search(r'(?i)\b(?:due\s*date|due)\b', l):
+                    dates_found = re.findall(r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{1,2},?\s+\d{2,4}\b', l, re.IGNORECASE)
+                    if dates_found:
+                        due_date = dates_found[0]
+            
+            if not inv_date and entities.get("dates"):
+                inv_date = entities["dates"][0]
+            if not due_date and len(entities.get("dates", [])) > 1:
+                due_date = entities["dates"][1]
+                
+            subtotal_match = re.search(r'(?i)(?:subtotal|sub-total)\s*[:\-]?\s*([\$\u20b9\u20ac\u00a3]?\s*\d[\d,]*\.?\d*)', text)
+            subtotal = subtotal_match.group(1).strip() if subtotal_match else None
+            
+            tax_match = re.search(r'(?i)(?:gst|tax|vat)\s*[:\-]?\s*([\$\u20b9\u20ac\u00a3]?\s*\d[\d,]*\.?\d*%?)', text)
+            tax = tax_match.group(1).strip() if tax_match else None
+            
+            discount_match = re.search(r'(?i)(?:discount)\s*[:\-]?\s*([\$\u20b9\u20ac\u00a3]?\s*\d[\d,]*\.?\d*%?)', text)
+            discount = discount_match.group(1).strip() if discount_match else None
+            
+            grand_total_match = re.search(r'(?i)(?:grand\s*total|total\s*due|total\s*amount|total|amount)\s*[:\-]?\s*([\$\u20b9\u20ac\u00a3]?\s*\d[\d,]*\.?\d*)', text)
+            grand_total = grand_total_match.group(1).strip() if grand_total_match else None
+            
+            if not grand_total and entities.get("amounts"):
+                grand_total = entities["amounts"][0]
+                
+            items = []
+            if tables:
+                items = tables[0].get("rows", [])
+            
+            facts.update({
+                "invoice_number": inv_num,
+                "customer": customer,
+                "vendor": vendor,
+                "items": items,
+                "subtotal": subtotal,
+                "gst": tax,
+                "tax": tax,
+                "discount": discount,
+                "grand_total": grand_total,
+                "invoice_date": inv_date,
+                "due_date": due_date,
+                "payment_status": "Paid" if "paid" in text_lower else "Unpaid"
+            })
+            
+        elif doc_type == "Excel":
+            rows = []
+            columns = []
+            stats = {}
+            if tables:
+                rows = tables[0].get("rows", [])
+                columns = tables[0].get("headers", [])
+                stats = tables[0].get("stats", {})
+            
+            numeric_cols = list(stats.keys())
+            totals = {col: stats[col]["sum"] for col in numeric_cols}
+            averages = {col: stats[col]["avg"] for col in numeric_cols}
+            minimums = {col: stats[col]["min"] for col in numeric_cols}
+            maximums = {col: stats[col]["max"] for col in numeric_cols}
+            
+            unique_vals = {}
+            for col in columns:
+                vals = [r.get(col, "") for r in rows]
+                unique_vals[col] = len(set(vals))
+            
+            facts.update({
+                "rows": rows,
+                "columns": columns,
+                "headers": columns,
+                "statistics": stats,
+                "numeric_columns": numeric_cols,
+                "totals": totals,
+                "averages": averages,
+                "minimum": minimums,
+                "maximum": maximums,
+                "duplicates": len(rows) - len(set(json.dumps(r, sort_keys=True) for r in rows)) if rows else 0,
+                "unique_values": unique_vals
+            })
+            
+        elif doc_type == "Research Paper":
+            title = self.extract_title(text, ".txt")
+            
+            def get_section_content(keywords: List[str]) -> str:
+                for sec_name, content in sections.items():
+                    if any(k in sec_name.lower() for k in keywords):
+                        return content.strip()
+                return ""
+            
+            abstract = get_section_content(["abstract"])
+            methods = get_section_content(["method", "approach", "algorithm"])
+            results = get_section_content(["result", "evaluation", "experiment"])
+            conclusion = get_section_content(["conclusion", "future"])
+            references = get_section_content(["reference", "bibliography"])
+            
+            facts.update({
+                "title": title,
+                "authors": entities.get("people", []),
+                "abstract": abstract or None,
+                "sections": sections,
+                "keywords": get_section_content(["keywords"]) or None,
+                "methods": methods or None,
+                "results": results or None,
+                "conclusion": conclusion or None,
+                "references": references or None
+            })
+            
+        else:
+            facts.update({
+                "summary": sections.get("Content", text[:300]) if len(sections) <= 1 else "Document sections: " + ", ".join(sections.keys())
+            })
+            
+        return facts
+
+    def build_knowledge(self, text: str, file_type: str, metadata: Optional[Dict[str, Any]] = None, pages: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """Orchestrates structured knowledge extraction from raw inputs."""
         doc_type = self.classify_document(text, file_type)
         sections = self.extract_sections(text, doc_type)
         entities = self.extract_entities(text)
-        facts = self.extract_facts(text)
         tables = self.extract_tables(text)
         summary = self.generate_summary(text, doc_type)
         keywords = self.mine_keywords(text)
+        
+        # New structure fields:
+        title = self.extract_title(text, file_type, metadata)
+        headings = self.extract_headings(sections)
+        paragraphs = self.extract_paragraphs(text)
+        page_refs = self.extract_page_references(pages, text)
+        facts = self.extract_type_specific_facts(doc_type, text, entities, sections, tables)
 
         return {
             "document_type": doc_type,
-            "sections": sections,
-            "entities": entities,
-            "facts": facts,
+            "title": title,
+            "headings": headings,
+            "paragraphs": paragraphs,
             "tables": tables,
+            "entities": entities,
+            "metadata": metadata or {},
+            "sections": sections,
+            "page_references": page_refs,
+            "facts": facts,
             "summary": summary,
-            "keywords": keywords,
-            "metadata": metadata or {}
+            "keywords": keywords
         }
 
 

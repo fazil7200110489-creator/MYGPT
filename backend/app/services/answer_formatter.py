@@ -258,31 +258,19 @@ class AnswerFormatter:
                 unique_sources.append(src)
 
         # Determine formatted output based on intent
-        if intent == "Summary":
+        intent_upper = intent.upper() if intent else ""
+        if intent_upper == "SUMMARY":
             formatted_answer = f"## Summary\n{answer}"
-        elif intent in ["Skills", "Technologies", "Projects"]:
+        elif intent_upper in ["SKILLS", "TECHNOLOGIES", "PROJECTS"]:
             formatted_answer = format_list_answer(answer)
-        elif intent == "Extraction":
-            formatted_answer = format_extraction_answer(answer)
-        elif intent == "Comparison":
+        elif intent_upper == "COMPARISON":
             formatted_answer = format_comparison_answer(answer)
-        elif intent == "Research":
+        elif intent_upper == "Research":
             formatted_answer = format_research_answer(answer)
         else:
             formatted_answer = answer
 
-        # Append reference sources block at the bottom (suppress on zero-confidence)
-        if confidence_pct > 0.0:
-            source_strings = []
-            for src in unique_sources:
-                score_pct = round(src["score"] * 100)
-                source_strings.append(f"Page {src['page_number']} · Chunk {src['chunk_num']} · Similarity {score_pct}%")
-                
-            if source_strings:
-                sources_block = "\n\n**Sources:** " + " | ".join(source_strings)
-                formatted_answer += sources_block
-
-        # Final dedup pass on the formatted answer
+        # Final dedup pass on the formatted answer (never append sources text block to answer)
         formatted_answer = self._strip_duplicate_sentences(formatted_answer)
 
         suggested = self._generate_suggested_questions(answer, confidence, intent)

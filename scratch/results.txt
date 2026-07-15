@@ -1,0 +1,295 @@
+
+================================================================================
+DEBUG: EXTRACTED TEXT FROM 'media__1784099726711.pdf' (Size: 3617 chars)
+================================================================================
+Uma Mahesh
+Chennai, Tamil Nadu, India
+maheshuma3434@gmail.com - +91-8790035441 - LinkedIn
+Salesforce Developer
+Salesforce Developer with 2.5+ years of hands-on experience delivering scalable solutions across Sales and Service
+Clouds. Strong in Lightning Web Components (L WC), Flow automation, bulkified Apex, and REST integrations.
+Experienced in CI/CD using Salesforce DX and Git, production support, and Agile delivery. Salesforce Certified
+Platform Developer I with a passion for continuous learning.
+Core Technical Skills
+-Sales Cloud, Experience Cloud
+-Lightning Web Components (L WC), Aura
+-Apex Classes, Bulkified Triggers
+-Asynchronous Apex (Batch, Scheduled)
+-Flow Builder (Screen & Record-Triggered)
+-REST API, OAuth
+-Salesforce Data Model & Security
+-SOQL, Governor Limits
+-Git, Salesforce DX, CI/CD Pipelines
+-Copado, Gearset, Change Sets
+-Test Classes & Code Coverage
+-Agile / Scrum
+Professional Experience
+Salesforce Developer - Rudhra Info SolutionsOct 2023 - Present
+Chennai, India
+-Developed Salesforce features across Sales Cloud and Experience Cloud supporting internal business operations.
+-Built Lightning Web Components and Lightning record pages to improve user productivity.
+-Implemented Screen Flows and Record-Triggered Flows to automate business processes.
+-Created bulkified Apex Classes and Triggers; implemented Batch and Scheduled Apex.
+-Built Apex test classes ensuring deployment-ready code coverage.
+-Supported REST integrations and collaborated with middleware teams.
+-Participated in Git-based version control, Salesforce DX deployments, and CI/CD pipelines.
+-Troubleshot production issues, performed root-cause analysis, and delivered fixes.
+-Documented technical designs and followed change control processes.
+-Worked with stakeholders in Agile sprint cycles.
+Salesforce Intern - Rudhra Info SolutionsJan 2023 - Oct 2023
+-Supported development in Apex, L WC, Flows, Salesforce security, and integrations.
+-Built POCs and assisted in real-time implementations.
+Key Projects
+Partner Portal Enhancement (Experience Cloud)
+-Developed customized Experience Cloud portal to improve engagement for wealth managers and partners.
+-Built dynamic Lightning Web Components to display historical financial data using interactive charts.
+-Implemented secure Apex REST callouts to fetch real-time data from external systems.
+-Integrated Salesforce with third-party platforms via REST APIs for partner metrics.
+
+-Customized Experience Cloud pages for responsive desktop and mobile experience.
+-Ensured data security and compliance while handling sensitive client information.
+-Participated in requirement gathering, technical design, and Agile sprint reviews.
+Sales Cloud Automation - Powermech Engineering
+-Customized Sales Cloud using custom objects, fields, page layouts, workflows, and approval processes.
+-Built reports and dashboards providing real-time sales insights.
+-Developed Apex Classes and Triggers for business automation.
+-Implemented Quote PDF generation using Visualforce and automated email delivery.
+-Created profiles and enforced object-level and field-level security.
+-Developed test classes and managed deployments using Change Sets.
+Certifications
+-Salesforce Certified Platform Developer I
+-Salesforce Certified Associate
+-Copado Fundamentals I
+-Salesforce AI Associate
+-Agile Project Management
+Education
+B.Sc. Computer Science- Sri Vidya Degree College
+MBA (Human Resources)- Sri Vidya Institute of Management
+Additional
+Salesforce Automation-User & Access Management-Reports & Dashboards-Secure Integrations-Production
+Support-Strong Communication-Continuous Learner
+================================================================================
+
+media__1784099726711.pdf False
+
+================================================================================
+DEBUG: EXTRACTED TEXT FROM 'media__1784099726812.pdf' (Size: 6098 chars)
+================================================================================
++
+ 
+Keerthana Anburaj 
+Salesforce Administrator / Developer - 3+ Years of Experience 
+ 
+2/452-1, Sivan kovil street, Maruthampatinam, Thiruvarur, Tamilnadu - 610001 
+Email: keerthanaanburaj4@gmail.com 
+Mobile No: 9360018354 
+ 
+EDUCATION: 
+ 
+Bachelor of Computer Application from E.G.S. Pillay Arts and Science College, Nagapattinam. 
+Percentage: 85% 
+ 
+ 
+ 
+SUMMARY 
+ 
+Salesforce Administrator / Developer with over 3+ years of experience in customizing, and deploying 
+Salesforce solutions across Sales Cloud, Service Cloud, and Experience Cloud environments. Skilled 
+in Apex, Basic Lightning Web Components (LWC), and Flow to create efficient, user-friendly 
+applications. 
+Experienced in data management, and building reports and dashboards. Known for a proactive 
+approach to problem-solving and a commitment to continuous learning, with a track record of 
+successfully collaborating with cross-functional teams to meet business goals and optimize Salesforce 
+functionality. 
+ 
+HIGHLIGHTS 
+ 
+- Over 3 years of experience in Salesforce development, specializing in Sales Cloud, Service 
+Cloud, and Experience Cloud. 
+- Experienced in Workflows, Process Builder, Approval Process, Flows, triggers, Apex classes, 
+and Basic Lightning Web Components. 
+- Skilled in working under pressure and adapting to new situations and challenges to best 
+enhance the organizational brand. 
+- Complex problem-solver with analytical and driven mindset. Dedicated to achieving 
+demanding development objectives according to tight schedules while producing impeccable 
+code. 
+- Technical expertise in Software development lifecycle stages like requirements gathering, 
+analysis, design, development, deployment and Documentation. 
+- Good Knowledge of SOQL and SOSL query languages. Good Knowledge of Email services. 
+Experienced in using Gearset for streamlined and reliable deployments. 
+ 
+TECHNICAL SKILLS 
+ 
+- Salesforce Clouds: Sales Cloud, Service Cloud, Experience Cloud 
+- Programming Languages: Apex, JavaScript 
+- User Interface: Basic Lightning Web Components (LWC) & Basic Visualforce 
+- Automation Tools: Flow, Process Builder, Workflow Rules 
+
+- Deployment & CI/CD: Gearset, Change Sets, Salesforce CLI 
+- Data Management: Data Loader, SOQL, SOSL 
+- Reporting & Analytics: Reports, Dashboards, Salesforce Analytics 
+- Security & Access Control: Profiles, Permission Sets, OWD Sharing Rules 
+- Other Tools & Platforms: Salesforce Developer Console, Workbench, Debug Logs 
+ 
+ 
+SALESFORCE CERTIFICATIONS: 
+- Salesforce Certified Platform Developer I 
+- Salesforce Certified Administrator 
+- Salesforce Certified AI Associate 
+- Salesforce AI Specialist 
+ 
+Employment Summary: 
+ 
+- Current Employer: vCollab Etiquette 
+- Employment Tenure: April 2022 - Present 
+- Designation: Salesforce Developer / Associate Software Analyst 
+ 
+ 
+PROJECTS 
+Project: Booster Fuels 
+ 
+Role: Salesforce Developer 
+ 
+Description: Supported Booster Fuels' fuel delivery service by enhancing Salesforce for managing 
+customer orders and fleet operations. Developed workflows and reports to streamline fuel requests 
+via mobile apps and contract orders, ensuring compliance with city-specific permits. Improved data 
+tracking and reporting, enabling efficient delivery scheduling and customer service. 
+ 
+ 
+Responsibilities: 
+ Developed and customized Salesforce workflows, reports, and dashboards to streamline 
+fuel delivery requests and scheduling. 
+ Configured Salesforce to manage customer contracts and ensure compliance with city- 
+specific permits for Booster Fuels' operations. 
+ Enhanced data management processes to improve tracking of customer requests, fuel 
+deliveries, and fleet operations. 
+ Collaborated with cross-functional teams to gather requirements and implement solutions 
+aligned with Booster Fuels' business needs. 
+ Utilized Change Sets for efficient deployments, ensuring smooth updates to the Salesforce 
+environment. 
+ Provided ongoing support and troubleshooting to optimize Salesforce functionality and 
+improve user experience. 
+ 
+ 
+Project: Axena Health 
+
+Role: Salesforce Developer 
+ 
+Description: Implemented Salesforce Sales Cloud and Service Cloud, incorporating Health Cloud 
+features to improve patient management in women's pelvic health. Configured workflows and 
+automated processes to streamline patient follow-ups and improve service efficiency. Created 
+reports and dashboards to track patient engagement and treatment outcomes. Worked with cross- 
+functional teams to ensure solutions met healthcare regulations and best practices. 
+ 
+Responsibilities: 
+- Customized Salesforce features to support Axena Health's mission in women's health. 
+- Implemented automation using Flow and Apex to improve operational workflows. 
+- Developed user interfaces with Lightning Web Components (LWC) for healthcare providers. 
+- Managed deployments using Gearset to ensure efficient updates to the Salesforce 
+environment. 
+- Collaborated with clinical teams to gather requirements and validate solutions, 
+ensuring compliance with healthcare regulations and best practices. 
+ 
+ 
+Project: Tech Goes Home, Crafty Yelk & Radian Generation 
+ 
+Description: Contributed to technical debt projects aimed at optimizing Salesforce functionality 
+for Tech Goes Home. Analyzed existing systems and identified areas for improvement, 
+enhancing data management and user experience. Collaborated with stakeholders to implement 
+solutions that streamline processes and improve efficiency. 
+ 
+ 
+- Analysed the existing Salesforce implementation to identify technical debt and areas for 
+optimization. 
+- Developed and implemented solutions to enhance data management processes and user 
+interfaces. 
+- Collaborated with cross-functional teams to gather requirements and ensure alignment with 
+business goals. 
+- Provided documentation and training to team members on new features and best practices. 
+ 
+Declaration: 
+I do hereby declare that the particulars of information and facts stated herein and above are true, correct and 
+complete to the best of my knowledge and belief. 
+ 
+Sincerely 
+KEERTHANA A
+================================================================================
+
+media__1784099726812.pdf False
+
+================================================================================
+DEBUG: EXTRACTED TEXT FROM 'media__1784099726920.pdf' (Size: 4347 chars)
+================================================================================
+SALESFORCE DEVELOPER 
+KAMBHAMPATI FRANCIS 
+☎ 9347001544 
+✉ francis6062@gmail.com 
+ 
+ 
+Professional Summary 
+Having 3+ years of hands-on experience in Salesforce CRM implementations, including development, administration, and 
+Lightning component development. 
+Strong experience working with Sales Cloud and Service Cloud, delivering customized business solutions. 
+Hands-on expertise in developing Apex Classes, Triggers, Batch Apex, and Apex Schedulers to implement complex business 
+logic. 
+Hands on Experience in writing optimized SOQL queries within Apex classes and triggers. 
+Implemented security and access controls using profiles, permission sets, object-level, field-level, and record-level sharing 
+rules, Experience using Postman to test and validate REST API integrations. 
+Strong experience working with Salesforce standard objects such as Accounts, Contacts, Leads, and Opportunities. 
+Developed dynamic and reusable Lightning Components using Lightning Web Components (LWC). Developed 
+REST APIs using Apex and successfully integrated third-party REST APIs with Salesforce. 
+Strong understanding of server-side business logic implementation using Apex to support enterprise-level 
+requirements, Solid knowledge of JavaScript for handling client-side logic in Lightning components. 
+Proficient in HTML, CSS, and Salesforce Lightning Design System (SLDS) to build responsive and user-friendly custom UIs. 
+Worked with Lightning Data Service (LDS) to perform efficient CRUD operations and ensure data consistency. Hands-
+on experience using Lightning Message Service (LMS) and pubsub.js for component communication. 
+Technical Skills 
+- Salesforce Development: Apex (Classes, Triggers, Batch, Scheduled, Future), SOQL, SOSL, REST/SOAP APIs, 
+Custom Objects, LDS 
+- OmniStudio (Vlocity): OmniScripts, DataRaptors (ETL), Integration Procedures, FlexCards, OmniStudio Actions 
+- UI & Front-End: Lightning Web Components (LWC), Aura, JavaScript, HTML, CSS, SLDS, React.js 
+- Integrations: REST API orchestration, External system integrations 
+- Tools & Platforms: Salesforce CRM, VS Code, Force.com IDE, Windows OS 
+ 
+Professional Experience 
+AMAZON DOVELOPMENT CENTRE PRIVATE LIMITED (JUNE 2022 - Present) 
+Project: Smart Pack Operations 
+Understanding the requirements of client developments and enhancements. Created custom 
+objects based on business logic. 
+Implemented Workflow, Flow to automate field updates. Experience 
+Field level validations and relationships and lookups. Worked with apex 
+classes to handle server-side business logic. Implemented triggers to 
+automate flow and for complex validations. 
+Writing queries in SOQL to perform crud operations with the help of apex classes and triggers. Created 
+lightning components. Designed OmniScripts to create guided user experiences for 
+
+customer onboarding, service requests, and data updates. Built DataRaptors (Extract, Transform, Load) to fetch 
+and manipulate Salesforce and external data efficiently, Implemented batch classes. 
+Project: Vison Care 
+Developed Apex classes to handle server-side business logic. 
+Created and maintained Batch Apex and Scheduled Apex classes for large data processing and scheduled jobs. Developed 
+Lightning Web Components (LWC) to build custom and responsive user interfaces. 
+Used Salesforce Lightning Design System (SLDS) to design consistent and user-friendly UI components. Wrote 
+SOQL queries to retrieve and manipulate Salesforce data. 
+Developed LWC components using JavaScript and HTML for client-side functionality. 
+Implemented Lightning Message Service (LMS) to enable communication between Lightning components. Used 
+pubsub.js for component-to-component communication where required. 
+Worked with Lightning Data Service (LDS) to perform CRUD operations while maintaining data consistency. Strong Hands-
+on experience with JavaScript to perform client-side operation. 
+ 
+EDUCATION 
+ Bachelor of Technology (B.Tech) -Mechanical, 
+ PNC&Vijay institute of engineering and technology | 2013 - 2017 
+Board of Intermediate Education - MPC Sri 
+Chaitanya Junior College | 2010 - 2011 
+Personal details 
+ Date of Birth : 02 - 05 -1995 
+ Gender:male 
+ Father's name: kambhampati Nageswara Rao 
+ Mother's name : kambhampati koteswaramma 
+ Nationality: Indian 
+ Location: Amaravathi, Palnadu District, Andhra Pradesh 
+ Pincode: 522436
+================================================================================
+
+media__1784099726920.pdf False

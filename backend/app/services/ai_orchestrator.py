@@ -103,7 +103,8 @@ class AIOrchestrator:
                 file_type=parsed_doc.get("file_type", ""),
                 metadata={
                     "chunk_size": chunk_size
-                }
+                },
+                pages=parsed_doc.get("pages", [])
             )
             knowledge_store.save_knowledge(doc_id, knowledge)
             logger.info("DOCUMENT UNDERSTANDING END")

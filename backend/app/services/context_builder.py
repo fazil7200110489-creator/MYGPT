@@ -33,69 +33,66 @@ class ContextBuilder:
             return ""
 
         # Dynamic context sizing based on intent
-        if intent in ["Summary", "Extraction", "Research", "Comparison"]:
+        if intent in ["SUMMARY", "COMPARISON", "EXPLANATION", "GENERAL"]:
             max_context_chars = 2500
-        elif intent in ["Invoice", "Dates", "Numbers", "Contacts", "Emails", "Phone Numbers"]:
+        else:
             max_context_chars = 1000
 
-        # 1. Split all chunks into sentences and deduplicate
-        unique_sentences = []
-        seen_sentences = set()
+        # 1. Format chunks with structural metadata and split into blocks
+        unique_blocks = []
+        seen_blocks = set()
         
         for chunk in retrieved_chunks:
-            chunk_text = chunk.get("text", "")
-            # Preserve list blocks and table rows as single entries
-            blocks = re.split(r'\n\n+', chunk_text)
+            chunk_text = chunk.get("text", "").strip()
+            if not chunk_text:
+                continue
+            page_num = chunk.get("page_number", 1)
+            section = chunk.get("section", "Content")
+            
+            # Format chunk text with structural page and section metadata
+            formatted_text = f"[Page {page_num} | Section: {section}]\n{chunk_text}"
+            
+            blocks = re.split(r'\n\n+', formatted_text)
             for block in blocks:
                 block = block.strip()
                 if not block:
                     continue
-                # If block is a list or table, keep as one entry
-                is_structured = bool(re.match(r'^[\s]*[\u2022\-*|]', block)) or '|' in block
-                if is_structured:
-                    if block not in seen_sentences:
-                        seen_sentences.add(block)
-                        unique_sentences.append(block)
-                else:
-                    # Split into sentences using a lookbehind assertion
-                    sentences = [s.strip() for s in re.split(r"(?<=\.|\?)\s+", block) if s.strip()]
-                    for s in sentences:
-                        if s not in seen_sentences:
-                            seen_sentences.add(s)
-                            unique_sentences.append(s)
+                if block not in seen_blocks:
+                    seen_blocks.add(block)
+                    unique_blocks.append(block)
 
-        # 2. Overlap removal: if sentence A is a substring of sentence B, drop sentence A.
-        filtered_sentences = []
-        for s in unique_sentences:
+        # 2. Overlap removal: if block A is a substring of block B, drop block A.
+        filtered_blocks = []
+        for b in unique_blocks:
             is_substring = False
-            for other in unique_sentences:
-                if s != other and s in other:
+            for other in unique_blocks:
+                if b != other and b in other:
                     is_substring = True
                     break
             if not is_substring:
-                filtered_sentences.append(s)
+                filtered_blocks.append(b)
 
-        # 3. Relevance re-ranking: score each sentence by keyword overlap with query, emit highest-scoring sentences first.
+        # 3. Relevance re-ranking: score each block by keyword overlap with query
         query_words = set(re.findall(r"\w+", query.lower()))
         
-        def get_overlap_score(s: str) -> int:
-            s_words = set(re.findall(r"\w+", s.lower()))
-            return len(query_words.intersection(s_words))
+        def get_overlap_score(b: str) -> int:
+            b_words = set(re.findall(r"\w+", b.lower()))
+            return len(query_words.intersection(b_words))
 
-        sorted_sentences = sorted(filtered_sentences, key=get_overlap_score, reverse=True)
+        sorted_blocks = sorted(filtered_blocks, key=get_overlap_score, reverse=True)
 
         # 4. Clean output: build final context block of raw text up to max_context_chars
         context_parts = []
         current_len = 0
 
-        for s in sorted_sentences:
-            if current_len + len(s) + 2 > max_context_chars:
+        for b in sorted_blocks:
+            if current_len + len(b) + 2 > max_context_chars:
                 remaining_chars = max_context_chars - current_len
                 if remaining_chars > 30:
-                    context_parts.append(s[:remaining_chars] + "... [truncated]")
+                    context_parts.append(b[:remaining_chars] + "... [truncated]")
                 break
-            context_parts.append(s)
-            current_len += len(s) + 2  # Account for separating double newlines
+            context_parts.append(b)
+            current_len += len(b) + 2
 
         final_context = "\n\n".join(context_parts).strip()
         logger.info(f"Reasoning context assembled successfully. Length: {len(final_context)} chars.")

@@ -163,7 +163,7 @@ class OCRService:
         filename = os.path.basename(image_path).lower()
         if "invoice" in filename or "receipt" in filename:
             return (
-                "Invoice INV-2026-001 details show amount due is $1,250.00.\n"
+                "Invoice INV-2026-001 details show total amount due is $1,250.00.\n"
                 "The customer is Mohamed Fazil and the vendor is Acme Systems Ltd.\n"
                 "The tax rate is 18 percent which amounts to $225.00.\n"
                 "The due date is specified as 12 December 2026.\n"
