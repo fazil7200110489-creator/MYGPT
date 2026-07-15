@@ -7903,3 +7903,58 @@ ValueError: Unable to extract readable text from the uploaded document.
 2026-07-15 18:53:30 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session axpx6 from role 'user'
 2026-07-15 18:53:30 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session axpx6 from role 'assistant'
 2026-07-15 18:53:30 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id 12eabdb1-5d44-4fe2-800d-5da352fd3182 to D:\MYGPT\data\training_samples.jsonl
+2026-07-15 19:00:44 | INFO    | app.main:websocket_training:149 - WebSocket client disconnected from training stream.
+2026-07-15 19:01:18 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session 7f1to5 active document set to 12eabdb1-5d44-4fe2-800d-5da352fd3182
+2026-07-15 19:01:18 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-15 19:01:18 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-15 19:01:18 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-15 19:01:18 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'Summarize this document.'
+2026-07-15 19:01:18 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 2 chunks (doc_id=12eabdb1-5d44-4fe2-800d-5da352fd3182) with threshold=0.0
+2026-07-15 19:01:18 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 2 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-15 19:01:18 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-15 19:01:18 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'Summarize this document....' with 2 chunks.
+2026-07-15 19:01:18 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-15 19:01:18 | INFO    | backend.app.services.reasoning_service:reason:705 - REASONING START
+2026-07-15 19:01:18 | INFO    | backend.app.services.reasoning_service:reason:706 - Reasoning query: 'Summarize this document.'
+2026-07-15 19:01:18 | INFO    | backend.app.services.reasoning_service:reason:711 - Semantic Intent: Summary
+2026-07-15 19:01:18 | INFO    | backend.app.services.answer_formatter:format_response:222 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-15 19:01:18 | INFO    | backend.app.services.answer_formatter:format_response:223 - ANSWER GENERATED
+2026-07-15 19:01:18 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session 7f1to5 from role 'user'
+2026-07-15 19:01:18 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session 7f1to5 from role 'assistant'
+2026-07-15 19:01:18 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id 12eabdb1-5d44-4fe2-800d-5da352fd3182 to D:\MYGPT\data\training_samples.jsonl
+2026-07-15 19:04:49 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session j2fcn active document set to 12eabdb1-5d44-4fe2-800d-5da352fd3182
+2026-07-15 19:04:49 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-15 19:04:49 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-15 19:04:49 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-15 19:04:49 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'name'
+2026-07-15 19:04:49 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 2 chunks (doc_id=12eabdb1-5d44-4fe2-800d-5da352fd3182) with threshold=0.0
+2026-07-15 19:04:50 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 2 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-15 19:04:50 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-15 19:04:50 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'name...' with 2 chunks.
+2026-07-15 19:04:50 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-15 19:04:50 | INFO    | backend.app.services.reasoning_service:reason:705 - REASONING START
+2026-07-15 19:04:50 | INFO    | backend.app.services.reasoning_service:reason:706 - Reasoning query: 'name'
+2026-07-15 19:04:50 | INFO    | backend.app.services.reasoning_service:reason:711 - Semantic Intent: Names
+2026-07-15 19:04:50 | INFO    | backend.app.services.answer_formatter:format_response:222 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-15 19:04:50 | INFO    | backend.app.services.answer_formatter:format_response:223 - ANSWER GENERATED
+2026-07-15 19:04:50 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session j2fcn from role 'user'
+2026-07-15 19:04:50 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session j2fcn from role 'assistant'
+2026-07-15 19:04:50 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id 12eabdb1-5d44-4fe2-800d-5da352fd3182 to D:\MYGPT\data\training_samples.jsonl
+2026-07-15 19:04:59 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session j2fcn active document set to 12eabdb1-5d44-4fe2-800d-5da352fd3182
+2026-07-15 19:04:59 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-15 19:04:59 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-15 19:04:59 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-15 19:04:59 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'education'
+2026-07-15 19:04:59 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 2 chunks (doc_id=12eabdb1-5d44-4fe2-800d-5da352fd3182) with threshold=0.0
+2026-07-15 19:05:00 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 2 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-15 19:05:00 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-15 19:05:00 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'education...' with 2 chunks.
+2026-07-15 19:05:00 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-15 19:05:00 | INFO    | backend.app.services.reasoning_service:reason:705 - REASONING START
+2026-07-15 19:05:00 | INFO    | backend.app.services.reasoning_service:reason:706 - Reasoning query: 'education'
+2026-07-15 19:05:00 | INFO    | backend.app.services.reasoning_service:reason:711 - Semantic Intent: Education
+2026-07-15 19:05:00 | INFO    | backend.app.services.answer_formatter:format_response:222 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-15 19:05:00 | INFO    | backend.app.services.answer_formatter:format_response:223 - ANSWER GENERATED
+2026-07-15 19:05:00 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session j2fcn from role 'user'
+2026-07-15 19:05:00 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session j2fcn from role 'assistant'
+2026-07-15 19:05:00 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id 12eabdb1-5d44-4fe2-800d-5da352fd3182 to D:\MYGPT\data\training_samples.jsonl
