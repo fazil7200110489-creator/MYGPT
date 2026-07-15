@@ -1,0 +1,45 @@
+SALESFORCE DEVELOPER
+KAMBHAMPATI FRANCIS
+Phone: 9347001544
+Email: francis6062@gmail.com
+
+Professional Summary
+Having 3+ years of hands-on experience in Salesforce CRM implementations, including development, administration, and Lightning component development.
+Strong experience working with Sales Cloud and Service Cloud, delivering customized business solutions.
+Hands-on expertise in developing Apex Classes, Triggers, Batch Apex, and Apex Schedulers to implement complex business logic.
+Hands on Experience in writing optimized SOQL queries within Apex classes and triggers.
+Implemented security and access controls using profiles, permission sets, object-level, field-level, and record-level sharing rules, Experience using Postman to test and validate REST API integrations.
+Strong experience working with Salesforce standard objects such as Accounts, Contacts, Leads, and Opportunities.
+Developed dynamic and reusable Lightning Components using Lightning Web Components (LWC). Developed REST APIs using Apex and successfully integrated third-party REST APIs with Salesforce.
+Strong understanding of server-side business logic implementation using Apex to support enterprise-level requirements, Solid knowledge of JavaScript for handling client-side logic in Lightning components.
+Proficient in HTML, CSS, and Salesforce Lightning Design System (SLDS) to build responsive and user-friendly custom UIs.
+Worked with Lightning Data Service (LDS) to perform efficient CRUD operations and ensure data consistency. Hands on experience using Lightning Message Service (LMS) and pubsub.js for component communication.
+
+Technical Skills
+• Salesforce Development: Apex (Classes, Triggers, Batch, Scheduled, Future), SOQL, SOSL, REST/SOAP APIs, Custom Objects, LDS
+• OmniStudio (Vlocity): OmniScripts, DataRaptors (ETL), Integration Procedures, FlexCards, OmniStudio Actions
+• UI & Front-End: Lightning Web Components (LWC), Aura, JavaScript, HTML, CSS, SLDS, React.js
+• Integrations: REST API orchestration, External system integrations
+• Tools & Platforms: Salesforce CRM, VS Code, Force.com IDE, Windows OS
+
+Professional Experience
+SALESFORCE DEVELOPER
+AMAZON DEVELOPMENT CENTRE PRIVATE LIMITED (JUNE 2022 – Present)
+Project: Smart Pack Operations
+Understanding the requirements of client developments and enhancements. Created custom objects based on business logic. Implemented Workflow, Flow to automate field updates. Experience Field level validations and relationships and lookups. Worked with apex classes to handle server-side business logic. Implemented triggers to automate flow and for complex validations. Writing queries in SOQL to perform crud operations with the help of apex classes and triggers. Created lightning components. Designed OmniScripts to create guided user experiences for customer onboarding, service requests, and data updates. Built DataRaptors (Extract, Transform, Load) to fetch and manipulate Salesforce and external data efficiently, Implemented batch classes.
+
+Project: Vision Care
+Developed Apex classes to handle server-side business logic. Created and maintained Batch Apex and Scheduled Apex classes for large data processing and scheduled jobs. Developed Lightning Web Components (LWC) to build custom and responsive user interfaces. Used Salesforce Lightning Design System (SLDS) to design consistent and user-friendly UI components. Wrote SOQL queries to retrieve and manipulate Salesforce data. Developed LWC components using JavaScript and HTML for client-side functionality. Implemented Lightning Message Service (LMS) to enable communication between Lightning components. Used pubsub.js for component-to-component communication where required. Worked with Lightning Data Service (LDS) to perform CRUD operations while maintaining data consistency. Strong Hands-on experience with JavaScript to perform client-side operation.
+
+EDUCATION
+• Bachelor of Technology (B.Tech) – Mechanical, PNC & Vijay institute of engineering and technology | 2013 – 2017
+• Board of Intermediate Education – MPC Sri Chaitanya Junior College | 2010 – 2011
+
+Personal details
+• Date of Birth : 02 - 05 -1995
+• Gender: male
+• Father's name: kambhampati Nageswara Rao
+• Mother's name : kambhampati koteswaramma
+• Nationality: Indian
+• Location: Amaravathi, Palnadu District, Andhra Pradesh
+• Pincode: 522436

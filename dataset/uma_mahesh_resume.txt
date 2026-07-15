@@ -1,0 +1,70 @@
+Uma Mahesh
+Chennai, Tamil Nadu, India
+maheshuma3434@gmail.com — +91-8790035441 — LinkedIn
+
+Salesforce Developer
+Salesforce Developer with 2.5+ years of hands-on experience delivering scalable solutions across Sales and Service Clouds. Strong in Lightning Web Components (LWC), Flow automation, bulkified Apex, and REST integrations. Experienced in CI/CD using Salesforce DX and Git, production support, and Agile delivery. Salesforce Certified Platform Developer I with a passion for continuous learning.
+
+Core Technical Skills
+• Sales Cloud, Experience Cloud
+• Lightning Web Components (LWC), Aura
+• Apex Classes, Bulkified Triggers
+• Asynchronous Apex (Batch, Scheduled)
+• Flow Builder (Screen & Record-Triggered)
+• REST API, OAuth
+• Salesforce Data Model & Security
+• SOQL, Governor Limits
+• Git, Salesforce DX, CI/CD Pipelines
+• Copado, Gearset, Change Sets
+• Test Classes & Code Coverage
+• Agile / Scrum
+
+Professional Experience
+Salesforce Developer — Rudhra Info Solutions (Oct 2023 – Present)
+Chennai, India
+• Developed Salesforce features across Sales Cloud and Experience Cloud supporting internal business operations.
+• Built Lightning Web Components and Lightning record pages to improve user productivity.
+• Implemented Screen Flows and Record-Triggered Flows to automate business processes.
+• Created bulkified Apex Classes and Triggers; implemented Batch and Scheduled Apex.
+• Built Apex test classes ensuring deployment-ready code coverage.
+• Supported REST integrations and collaborated with middleware teams.
+• Participated in Git-based version control, Salesforce DX deployments, and CI/CD pipelines.
+• Troubleshot production issues, performed root-cause analysis, and delivered fixes.
+• Documented technical designs and followed change control processes.
+• Worked with stakeholders in Agile sprint cycles.
+
+Salesforce Intern — Rudhra Info Solutions (Jan 2023 – Oct 2023)
+• Supported development in Apex, LWC, Flows, Salesforce security, and integrations.
+• Built POCs and assisted in real-time implementations.
+
+Key Projects
+Partner Portal Enhancement (Experience Cloud)
+• Developed customized Experience Cloud portal to improve engagement for wealth managers and partners.
+• Built dynamic Lightning Web Components to display historical financial data using interactive charts.
+• Implemented secure Apex REST callouts to fetch real-time data from external systems.
+• Integrated Salesforce with third-party platforms via REST APIs for partner metrics.
+• Customized Experience Cloud pages for responsive desktop and mobile experience.
+• Ensured data security and compliance while handling sensitive client information.
+• Participated in requirement gathering, technical design, and Agile sprint reviews.
+
+Sales Cloud Automation — Powermech Engineering
+• Customized Sales Cloud using custom objects, fields, page layouts, workflows, and approval processes.
+• Built reports and dashboards providing real-time sales insights.
+• Developed Apex Classes and Triggers for business automation.
+• Implemented Quote PDF generation using Visualforce and automated email delivery.
+• Created profiles and enforced object-level and field-level security.
+• Developed test classes and managed deployments using Change Sets.
+
+Certifications
+• Salesforce Certified Platform Developer I
+• Salesforce Certified Associate
+• Copado Fundamentals I
+• Salesforce AI Associate
+• Agile Project Management
+
+Education
+• B.Sc. Computer Science — Sri Vidya Degree College
+• MBA (Human Resources) — Sri Vidya Institute of Management
+
+Additional
+Salesforce Automation • User & Access Management • Reports & Dashboards • Secure Integrations • Production Support • Strong Communication • Continuous Learner

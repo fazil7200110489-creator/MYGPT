@@ -1,0 +1,23 @@
+Tax Invoice INV-2026-001
+Date: 2026-07-15
+Due Date: 12 December 2026
+Bill To:
+Mohamed Fazil
+Chennai, Tamil Nadu, India
+Vendor:
+Acme Systems Ltd.
+Bangalore, Karnataka, India
+
+Description | Quantity | Unit Price | Total
+Salesforce Development Services | 100 hours | $10.00 | $1,000.00
+Cloud Integration Consulting | 10 hours | $25.00 | $250.00
+
+Subtotal: $1,250.00
+Tax (GST 18%): $225.00
+Total Due Amount: $1,475.00
+
+Payment Details:
+Bank: Acme National Bank
+Account: 1234567890
+IFSC: ACME0001234
+Please make payment by the due date.

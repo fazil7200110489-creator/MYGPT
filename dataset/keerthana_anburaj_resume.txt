@@ -1,0 +1,79 @@
+Keerthana Anburaj
+Salesforce Administrator / Developer – 3+ Years of Experience
+2/452-1, Sivan kovil street, Maruthampatinam, Thiruvarur, Tamilnadu – 610001
+Email: keerthanaanburaj4@gmail.com
+Mobile No: 9360018354
+
+EDUCATION:
+Bachelor of Computer Application from E.G.S. Pillay Arts and Science College, Nagapattinam.
+Percentage: 85%
+
+SUMMARY
+Salesforce Administrator / Developer with over 3+ years of experience in customizing, and deploying Salesforce solutions across Sales Cloud, Service Cloud, and Experience Cloud environments. Skilled in Apex, Basic Lightning Web Components (LWC), and Flow to create efficient, user-friendly applications.
+Experienced in data management, and building reports and dashboards. Known for a proactive approach to problem-solving and a commitment to continuous learning, with a track record of successfully collaborating with cross-functional teams to meet business goals and optimize Salesforce functionality.
+
+HIGHLIGHTS
+• Over 3 years of experience in Salesforce development, specializing in Sales Cloud, Service Cloud, and Experience Cloud.
+• Experienced in Workflows, Process Builder, Approval Process, Flows, triggers, Apex classes, and Basic Lightning Web Components.
+• Skilled in working under pressure and adapting to new situations and challenges to best enhance the organizational brand.
+• Complex problem-solver with analytical and driven mindset. Dedicated to achieving demanding development objectives according to tight schedules while producing impeccable code.
+• Technical expertise in Software development lifecycle stages like requirements gathering, analysis, design, development, deployment and Documentation.
+• Good Knowledge of SOQL and SOSL query languages. Good Knowledge of Email services. Experienced in using Gearset for streamlined and reliable deployments.
+
+TECHNICAL SKILLS
+• Salesforce Clouds: Sales Cloud, Service Cloud, Experience Cloud
+• Programming Languages: Apex, JavaScript
+• User Interface: Basic Lightning Web Components (LWC) & Basic Visualforce
+• Automation Tools: Flow, Process Builder, Workflow Rules
+• Deployment & CI/CD: Gearset, Change Sets, Salesforce CLI
+• Data Management: Data Loader, SOQL, SOSL
+• Reporting & Analytics: Reports, Dashboards, Salesforce Analytics
+• Security & Access Control: Profiles, Permission Sets, OWD Sharing Rules
+• Other Tools & Platforms: Salesforce Developer Console, Workbench, Debug Logs
+
+SALESFORCE CERTIFICATIONS:
+• Salesforce Certified Platform Developer I
+• Salesforce Certified Administrator
+• Salesforce Certified AI Associate
+• Salesforce AI Specialist
+
+Employment Summary:
+• Current Employer: vCollab Etiquette
+• Employment Tenure: April 2022 – Present
+• Designation: Salesforce Developer / Associate Software Analyst
+
+PROJECTS
+Project: Booster Fuels
+Role: Salesforce Developer
+Description: Supported Booster Fuels’ fuel delivery service by enhancing Salesforce for managing customer orders and fleet operations. Developed workflows and reports to streamline fuel requests via mobile apps and contract orders, ensuring compliance with city-specific permits. Improved data tracking and reporting, enabling efficient delivery scheduling and customer service.
+Responsibilities:
+• Developed and customized Salesforce workflows, reports, and dashboards to streamline fuel delivery requests and scheduling.
+• Configured Salesforce to manage customer contracts and ensure compliance with city-specific permits for Booster Fuels’ operations.
+• Enhanced data management processes to improve tracking of customer requests, fuel deliveries, and fleet operations.
+• Collaborated with cross-functional teams to gather requirements and implement solutions aligned with Booster Fuels’ business needs.
+• Utilized Change Sets for efficient deployments, ensuring smooth updates to the Salesforce environment.
+• Provided ongoing support and troubleshooting to optimize Salesforce functionality and improve user experience.
+
+Project: Axena Health
+Role: Salesforce Developer
+Description: Implemented Salesforce Sales Cloud and Service Cloud, incorporating Health Cloud features to improve patient management in women's pelvic health. Configured workflows and automated processes to streamline patient follow-ups and improve service efficiency. Created reports and dashboards to track patient engagement and treatment outcomes. Worked with cross-functional teams to ensure solutions met healthcare regulations and best practices.
+Responsibilities:
+• Customized Salesforce features to support Axena Health’s mission in women’s health.
+• Implemented automation using Flow and Apex to improve operational workflows.
+• Developed user interfaces with Lightning Web Components (LWC) for healthcare providers.
+• Managed deployments using Gearset to ensure efficient updates to the Salesforce environment.
+• Collaborated with clinical teams to gather requirements and validate solutions, ensuring compliance with healthcare regulations and best practices.
+
+Project: Tech Goes Home, Crafty Yelk & Radian Generation
+Role: Salesforce Developer
+Description: Contributed to technical debt projects aimed at optimizing Salesforce functionality for Tech Goes Home. Analysed existing systems and identified areas for improvement, enhancing data management and user experience. Collaborated with stakeholders to implement solutions that streamline processes and improve efficiency.
+Responsibilities:
+• Analysed the existing Salesforce implementation to identify technical debt and areas for optimization.
+• Developed and implemented solutions to enhance data management processes and user interfaces.
+• Collaborated with cross-functional teams to gather requirements and ensure alignment with business goals.
+• Provided documentation and training to team members on new features and best practices.
+
+Declaration:
+I do hereby declare that the particulars of information and facts stated herein and above are true, correct and complete to the best of my knowledge and belief.
+Sincerely,
+KEERTHANA A
