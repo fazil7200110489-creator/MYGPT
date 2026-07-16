@@ -124,8 +124,29 @@ class AnswerFormatter:
 
         return "\n".join(processed_lines)
 
-    def _generate_suggested_questions(self, answer: str, confidence: float, intent: Optional[str] = None) -> List[str]:
-        """Generates suggested follow-up questions dynamically based on answer content and intent."""
+    def _generate_suggested_questions(self, answer: str, confidence: float, intent: Optional[str] = None, retrieved_chunks: Optional[List[Dict[str, Any]]] = None) -> List[str]:
+        """Generates suggested follow-up questions dynamically based on answer content, intent, and document type."""
+        # Get doc_type and candidate name from knowledge store
+        from backend.app.services.knowledge_service import knowledge_store
+        doc_type = "generic"
+        candidate_name = None
+        if retrieved_chunks:
+            doc_id = retrieved_chunks[0].get("doc_id")
+            if doc_id:
+                knowledge = knowledge_store.get_knowledge(doc_id)
+                if knowledge:
+                    doc_type = knowledge.get("document_type", "generic").lower()
+                    candidate_name = knowledge.get("candidate_name") or knowledge.get("name")
+
+        if doc_type == "resume":
+            name_ref = candidate_name if candidate_name else "the candidate"
+            return [
+                f"What is {name_ref}'s work experience?",
+                f"What technical skills does {name_ref} possess?",
+                f"What projects has {name_ref} worked on?",
+                f"Can you summarize {name_ref}'s educational background and certifications?"
+            ]
+
         if confidence == 0.0:
             return ["What information is in this document?", "Summarize the document.", "What are the key points?"]
 
@@ -174,13 +195,13 @@ class AnswerFormatter:
             else:
                 questions.append("What other technical tools are mentioned?")
             questions.append("Can you elaborate on the projects listed?")
-
+ 
         elif intent == "Summary":
             questions.append("What is the main conclusion of the document?")
             if unique_keywords:
                 questions.append(f"Can you expand on the section discussing {unique_keywords[0]}?")
             questions.append("What are the key takeaways?")
-
+ 
         elif intent == "Policies":
             if "leave" in ans_words:
                 questions.append("How does the leave policy handle probation?")
@@ -190,7 +211,7 @@ class AnswerFormatter:
                 questions.append(f"What are the guidelines for {unique_keywords[0]}?")
             else:
                 questions.append("Are there exceptions to these policies?")
-
+ 
         # General dynamic questions
         if len(questions) < 3:
             topic = unique_keywords[0] if unique_keywords else "this topic"
@@ -198,7 +219,7 @@ class AnswerFormatter:
             if len(unique_keywords) > 1:
                 questions.append(f"How does the document describe {unique_keywords[1]}?")
             questions.append("What is the context of this information?")
-
+ 
         return questions[:4]
 
     def format_response(
@@ -273,7 +294,7 @@ class AnswerFormatter:
         # Final dedup pass on the formatted answer (never append sources text block to answer)
         formatted_answer = self._strip_duplicate_sentences(formatted_answer)
 
-        suggested = self._generate_suggested_questions(answer, confidence, intent)
+        suggested = self._generate_suggested_questions(answer, confidence, intent, retrieved_chunks)
 
         return {
             "answer": formatted_answer,

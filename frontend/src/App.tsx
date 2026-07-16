@@ -298,7 +298,7 @@ export default function App() {
             {activeTab === 'vocab' && <VocabView showToast={showToast} />}
             {activeTab === 'dataset' && <DatasetView showToast={showToast} />}
             {activeTab === 'embeddings' && <EmbeddingView showToast={showToast} setSelectedTensor={setSelectedTensor} />}
-            {activeTab === 'positional' && <PositionalView />}
+            {activeTab === 'positional' && <PositionalView showToast={showToast} />}
             {activeTab === 'attention' && <AttentionView showToast={showToast} />}
             {activeTab === 'transformer' && <TransformerView stats={stats} />}
             {activeTab === 'training' && <TrainingView losses={losses} valLosses={valLosses} settings={settings} isTraining={isTraining} showToast={showToast} />}
@@ -975,18 +975,98 @@ function EmbeddingView({ showToast, setSelectedTensor }: { showToast: any; setSe
 // ------------------------------------------------------------------------------------------------
 // VIEW: Positional Encoding Viewer Component
 // ------------------------------------------------------------------------------------------------
-function PositionalView() {
+function PositionalView({ showToast }: { showToast: any }) {
   const [seqLen, setSeqLen] = useState(16)
   const [embedDim, setEmbedDim] = useState(16)
+  const [seqLenInput, setSeqLenInput] = useState('16')
+  const [embedDimInput, setEmbedDimInput] = useState('16')
+  const [isSaving, setIsSaving] = useState(false)
   
+  useEffect(() => {
+    let active = true
+    const loadConfig = async () => {
+      try {
+        const config = await api.getModelConfig()
+        if (active) {
+          setSeqLen(config.max_sequence_length)
+          setEmbedDim(config.embedding_dimension)
+          setSeqLenInput(config.max_sequence_length.toString())
+          setEmbedDimInput(config.embedding_dimension.toString())
+        }
+      } catch (err: any) {
+        showToast(err.message || 'Failed to fetch model configuration', 'error')
+      }
+    }
+    loadConfig()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  // Validation checks
+  const parsedSeqLen = parseInt(seqLenInput, 10)
+  const isSeqLenValid = !isNaN(parsedSeqLen) && parsedSeqLen >= 16 && parsedSeqLen <= 4096
+  const seqLenError = seqLenInput && !isSeqLenValid
+    ? 'Sequence Context must be an integer between 16 and 4096.'
+    : ''
+
+  const parsedEmbedDim = parseInt(embedDimInput, 10)
+  const isEmbedDimValid = !isNaN(parsedEmbedDim) && parsedEmbedDim >= 16 && parsedEmbedDim <= 1024
+  const embedDimError = embedDimInput && !isEmbedDimValid
+    ? 'Embedding Dimension must be an integer between 16 and 1024.'
+    : ''
+
+  const isFormValid = isSeqLenValid && isEmbedDimValid
+
+  const handleSave = async () => {
+    if (!isFormValid) return
+    setIsSaving(true)
+    try {
+      const res = await api.saveModelConfig({
+        max_sequence_length: parsedSeqLen,
+        embedding_dimension: parsedEmbedDim
+      })
+      showToast(res.message || 'Configuration saved successfully.', 'success')
+      setSeqLen(parsedSeqLen)
+      setEmbedDim(parsedEmbedDim)
+    } catch (err: any) {
+      showToast(err.message || 'Failed to save configuration.', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleReset = async () => {
+    setIsSaving(true)
+    try {
+      await api.saveModelConfig({
+        max_sequence_length: 16,
+        embedding_dimension: 16
+      })
+      showToast('Configuration reset to defaults successfully.', 'success')
+      setSeqLen(16)
+      setEmbedDim(16)
+      setSeqLenInput('16')
+      setEmbedDimInput('16')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to reset configuration.', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Cap visual heatmap dimensions for rendering performance (up to 64x64)
+  const displaySeqLen = Math.min(seqLen, 64)
+  const displayEmbedDim = Math.min(embedDim, 64)
+
   // Custom manual calculation of Sinusoidal Positional Encoding values
   const getPE = () => {
     const pe: number[][] = []
-    for (let pos = 0; pos < seqLen; pos++) {
+    for (let pos = 0; pos < displaySeqLen; pos++) {
       const row: number[] = []
-      for (let i = 0; i < embedDim; i++) {
+      for (let i = 0; i < displayEmbedDim; i++) {
         // formula: pos / (10000 ^ (2i/d_model))
-        const div = Math.pow(10000.0, (2.0 * Math.floor(i / 2)) / embedDim)
+        const div = Math.pow(10000.0, (2.0 * Math.floor(i / 2)) / displayEmbedDim)
         const angle = pos / div
         const val = i % 2 === 0 ? Math.sin(angle) : Math.cos(angle)
         row.push(val)
@@ -1011,25 +1091,57 @@ function PositionalView() {
             <label className="text-gray-400 font-semibold text-[10px] uppercase">Sequence Positions Context (Max)</label>
             <input
               type="number"
-              value={seqLen}
-              onChange={(e) => setSeqLen(parseInt(e.target.value) || 16)}
-              className="bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-gray-200"
+              value={seqLenInput}
+              onChange={(e) => setSeqLenInput(e.target.value)}
+              className={`bg-gray-950 border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:outline-none text-gray-200 ${
+                seqLenError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-800 focus:ring-indigo-500'
+              }`}
+              placeholder="e.g. 16"
             />
+            {seqLenError && <span className="text-[10px] text-red-500 mt-0.5">{seqLenError}</span>}
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-gray-400 font-semibold text-[10px] uppercase">Embedding Dimension (Width)</label>
             <input
               type="number"
-              value={embedDim}
-              onChange={(e) => setEmbedDim(parseInt(e.target.value) || 16)}
-              className="bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-gray-200"
+              value={embedDimInput}
+              onChange={(e) => setEmbedDimInput(e.target.value)}
+              className={`bg-gray-950 border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:outline-none text-gray-200 ${
+                embedDimError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-800 focus:ring-indigo-500'
+              }`}
+              placeholder="e.g. 16"
             />
+            {embedDimError && <span className="text-[10px] text-red-500 mt-0.5">{embedDimError}</span>}
           </div>
+        </div>
+
+        <div className="flex gap-3 justify-end mt-2">
+          <button
+            onClick={handleReset}
+            disabled={isSaving}
+            className="px-4 py-2 rounded-xl border border-gray-800 text-xs font-semibold text-gray-400 hover:bg-gray-900/50 hover:text-white transition disabled:opacity-50"
+          >
+            Reset to Default
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!isFormValid || isSaving}
+            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition disabled:opacity-50 disabled:hover:bg-indigo-600"
+          >
+            {isSaving ? 'Saving...' : 'Save Configuration'}
+          </button>
         </div>
       </div>
 
       <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4">
-        <h3 className="font-bold text-xs uppercase tracking-wider text-gray-400">Sinusoidal PE Heatmap Grid: <span className="font-mono text-indigo-400">[{seqLen}, {embedDim}]</span></h3>
+        <h3 className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
+          <span>Sinusoidal PE Heatmap Grid: <span className="font-mono text-indigo-400">[{seqLen}, {embedDim}]</span></span>
+          {(seqLen > 64 || embedDim > 64) && (
+            <span className="text-[10px] text-yellow-500/80 font-normal normal-case">
+              (Showing first {displaySeqLen}x{displayEmbedDim} elements for performance)
+            </span>
+          )}
+        </h3>
 
         {/* Heatmap matrix container */}
         <div className="flex flex-col gap-1 overflow-x-auto p-2 bg-gray-950 border border-gray-900 rounded-xl">
@@ -1037,10 +1149,6 @@ function PositionalView() {
             <div key={posIdx} className="flex gap-1 items-center shrink-0">
               <span className="w-12 text-[10px] font-mono text-gray-500 text-right pr-2">Pos {posIdx}</span>
               {row.map((val, dimIdx) => {
-                // val is from -1.0 to 1.0. Interpolate colors
-                // red/purple for negative, green/indigo for positive
-                // Value from -1.0 to 1.0
-                // We can use style background opacity
                 const opacity = Math.abs(val)
                 const isPositive = val >= 0
                 return (
@@ -1823,6 +1931,322 @@ function SettingsView({ settings, fetchSettings, showToast }: SettingsViewProps)
 }
 
 // ==========================================
+// 4.5 Dynamic Response Renderer Component
+// ==========================================
+interface DynamicResponseRendererProps {
+  content: string
+  question: string
+}
+
+function DynamicResponseRenderer({ content, question }: DynamicResponseRendererProps) {
+  const q = question.toLowerCase().trim();
+  const c = content.trim();
+
+  // 1. Detect Tables (Markdown tables with pipes)
+  if (c.includes('|') && c.includes('-') && c.split('\n').length > 2) {
+    const lines = c.split('\n');
+    const rows = lines.map(line => {
+      return line.split('|').map(cell => cell.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+    }).filter(row => row.length > 0);
+
+    if (rows.length >= 2) {
+      const headers = rows[0];
+      const dataRows = rows.slice(2);
+      return (
+        <div className="overflow-x-auto border border-gray-800 rounded-xl my-2 max-w-full">
+          <table className="w-full text-left border-collapse text-[10px]">
+            <thead>
+              <tr className="bg-gray-900 border-b border-gray-800 text-white font-semibold">
+                {headers.map((h, idx) => (
+                  <th key={idx} className="p-2.5">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-850 bg-gray-950/20">
+              {dataRows.map((row, rIdx) => (
+                <tr key={rIdx} className="hover:bg-gray-900/30 text-gray-300">
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} className="p-2.5">{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+  }
+
+  // 2. Detect Yes/No Questions
+  const lowerContent = c.toLowerCase();
+  const startsWithYes = lowerContent.startsWith("yes") || c.startsWith("✅ yes");
+  const startsWithNo = lowerContent.startsWith("no") || c.startsWith("❌ no") || lowerContent.startsWith("the uploaded document does not mention");
+  
+  if (startsWithYes || startsWithNo) {
+    const isYes = startsWithYes;
+    const explanation = c.replace(/^(yes|no|✅ yes|❌ no)[,\s\.]*/i, "").trim();
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center">
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
+            isYes 
+              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+              : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+          }`}>
+            {isYes ? "✅ Yes" : "❌ No"}
+          </span>
+        </div>
+        {explanation && (
+          <p className="text-gray-300 leading-relaxed pl-0.5">{explanation}</p>
+        )}
+      </div>
+    );
+  }
+
+  // 3. Detect Phone, Email, and Candidate Name (Single value strings)
+  const isEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(c) && c.length < 50;
+  const isPhone = (/^(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}$/.test(c.replace(/[\s()-]/g, "")) || /^\+?\d{8,15}$/.test(c.replace(/[\s()-]/g, ""))) && c.length < 30;
+  const isName = (q.includes("name") || q.includes("candidate") || q.includes("who is")) && c.length < 40 && !c.includes("\n") && !c.includes("•");
+
+  if (isPhone || isEmail || isName) {
+    return (
+      <div className="flex items-center gap-3 py-1">
+        <span className="text-lg">{isPhone ? "📞" : isEmail ? "📧" : "👤"}</span>
+        <div>
+          <div className="text-[8px] uppercase tracking-wider text-gray-500 font-semibold">
+            {isPhone ? "Phone Number" : isEmail ? "Email Address" : "Candidate Name"}
+          </div>
+          <div className="text-white font-bold text-[11px] select-all">{c}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Detect Count
+  if (q.includes("how many") || q.includes("count") || q.includes("total experience") || q.includes("years of experience")) {
+    if (/^\d+(\s*years)?$/i.test(c)) {
+      return (
+        <div className="flex items-center gap-3 py-1">
+          <span className="text-lg">📊</span>
+          <div>
+            <div className="text-[8px] uppercase tracking-wider text-gray-500 font-semibold">Total Count / Experience</div>
+            <div className="text-indigo-400 font-extrabold text-sm">{c}</div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // 5. Helper function to parse multiline lists into block groups
+  const parseBlocks = (text: string) => {
+    const lines = text.split('\n');
+    const blocks: { title: string; details: string[] }[] = [];
+    let currentBlock: { title: string; details: string[] } | null = null;
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      
+      // Match bullet point or numbered item start
+      if (line.startsWith('•') || line.startsWith('-') || /^\d+\./.test(trimmed)) {
+        const titleText = trimmed.replace(/^[•\-\d\.\s]+/, '').trim();
+        if (titleText) {
+          currentBlock = { title: titleText, details: [] };
+          blocks.push(currentBlock);
+        }
+      } else if (currentBlock) {
+        const detailText = trimmed.replace(/^[\-\s]+/, '').trim();
+        if (detailText) {
+          currentBlock.details.push(detailText);
+        }
+      } else {
+        // Fallback for lines without a header block
+        blocks.push({ title: trimmed, details: [] });
+      }
+    }
+    return blocks;
+  };
+
+  // 6. Detect Projects
+  if (q.includes("project") || lowerContent.includes("project name")) {
+    const blocks = parseBlocks(c);
+    if (blocks.length > 0) {
+      return (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
+            <span>🚀 Projects</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {blocks.map((block, i) => (
+              <div key={i} className="bg-gray-950/40 border border-gray-855 p-3 rounded-xl relative overflow-hidden flex flex-col justify-between hover:border-gray-800 transition-all">
+                <div className="absolute top-2 right-3 font-bold text-lg text-gray-800/40 select-none">#{i + 1}</div>
+                <div>
+                  <div className="font-bold text-white text-[11px] mb-1.5 pr-8 truncate">
+                    {block.title}
+                  </div>
+                  {block.details.length > 0 && (
+                    <ul className="space-y-1 text-gray-400 text-[10px] pl-1">
+                      {block.details.map((detail, dIdx) => (
+                        <li key={dIdx} className="leading-normal">
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // 7. Detect Experience
+  if (q.includes("experience") || q.includes("work") || q.includes("job") || q.includes("company") || q.includes("employment")) {
+    const blocks = parseBlocks(c);
+    if (blocks.length > 0) {
+      return (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
+            <span>💼 Work Experience</span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {blocks.map((block, i) => (
+              <div key={i} className="bg-gray-950/40 border border-gray-855 p-3 rounded-xl hover:border-gray-800 transition-all">
+                <div className="font-bold text-white flex items-center gap-2 mb-1.5">
+                  <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full" />
+                  {block.title}
+                </div>
+                {block.details.length > 0 && (
+                  <ul className="space-y-1 pl-3.5 text-gray-400 text-[10px]">
+                    {block.details.map((detail, dIdx) => (
+                      <li key={dIdx} className="list-disc leading-relaxed">
+                        {detail}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // 8. Detect Education
+  if (q.includes("education") || q.includes("study") || q.includes("college") || q.includes("degree") || q.includes("university")) {
+    const blocks = parseBlocks(c);
+    if (blocks.length > 0) {
+      return (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
+            <span>🎓 Education</span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {blocks.map((block, i) => (
+              <div key={i} className="bg-gray-950/40 border border-gray-855 p-3 rounded-xl hover:border-gray-800 transition-all">
+                <div className="font-bold text-white flex items-center gap-2 mb-1.5">
+                  <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full" />
+                  {block.title}
+                </div>
+                {block.details.length > 0 && (
+                  <ul className="space-y-1 pl-3.5 text-gray-400 text-[10px]">
+                    {block.details.map((detail, dIdx) => (
+                      <li key={dIdx} className="list-disc leading-relaxed">
+                        {detail}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // 9. Detect Skills
+  if (q.includes("skills") || q.includes("technical") || q.includes("expert") || q.includes("competenc")) {
+    const blocks = parseBlocks(c);
+    if (blocks.length > 0) {
+      return (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
+            <span>💻 Skills</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {blocks.map((block, i) => (
+              <span key={i} className="bg-indigo-500/10 border border-indigo-500/15 text-indigo-300 text-[10px] px-2.5 py-1 rounded-full font-medium transition-all hover:bg-indigo-500/20">
+                {block.title}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // 10. Detect Certifications
+  if (q.includes("certif")) {
+    const blocks = parseBlocks(c);
+    if (blocks.length > 0) {
+      return (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
+            <span>🏆 Certifications</span>
+          </div>
+          <ul className="space-y-1 pl-1">
+            {blocks.map((block, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full shrink-0" />
+                <span>{block.title}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+  }
+
+  // 11. Detect Languages / Address
+  const isLang = q.includes("language");
+  const isAddr = q.includes("address") || q.includes("location") || q.includes("where does");
+  if (isLang || isAddr) {
+    const blocks = parseBlocks(c);
+    if (blocks.length > 0) {
+      return (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
+            <span>{isLang ? "🌍 Languages" : "🏠 Address"}</span>
+          </div>
+          <ul className="space-y-1 pl-1">
+            {blocks.map((block, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full shrink-0" />
+                <span>{block.title}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+  }
+
+  // Default to Summary paragraph block
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1.5 font-semibold text-white mb-0.5">
+        <span>📝 Summary</span>
+      </div>
+      <p className="leading-relaxed">{c}</p>
+    </div>
+  );
+}
+
+// ==========================================
 // 5. Document Chat View Component
 // ==========================================
 function DocumentChatView({ showToast }: { showToast: any }) {
@@ -2009,22 +2433,34 @@ function DocumentChatView({ showToast }: { showToast: any }) {
               const parsed = JSON.parse(eventData)
               if (parsed.token) {
                 setMessages(prev => {
-                  const updated = [...prev]
-                  const last = updated[updated.length - 1]
+                  if (prev.length === 0) return prev
+                  const last = prev[prev.length - 1]
                   if (last && last.role === 'assistant') {
-                    last.content += parsed.token
-                    last.loading = false
+                    return [
+                      ...prev.slice(0, -1),
+                      {
+                        ...last,
+                        content: last.content + parsed.token,
+                        loading: false
+                      }
+                    ]
                   }
-                  return updated
+                  return prev
                 })
               } else if (parsed.metadata) {
                 setMessages(prev => {
-                  const updated = [...prev]
-                  const last = updated[updated.length - 1]
+                  if (prev.length === 0) return prev
+                  const last = prev[prev.length - 1]
                   if (last && last.role === 'assistant') {
-                    last.metadata = parsed.metadata
+                    return [
+                      ...prev.slice(0, -1),
+                      {
+                        ...last,
+                        metadata: parsed.metadata
+                      }
+                    ]
                   }
-                  return updated
+                  return prev
                 })
               }
             } catch (jsonErr) {
@@ -2036,13 +2472,19 @@ function DocumentChatView({ showToast }: { showToast: any }) {
     } catch (err: any) {
       showToast(err.message || 'Chat failed.', 'error')
       setMessages(prev => {
-        const updated = [...prev]
-        const last = updated[updated.length - 1]
+        if (prev.length === 0) return prev
+        const last = prev[prev.length - 1]
         if (last && last.loading) {
-          last.content = "An error occurred during generating reply."
-          last.loading = false
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...last,
+              content: "An error occurred during generating reply.",
+              loading: false
+            }
+          ]
         }
-        return updated
+        return prev
       })
     } finally {
       setChatLoading(false)
@@ -2224,7 +2666,11 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                         ? 'bg-gray-900 text-gray-200 border border-gray-800 rounded-tr-none'
                         : 'bg-gray-900/65 text-gray-300 border border-gray-850 rounded-tl-none'
                     }`}>
-                      {msg.content}
+                      {msg.role === 'user' ? (
+                        msg.content
+                      ) : (
+                        <DynamicResponseRenderer content={msg.content} question={messages[idx - 1]?.content || ""} />
+                      )}
                       {msg.loading && (
                         <span className="inline-flex gap-0.5 ml-1 animate-pulse">
                           <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full"></span>

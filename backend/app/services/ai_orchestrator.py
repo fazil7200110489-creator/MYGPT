@@ -190,6 +190,7 @@ class AIOrchestrator:
             intent=intent,
             context_summary=context_summary,
             doc_id=doc_id,
+            session_id=session_id,
         )
 
         # 5. Format final response output

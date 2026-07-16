@@ -39,6 +39,47 @@ class ModelManager:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self._initialized = True
         logger.info(f"ModelManager singleton initialized. CPU/GPU Device: {self.device}")
+        
+        # Load and apply persistent config on initialization
+        persistent_cfg = self.load_persistent_config()
+        self.config_dict["seq_len"] = persistent_cfg["max_sequence_length"]
+        self.config_dict["embedding_dim"] = persistent_cfg["embedding_dimension"]
+
+    def load_persistent_config(self) -> Dict[str, int]:
+        """Loads max_sequence_length and embedding_dimension from persistent config file."""
+        import json
+        config_path = os.path.join(settings.CHECKPOINT_DIR, "model_config.json")
+        defaults = {
+            "max_sequence_length": 16,
+            "embedding_dimension": 16
+        }
+        if not os.path.exists(config_path):
+            return defaults
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return {
+                "max_sequence_length": data.get("max_sequence_length", 16),
+                "embedding_dimension": data.get("embedding_dimension", 16)
+            }
+        except Exception as e:
+            logger.error(f"Failed to load persistent config: {e}")
+            return defaults
+
+    def save_persistent_config(self, max_sequence_length: int, embedding_dimension: int) -> None:
+        """Saves max_sequence_length and embedding_dimension to persistent config file."""
+        import json
+        os.makedirs(settings.CHECKPOINT_DIR, exist_ok=True)
+        config_path = os.path.join(settings.CHECKPOINT_DIR, "model_config.json")
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "max_sequence_length": max_sequence_length,
+                    "embedding_dimension": embedding_dimension
+                }, f, indent=2)
+            logger.info(f"Saved persistent config: seq_len={max_sequence_length}, embedding_dim={embedding_dimension}")
+        except Exception as e:
+            logger.error(f"Failed to save persistent config: {e}")
 
     def load_model(self, force_rebuild: bool = False) -> GPT:
         """Instantiates and returns the GPT model weights.
@@ -164,6 +205,14 @@ class ModelManager:
                 logger.info("Successfully restored model configuration.")
             except Exception as e:
                 logger.error(f"Failed to restore config: {e}")
+
+        # Override sequence positions context and embedding dimension with persistent configuration if saved
+        persistent_cfg = self.load_persistent_config()
+        self.config_dict["seq_len"] = persistent_cfg["max_sequence_length"]
+        self.config_dict["embedding_dim"] = persistent_cfg["embedding_dimension"]
+        from backend.app.services.trainer_service import trainer_service
+        trainer_service.config["seq_len"] = persistent_cfg["max_sequence_length"]
+        trainer_service.config["embedding_dim"] = persistent_cfg["embedding_dimension"]
 
         # 3. Load Model weights
         if os.path.exists(latest_model):

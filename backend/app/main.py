@@ -64,6 +64,15 @@ async def startup_event():
     # 1. Try to load checkpoint
     restored = model_manager.load_latest_checkpoint()
     
+    # Synchronize persistent configurations (max_sequence_length, embedding_dimension) to model_manager and trainer_service
+    persistent_cfg = model_manager.load_persistent_config()
+    model_manager.config_dict["seq_len"] = persistent_cfg["max_sequence_length"]
+    model_manager.config_dict["embedding_dim"] = persistent_cfg["embedding_dimension"]
+    
+    from backend.app.services.trainer_service import trainer_service
+    trainer_service.config["seq_len"] = persistent_cfg["max_sequence_length"]
+    trainer_service.config["embedding_dim"] = persistent_cfg["embedding_dimension"]
+    
     # Always ensure model is pre-loaded on boot to prevent first-request latency
     logger.info("Pre-loading MyGPT model structure into memory...")
     try:

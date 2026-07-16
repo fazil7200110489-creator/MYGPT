@@ -450,6 +450,38 @@ class ReasoningService:
 
     def __init__(self) -> None:
         logger.info("Initializing ReasoningService.")
+        from backend.app.services.reasoning.intent_classifier import IntentClassifier
+        from backend.app.services.reasoning.entity_relationship import EntityRelationshipResolver
+        from backend.app.services.reasoning.entity_extractor import EntityExtractor
+        from backend.app.services.reasoning.fact_extractor import FactExtractor
+        from backend.app.services.reasoning.context_reasoner import ContextReasoner
+        from backend.app.services.reasoning.answer_builder import AnswerBuilder
+        from backend.app.services.reasoning.validator import Validator
+        from backend.app.services.reasoning.formatter import Formatter
+
+        # Specialists
+        from backend.app.services.reasoning.specialists.resume_reasoner import ResumeReasoner
+        from backend.app.services.reasoning.specialists.invoice_reasoner import InvoiceReasoner
+        from backend.app.services.reasoning.specialists.excel_reasoner import ExcelReasoner
+        from backend.app.services.reasoning.specialists.policy_reasoner import PolicyReasoner
+        from backend.app.services.reasoning.specialists.research_reasoner import ResearchReasoner
+
+        self.intent_classifier = IntentClassifier()
+        self.relationship_resolver = EntityRelationshipResolver()
+        self.entity_extractor = EntityExtractor()
+        self.fact_extractor = FactExtractor()
+        self.context_reasoner = ContextReasoner()
+        self.answer_builder = AnswerBuilder()
+        self.validator = Validator()
+        self.formatter = Formatter()
+
+        self.specialists = {
+            "Resume": ResumeReasoner(),
+            "Invoice": InvoiceReasoner(),
+            "Excel": ExcelReasoner(),
+            "Policy": PolicyReasoner(),
+            "Research Paper": ResearchReasoner()
+        }
 
     def infer_intent(self, question: str) -> str:
         """Dynamically infers the user question intent using keyword mapping."""
@@ -686,16 +718,18 @@ class ReasoningService:
         intent: Optional[str] = None,
         context_summary: Optional[str] = None,
         doc_id: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> Tuple[str, float, bool]:
-        """Performs reasoning over the context or structured knowledge using MyGPT.
+        """Performs true reasoning over the context and structured facts.
         
         Args:
             context: Aggregated clean text chunks.
             question: Search query.
-            retrieved_chunks: Optional retrieved metadata chunks for scoring and logs.
+            retrieved_chunks: Optional retrieved metadata chunks.
             intent: Optional inferred query intent.
             context_summary: Optional memory summary.
-            doc_id: Optional document ID for direct Knowledge Store lookups.
+            doc_id: Optional document ID.
+            session_id: Optional dialogue session ID.
             
         Returns:
             Tuple of (answer_text, confidence_score, knowledge_used).
@@ -705,12 +739,40 @@ class ReasoningService:
         logger.info("REASONING START")
         logger.info(f"Reasoning query: '{question}'")
 
-        # 1. Question Understanding Engine (semantic intent classification)
-        if not intent or intent == "Question Answering":
-            intent = self.infer_intent(question)
-        logger.info(f"Semantic Intent: {intent}")
+        # Intercept formatting instructions: "Give me in points", "Convert to bullets", "List them"
+        q_clean = question.strip().strip('."\'?').lower()
+        if q_clean in ["give me in points", "convert to bullets", "list them", "in points", "to bullets", "list", "bullet points", "convert to list"]:
+            from backend.app.services.conversation_memory import conversation_memory
+            history = conversation_memory.get_history(session_id) if session_id else []
+            last_ans = None
+            for msg in reversed(history):
+                if msg["role"] == "assistant":
+                    last_ans = msg["content"]
+                    break
+            
+            if last_ans:
+                raw_lines = [l.strip() for l in last_ans.split('\n') if l.strip()]
+                if len(raw_lines) == 1 and "," in raw_lines[0]:
+                    raw_lines = [item.strip() for item in raw_lines[0].split(",") if item.strip()]
+                
+                bullet_lines = []
+                for l in raw_lines:
+                    if l.lower() in ["skills", "projects", "certifications"]:
+                        bullet_lines.append(l)
+                    elif l.startswith("•") or re.match(r'^\d+\.', l):
+                        bullet_lines.append(l)
+                    else:
+                        bullet_lines.append(f"• {l}")
+                formatted_ans = "\n".join(bullet_lines)
+                logger.info("Intercepted formatting instruction query. Re-formatting previous response.")
+                return formatted_ans, 99.0, True
 
-        # 2. Ingest or load Knowledge Object
+        # 1. Pronoun and Reference Resolution (EntityRelationshipResolver)
+        resolved_question = question
+        if session_id:
+            resolved_question = self.relationship_resolver.resolve(question, session_id, doc_id)
+
+        # 2. Ingest or Load Knowledge Store Object
         from backend.app.services.knowledge_service import knowledge_store, knowledge_builder
         knowledge = None
         if doc_id:
@@ -721,319 +783,98 @@ class ReasoningService:
                 knowledge = knowledge_store.get_knowledge(candidate_doc_id)
 
         if not knowledge and context:
-            # Build temporary knowledge on the fly for reasoning/tests
             knowledge = knowledge_builder.build_knowledge(context, ".txt")
 
         doc_type = knowledge.get("document_type", "Generic") if knowledge else "Generic"
-        facts = knowledge.get("facts", {}) if knowledge else {}
-        entities = knowledge.get("entities", {}) if knowledge else {}
-        tables = knowledge.get("tables", []) if knowledge else []
 
-        # 3. Conversation Memory pronoun resolution & context merging (Phase 8 & 5)
-        # If intent is FOLLOW_UP, resolve pronoun context
-        intent_upper = intent.upper().replace("-", "_").replace(" ", "_") if intent else "GENERAL"
-        if intent_upper == "FOLLOW_UP" and context_summary:
-            if "skills" in question.lower() or "technologies" in question.lower():
-                intent_upper = "SKILLS"
-            elif "project" in question.lower():
-                intent_upper = "PROJECTS"
-            elif "experience" in question.lower() or "work" in question.lower():
-                intent_upper = "EXPERIENCE"
-            elif "education" in question.lower() or "degree" in question.lower():
-                intent_upper = "EDUCATION"
-            else:
-                intent_upper = "GENERAL"
+        # 3. Intent Classification (IntentClassifier)
+        classified_intent = self.intent_classifier.classify(resolved_question)
+        logger.info(f"Classified Intent: {classified_intent}")
 
-        # 4. Context Reasoner & Document Specialists routing (Phase 5 & 11)
+        # 4. Entity Extraction (EntityExtractor)
+        entities = self.entity_extractor.extract(context, knowledge)
+
+        # 5. Fact Extraction (FactExtractor)
+        extracted_facts = self.fact_extractor.extract(retrieved_chunks, classified_intent, resolved_question)
+
+        # 6. Context Reasoning & Fact Synthesis (ContextReasoner)
+        synthesized_facts = self.context_reasoner.reason(extracted_facts, classified_intent)
+
+        # 7. Document Specialist Routing
+        specialist = None
+        for key, spec in self.specialists.items():
+            if key.lower() == doc_type.lower():
+                specialist = spec
+                break
         reasoning_steps = []
-        raw_ans = ""
-        knowledge_used = False
-
-        q_lower = question.lower()
-        q_words = set(re.findall(r"\w+", q_lower))
-
-        def clean_val(val):
-            if not val:
-                return ""
-            if isinstance(val, list):
-                return ", ".join(val)
-            val = str(val).strip()
-            return val
-
-        # Specialized reasoning modules (Phase 11)
-        if doc_type == "Resume":
-            reasoning_steps.append("Executing ResumeSpecialist reasoning pathway.")
-            if (intent_upper in ["PHONE", "PHONE_NUMBERS"] or any(w in q_lower for w in ["phone", "mobile", "cell", "contact"])) and facts.get("phones"):
-                raw_ans = clean_val(facts["phones"][0])
-                knowledge_used = True
-            elif (intent_upper in ["EMAIL", "EMAILS"] or any(w in q_lower for w in ["email", "e-mail", "mail"])) and facts.get("emails"):
-                raw_ans = clean_val(facts["emails"][0])
-                knowledge_used = True
-            elif (intent_upper in ["NAME", "NAMES"] or any(w in q_lower for w in ["name", "who is"])) and facts.get("name"):
-                raw_ans = clean_val(facts["name"])
-                knowledge_used = True
-            elif (intent_upper == "SKILLS" or "skills" in q_lower) and facts.get("skills"):
-                raw_ans = ", ".join(facts["skills"])
-                knowledge_used = True
-            elif (intent_upper == "TECHNOLOGIES" or "technolog" in q_lower) and facts.get("technologies"):
-                raw_ans = ", ".join(facts["technologies"])
-                knowledge_used = True
-            elif (intent_upper == "PROJECTS" or "project" in q_lower) and facts.get("projects"):
-                raw_ans = clean_val(facts["projects"])
-                knowledge_used = True
-            elif (intent_upper == "EDUCATION" or any(w in q_lower for w in ["education", "degree", "university", "college"])) and facts.get("education"):
-                raw_ans = clean_val(facts["education"])
-                knowledge_used = True
-            elif (intent_upper == "CERTIFICATIONS" or "certificat" in q_lower) and facts.get("certifications"):
-                raw_ans = clean_val(facts["certifications"])
-                knowledge_used = True
-            elif (intent_upper == "EXPERIENCE" or "experience" in q_lower) and facts.get("experience"):
-                raw_ans = clean_val(facts["experience"])
-                knowledge_used = True
-            elif (intent_upper == "SUMMARY" or "summary" in q_lower) and facts.get("summary"):
-                raw_ans = clean_val(facts["summary"])
-                knowledge_used = True
-
-        elif doc_type == "Invoice":
-            reasoning_steps.append("Executing InvoiceSpecialist reasoning pathway.")
-            if any(w in q_lower for w in ["invoice number", "invoice #", "inv #", "inv no", "invoice no", "number"]) and facts.get("invoice_number"):
-                raw_ans = clean_val(facts["invoice_number"])
-                knowledge_used = True
-            elif (intent_upper in ["TOTAL", "INVOICE"] or any(w in q_lower for w in ["total", "grand total", "amount", "due"])) and facts.get("grand_total"):
-                raw_ans = clean_val(facts["grand_total"])
-                knowledge_used = True
-            elif (intent_upper == "TAX" or any(w in q_lower for w in ["gst", "vat", "tax"])) and facts.get("gst"):
-                raw_ans = clean_val(facts["gst"])
-                knowledge_used = True
-            elif (intent_upper in ["DATE", "DATES"] or any(w in q_lower for w in ["date", "when"])) and (facts.get("due_date") or facts.get("invoice_date")):
-                if "late" in q_lower or "overdue" in q_lower:
-                    due_date_str = facts.get("due_date")
-                    pmt_status = facts.get("payment_status", "")
-                    raw_ans = "Yes, the invoice was overdue or payment was late." if "unpaid" in pmt_status.lower() else "No, it was settled on time."
-                else:
-                    raw_ans = clean_val(facts.get("due_date") or facts.get("invoice_date"))
-                knowledge_used = True
-            elif intent_upper == "COUNT" and facts.get("items"):
-                raw_ans = str(len(facts["items"]))
-                knowledge_used = True
-
-        elif doc_type == "Excel":
-            reasoning_steps.append("Executing ExcelSpecialist reasoning pathway.")
-            rows = facts.get("rows", [])
-            columns = facts.get("columns", [])
-            stats = facts.get("statistics", {})
-
-            def find_matching_col():
-                for col in columns:
-                    if col.lower() in question.lower():
-                        return col
-                numeric_cols = [c for c in columns if c in stats]
-                if numeric_cols:
-                    return numeric_cols[0]
-                return None
-
-            col = find_matching_col()
-            if intent_upper == "COUNT":
-                filter_val = None
-                filter_col = None
-                stopwords = {"how", "many", "employees", "are", "in", "is", "the", "a", "of", "to", "for", "count", "number"}
-                for c in columns:
-                    for r in rows:
-                        val = str(r.get(c, "")).strip()
-                        if val.lower() in q_lower and val.lower() not in stopwords:
-                            filter_val = val
-                            filter_col = c
-                            break
-                if filter_val and filter_col:
-                    matching_rows = [r for r in rows if str(r.get(filter_col, "")).strip().lower() == filter_val.lower()]
-                    raw_ans = str(len(matching_rows))
-                    reasoning_steps.append(f"Filtered count on {filter_col} = {filter_val}: {raw_ans}")
-                else:
-                    raw_ans = str(len(rows))
-                knowledge_used = True
-                
-            elif intent_upper == "AVERAGE" and col and col in stats:
-                raw_ans = f"{stats[col]['avg']:.2f}"
-                if raw_ans.endswith(".00"):
-                    raw_ans = raw_ans[:-3]
-                knowledge_used = True
-                
-            elif intent_upper == "TOTAL" and col and col in stats:
-                raw_ans = f"{stats[col]['sum']:.2f}"
-                if raw_ans.endswith(".00"):
-                    raw_ans = raw_ans[:-3]
-                knowledge_used = True
-                
-            elif intent_upper in ["HIGHEST", "LOWEST"] and col and col in stats:
-                target_val = stats[col]["max"] if intent_upper == "HIGHEST" else stats[col]["min"]
-                matching_rows = []
-                for r in rows:
-                    val_str = str(r.get(col, ""))
-                    cleaned_val = re.sub(r'[^\d.-]', '', val_str)
-                    try:
-                        if cleaned_val and float(cleaned_val) == target_val:
-                            matching_rows.append(r)
-                    except ValueError:
-                        pass
-                
-                if matching_rows:
-                    if any(w in q_lower for w in ["who", "which", "name", "person", "employee"]):
-                        name_col = None
-                        for h in columns:
-                            if any(k in h.lower() for k in ["name", "employee", "vendor", "customer", "item", "person"]):
-                                name_col = h
-                                break
-                        if not name_col:
-                            for h in columns:
-                                if h not in stats:
-                                    name_col = h
-                                    break
-                        if name_col:
-                            raw_ans = ", ".join(str(r.get(name_col, "")) for r in matching_rows)
-                        else:
-                            raw_ans = ", ".join(str(r) for r in matching_rows)
-                    else:
-                        raw_ans = str(target_val)
-                else:
-                    raw_ans = str(target_val)
-                knowledge_used = True
-
-        elif doc_type == "Research Paper":
-            reasoning_steps.append("Executing ResearchSpecialist reasoning pathway.")
-            if intent_upper == "SUMMARY" and facts.get("abstract"):
-                raw_ans = facts["abstract"]
-                knowledge_used = True
-            elif "conclusion" in question.lower() and facts.get("conclusion"):
-                raw_ans = facts["conclusion"]
-                knowledge_used = True
-            elif "method" in question.lower() and facts.get("methods"):
-                raw_ans = facts["methods"]
-                knowledge_used = True
-
-        # Fallback to general chunk parsing or keyword search
-        if not raw_ans and context:
-            reasoning_steps.append("No direct structured fact match found. Searching raw context blocks.")
-            
-            sections = knowledge.get("sections", {}) if knowledge else {}
-            for sec_name, sec_content in sections.items():
-                if sec_name.lower() in q_lower:
-                    raw_ans = sec_content
-                    knowledge_used = True
-                    break
-
-            if not raw_ans:
-                if intent_upper in ["PHONE", "PHONE_NUMBERS"] and entities.get("phones"):
-                    raw_ans = clean_val(entities["phones"][0])
-                elif intent_upper in ["EMAIL", "EMAILS"] and entities.get("emails"):
-                    raw_ans = clean_val(entities["emails"][0])
-                elif intent_upper in ["NAME", "NAMES"] and entities.get("people"):
-                    raw_ans = clean_val(entities["people"][0])
-                elif intent_upper in ["TOTAL", "INVOICE"] and entities.get("amounts"):
-                    raw_ans = clean_val(entities["amounts"][0])
-
-            if not raw_ans:
-                clean_context = re.sub(r'\[Page \d+ \| Section: [^\]]+\]', '', context)
-                sentences = [s.strip() for s in clean_context.split("\n\n") if s.strip()]
-                if sentences:
-                    scored_sentences = []
-                    for s in sentences:
-                        s_words = set(re.findall(r"\w+", s.lower()))
-                        overlap = len(q_words.intersection(s_words))
-                        scored_sentences.append((s, overlap))
-                    scored_sentences.sort(key=lambda x: x[1], reverse=True)
-                    if scored_sentences and scored_sentences[0][1] > 0:
-                        raw_ans = scored_sentences[0][0]
-
-        # 5. Answer Planner & Natural Language Generator (Phase 6 & 7)
-        planned_style = "EXPLANATION"
-        if intent_upper in ["PHONE", "PHONE_NUMBERS", "EMAIL", "EMAILS", "NAME", "NAMES", "TOTAL", "INVOICE", "DATE", "DATES", "COUNT", "HIGHEST", "LOWEST", "AVERAGE", "TAX"]:
-            planned_style = "SINGLE_VALUE"
-        elif intent_upper in ["SKILLS", "TECHNOLOGIES", "PROJECTS", "CERTIFICATIONS"]:
-            planned_style = "LIST"
-        elif intent_upper == "SUMMARY":
-            planned_style = "SUMMARY"
-        elif intent_upper == "COMPARISON":
-            planned_style = "COMPARISON"
-
-        formatted_ans = ""
-        if not raw_ans:
-            formatted_ans = "I couldn't find that information in the uploaded document."
-            confidence = 0.0
-        else:
-            if planned_style == "SINGLE_VALUE":
-                # Clean leading bullets/punctuation, but do not strip numeric answers!
-                formatted_ans = clean_val(raw_ans).strip()
-                formatted_ans = re.sub(r"^[•\-*\s]+", "", formatted_ans).strip()
-                formatted_ans = re.sub(r'^(?:According to the document|Based on the candidate\'s profile|The contact phone number is|The candidate\'s name is|The email address is|The grand total is|The total amount is|the due date is|the vendor is|the client is|the matched entry is|the data shows|the average of \w+ is|the total sum of \w+ is)\s*[:,\-]?\s*', '', formatted_ans, flags=re.IGNORECASE).strip()
-            elif planned_style == "LIST":
-                items = []
-                if isinstance(raw_ans, list):
-                    items = raw_ans
-                else:
-                    lines = [l.strip() for l in raw_ans.split('\n') if l.strip()]
-                    for l in lines:
-                        cleaned_line = re.sub(r"^[•\-*\d\.\s]+", "", l).strip()
-                        if cleaned_line:
-                            items.append(cleaned_line)
-                
-                unique_items = []
-                seen_items = set()
-                for item in items:
-                    if item.lower() not in seen_items:
-                        seen_items.add(item.lower())
-                        unique_items.append(item)
-                        
-                formatted_ans = "\n".join([f"{i+1}. {item}" for i, item in enumerate(unique_items[:10])])
-            elif planned_style == "SUMMARY":
-                sentences = [s.strip() for s in re.split(r'(?<=\.|\?)\s+', raw_ans) if s.strip()]
-                formatted_ans = synthesize_summary(sentences, prefix="")
-            elif planned_style == "COMPARISON":
-                formatted_ans = f"## Comparison\n{raw_ans}"
+        
+        if specialist:
+            reasoning_steps.append(f"Routing to {specialist.__class__.__name__}")
+            import inspect
+            sig = inspect.signature(specialist.reason)
+            if "question" in sig.parameters:
+                raw_ans = specialist.reason(entities, synthesized_facts, classified_intent, question=resolved_question)
             else:
-                formatted_ans = post_process_answer(raw_ans)
+                raw_ans = specialist.reason(entities, synthesized_facts, classified_intent)
+            knowledge_used = True
+        else:
+            reasoning_steps.append("Routing to Generic Specialist (facts fallback)")
+            raw_ans = synthesized_facts[0] if synthesized_facts else None
+            knowledge_used = False
 
-        # Apply robust heading/token deduplication (Phase 10)
-        formatted_ans = self._clean_token_repetitions(formatted_ans)
+        # 8. Answer Building (AnswerBuilder)
+        formatted_ans = self.answer_builder.build(raw_ans, classified_intent, doc_type)
 
-        # 6. Confidence Engine (Phase 9)
+        # 9. Formatter Cleanup (Formatter)
+        cleaned_ans = self.formatter.clean(formatted_ans)
+
+        # 10. Validation & Validation-failure Recovery (Validator)
+        is_valid = self.validator.validate(cleaned_ans, classified_intent)
+        if not is_valid:
+            logger.warning(f"Answer failed validation for intent {classified_intent}. Falling back to default fact.")
+            if synthesized_facts:
+                cleaned_ans = self.formatter.clean(synthesized_facts[0])
+            else:
+                cleaned_ans = "I couldn't find that information in the uploaded document."
+
+        # Compute confidence score
         confidence = 0.0
-        if formatted_ans != "I couldn't find that information in the uploaded document.":
+        if cleaned_ans != "I couldn't find that information in the uploaded document.":
             retrieval_factor = 0.9 if retrieved_chunks else 0.5
-            coverage_factor = 0.9 if len(formatted_ans) > 2 else 0.2
+            coverage_factor = 0.9 if len(cleaned_ans) > 2 else 0.2
             
             validation_factor = 1.0
-            if intent_upper in ["PHONE", "PHONE_NUMBERS"]:
-                if not re.search(r'\d{3,}', formatted_ans):
+            if classified_intent in ["PHONE", "PHONE_NUMBERS"]:
+                if not re.search(r'\d{3,}', cleaned_ans):
                     validation_factor = 0.1
-            elif intent_upper in ["EMAIL", "EMAILS"]:
-                if "@" not in formatted_ans:
+            elif classified_intent == "EMAIL":
+                if "@" not in cleaned_ans:
                     validation_factor = 0.1
             
             raw_confidence = (0.4 * retrieval_factor + 0.3 * coverage_factor + 0.3 * validation_factor) * 100.0
             confidence = min(99.0, max(25.0, raw_confidence))
             
             if validation_factor <= 0.1:
-                formatted_ans = "I couldn't find that information in the uploaded document."
+                cleaned_ans = "I couldn't find that information in the uploaded document."
                 confidence = 0.0
 
-        # 7. Debug Logging block (Phase 13)
+        # Debug Logging
         execution_time_ms = (time.time() - t_start) * 1000
         print("\n" + "="*80)
-        print("MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS")
+        print("MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)")
         print("="*80)
         print(f"Document Type:      {doc_type}")
-        print(f"Detected Intent:    {intent}")
+        print(f"Resolved Question:  {resolved_question}")
+        print(f"Detected Intent:    {classified_intent}")
         print(f"Retrieved Chunks:   {len(retrieved_chunks) if retrieved_chunks else 0} chunks")
-        print(f"Extracted Facts:    {json.dumps(facts)[:200] + '...' if facts else 'None'}")
+        print(f"Extracted Facts:    {len(synthesized_facts)} facts")
         print(f"Reasoning Steps:    {'; '.join(reasoning_steps)}")
-        print(f"Planned Answer Type:{planned_style}")
-        print(f"Generated Answer:   {raw_ans[:100] + '...' if len(raw_ans) > 100 else raw_ans}")
-        print(f"Formatted Answer:   {formatted_ans}")
+        print(f"Formatted Answer:   {cleaned_ans}")
         print(f"Confidence:         {confidence:.1f}%")
         print(f"Execution Time:     {execution_time_ms:.2f} ms")
         print("="*80 + "\n")
 
-        return formatted_ans, confidence, knowledge_used
+        return cleaned_ans, confidence, knowledge_used
 
 
 reasoning_service = ReasoningService()

@@ -5,7 +5,9 @@ from fastapi import APIRouter
 from typing import Dict, Any
 from backend.app.services.model_manager import model_manager
 from backend.app.services.trainer_service import trainer_service
-from backend.app.schemas.responses import DashboardResponse, ModelInfoResponse, TrainingRequest
+from backend.app.schemas.responses import (
+    DashboardResponse, ModelInfoResponse, TrainingRequest, ModelConfigRequest, ModelConfigResponse
+)
 
 router = APIRouter(tags=["Model"])
 
@@ -77,3 +79,52 @@ async def post_settings_save(req: TrainingRequest) -> Dict[str, Any]:
             return {"success": False, "message": f"Settings updated, but model rebuild failed: {str(e)}"}
             
     return {"success": True, "message": "Settings saved successfully."}
+
+
+@router.get("/model/config", response_model=ModelConfigResponse)
+async def get_model_config() -> Dict[str, int]:
+    """Returns the persistent model configuration."""
+    cfg = model_manager.load_persistent_config()
+    return {
+        "max_sequence_length": cfg["max_sequence_length"],
+        "embedding_dimension": cfg["embedding_dimension"]
+    }
+
+
+@router.post("/model/config")
+async def post_model_config(req: ModelConfigRequest) -> Dict[str, Any]:
+    """Updates and persists the model configuration."""
+    model_manager.save_persistent_config(
+        max_sequence_length=req.max_sequence_length,
+        embedding_dimension=req.embedding_dimension
+    )
+    
+    # Sync active configuration settings
+    model_manager.config_dict["seq_len"] = req.max_sequence_length
+    model_manager.config_dict["embedding_dim"] = req.embedding_dimension
+    trainer_service.config["seq_len"] = req.max_sequence_length
+    trainer_service.config["embedding_dim"] = req.embedding_dimension
+
+    # Reload model dynamically if not actively training
+    rebuilt = False
+    message = "Configuration saved successfully."
+    if not trainer_service.is_training:
+        try:
+            model_manager.reload_model()
+            rebuilt = True
+            message = "Configuration saved and model reinitialized successfully."
+        except Exception as e:
+            return {"success": False, "message": f"Configuration saved, but model rebuild failed: {str(e)}"}
+    else:
+        message = "Configuration saved. Model reinitialization will take effect on next start, as training is currently active."
+
+    return {
+        "success": True,
+        "message": message,
+        "rebuilt": rebuilt,
+        "config": {
+            "max_sequence_length": req.max_sequence_length,
+            "embedding_dimension": req.embedding_dimension
+        }
+    }
+

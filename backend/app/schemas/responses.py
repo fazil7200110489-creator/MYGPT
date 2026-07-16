@@ -93,3 +93,14 @@ class AttentionResponse(BaseModel):
 class EmbeddingResponse(BaseModel):
     shape: List[int]
     embeddings: List[Dict[str, Any]]
+
+
+class ModelConfigRequest(BaseModel):
+    max_sequence_length: int = Field(..., ge=16, le=4096)
+    embedding_dimension: int = Field(..., ge=16, le=1024)
+
+
+class ModelConfigResponse(BaseModel):
+    max_sequence_length: int
+    embedding_dimension: int
+

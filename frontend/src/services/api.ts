@@ -200,5 +200,24 @@ export const api = {
     })
     if (!res.ok) throw new Error('Failed to reset chat')
     return res.json()
+  },
+
+  async getModelConfig() {
+    const res = await fetch(`${BASE_URL}/api/model/config`)
+    if (!res.ok) throw new Error('Failed to load model config')
+    return res.json()
+  },
+
+  async saveModelConfig(config: { max_sequence_length: number; embedding_dimension: number }) {
+    const res = await fetch(`${BASE_URL}/api/model/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail?.[0]?.msg || errData.message || 'Failed to save model config')
+    }
+    return res.json()
   }
 }
