@@ -16073,3 +16073,639 @@ ValueError: Unable to extract readable text from the uploaded document.
 2026-07-16 18:18:58 | INFO    | backend.app.services.model_manager:load_latest_checkpoint:253 - Successfully restored training history.
 2026-07-16 18:18:58 | INFO    | app.main:startup_event:77 - Pre-loading MyGPT model structure into memory...
 2026-07-16 18:18:58 | INFO    | app.main:startup_event:80 - MyGPT model successfully pre-loaded on boot.
+2026-07-16 18:19:22 | INFO    | backend.app.core.logging:configure_logging:48 - Application logging successfully initialized.
+2026-07-16 18:19:22 | INFO    | backend.app.services.model_manager:__init__:41 - ModelManager singleton initialized. CPU/GPU Device: cpu
+2026-07-16 18:19:22 | INFO    | backend.app.services.embedding_service:__init__:33 - Initializing MyGPTEmbedding provider.
+2026-07-16 18:19:23 | WARNING | backend.app.services.ocr_service:__init__:36 - Tesseract OCR is not installed or not in PATH. OCR will run in fallback mode: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-07-16 18:19:23 | INFO    | backend.app.services.reasoning_service:__init__:452 - Initializing ReasoningService.
+2026-07-16 18:19:23 | INFO    | backend.app.services.conversation_memory:__init__:15 - ConversationMemory service initialized.
+2026-07-16 18:19:23 | INFO    | backend.app.services.reasoning.intent_classifier:_precompute_embeddings:78 - Pre-computing semantic intent classifier seed embeddings...
+2026-07-16 18:19:23 | INFO    | backend.app.services.model_manager:load_model:92 - Initializing new GPT instance in ModelManager...
+2026-07-16 18:19:23 | ERROR   | backend.app.services.model_manager:load_model:122 - Failed to auto-load checkpoint on startup: 'config'
+2026-07-16 18:19:24 | INFO    | backend.app.services.reasoning.intent_classifier:_precompute_embeddings:85 - Successfully loaded semantic intent clusters.
+2026-07-16 18:19:24 | INFO    | backend.app.services.ai_orchestrator:__init__:23 - Initializing AIOrchestrator with v3 extensibility slots.
+2026-07-16 18:19:24 | INFO    | app.main:startup_event:61 - Initializing MyGPT services and attempting to restore checkpoints...
+2026-07-16 18:19:24 | INFO    | backend.app.services.model_manager:load_latest_checkpoint:192 - Successfully restored BPETokenizer vocabulary.
+2026-07-16 18:19:24 | INFO    | backend.app.services.model_manager:load_latest_checkpoint:205 - Successfully restored model configuration.
+2026-07-16 18:19:24 | ERROR   | backend.app.services.model_manager:load_latest_checkpoint:239 - Failed to restore model weights: Error(s) in loading state_dict for GPT:
+	size mismatch for token_embeddings.weight: copying a param with shape torch.Size([1113, 32]) from checkpoint, the shape in current model is torch.Size([1113, 150]).
+	size mismatch for pos_embeddings.pe: copying a param with shape torch.Size([1, 256, 32]) from checkpoint, the shape in current model is torch.Size([1, 100, 150]).
+	size mismatch for blocks.0.ln1.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.ln1.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.attn.q_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.0.attn.q_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.attn.k_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.0.attn.k_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.attn.v_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.0.attn.v_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.attn.out_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.0.attn.out_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.ln2.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.ln2.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.0.ffn.fc1.weight: copying a param with shape torch.Size([128, 32]) from checkpoint, the shape in current model is torch.Size([128, 150]).
+	size mismatch for blocks.0.ffn.fc2.weight: copying a param with shape torch.Size([32, 128]) from checkpoint, the shape in current model is torch.Size([150, 128]).
+	size mismatch for blocks.0.ffn.fc2.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.ln1.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.ln1.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.attn.q_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.1.attn.q_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.attn.k_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.1.attn.k_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.attn.v_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.1.attn.v_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.attn.out_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([150, 150]).
+	size mismatch for blocks.1.attn.out_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.ln2.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.ln2.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for blocks.1.ffn.fc1.weight: copying a param with shape torch.Size([128, 32]) from checkpoint, the shape in current model is torch.Size([128, 150]).
+	size mismatch for blocks.1.ffn.fc2.weight: copying a param with shape torch.Size([32, 128]) from checkpoint, the shape in current model is torch.Size([150, 128]).
+	size mismatch for blocks.1.ffn.fc2.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for ln_f.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for ln_f.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([150]).
+	size mismatch for lm_head.weight: copying a param with shape torch.Size([1113, 32]) from checkpoint, the shape in current model is torch.Size([1113, 150]).
+2026-07-16 18:19:24 | INFO    | backend.app.services.model_manager:load_latest_checkpoint:253 - Successfully restored training history.
+2026-07-16 18:19:24 | INFO    | app.main:startup_event:77 - Pre-loading MyGPT model structure into memory...
+2026-07-16 18:19:24 | INFO    | app.main:startup_event:80 - MyGPT model successfully pre-loaded on boot.
+2026-07-16 18:19:46 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:19:46 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:19:46 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:19:46 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:19:47 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'i wan the number'
+2026-07-16 18:19:47 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:19:47 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:19:47 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:19:47 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'i wan the number...' with 3 chunks.
+2026-07-16 18:19:47 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:19:47 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:19:47 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'i wan the number'
+2026-07-16 18:19:47 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: LOWEST
+2026-07-16 18:19:47 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:19:47 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:19:48 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:19:48 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:19:48 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:19:59 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:19:59 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:19:59 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:19:59 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:19:59 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'phone number'
+2026-07-16 18:20:00 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:20:00 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:20:00 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:20:00 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'phone number...' with 3 chunks.
+2026-07-16 18:20:00 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:20:00 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:20:00 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'phone number'
+2026-07-16 18:20:00 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: PHONE
+2026-07-16 18:20:00 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:20:00 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:20:00 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:20:00 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:20:00 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:20:12 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:20:12 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:20:13 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:20:13 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:20:13 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'i wan the mobile'
+2026-07-16 18:20:13 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:20:13 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:20:13 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:20:13 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'i wan the mobile...' with 3 chunks.
+2026-07-16 18:20:13 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:20:13 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:20:13 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'i wan the mobile'
+2026-07-16 18:20:13 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: PHONE
+2026-07-16 18:20:14 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:20:14 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:20:14 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:20:14 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:20:14 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:20:26 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:20:27 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:20:27 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:20:27 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:20:27 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'i wnat the mobile number'
+2026-07-16 18:20:27 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:20:28 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:20:28 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:20:28 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'i wnat the mobile number...' with 3 chunks.
+2026-07-16 18:20:29 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:20:29 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:20:29 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'i wnat the mobile number'
+2026-07-16 18:20:29 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: PHONE
+2026-07-16 18:20:29 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:20:29 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:20:29 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:20:29 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:20:29 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:20:42 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:20:42 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:20:42 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:20:42 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:20:42 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'i wnat the email id'
+2026-07-16 18:20:43 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:20:44 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:20:44 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:20:44 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'i wnat the email id...' with 3 chunks.
+2026-07-16 18:20:44 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:20:44 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:20:44 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'i wnat the email id'
+2026-07-16 18:20:44 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EMAIL
+2026-07-16 18:20:44 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:20:44 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:20:44 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:20:44 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:20:44 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:20:55 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:20:55 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:20:55 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:20:55 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:20:55 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the work experince'
+2026-07-16 18:20:56 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:20:56 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:20:56 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:20:56 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the work experince...' with 3 chunks.
+2026-07-16 18:20:56 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:20:56 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:20:56 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the work experince'
+2026-07-16 18:20:56 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EXPERIENCE
+2026-07-16 18:20:56 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:20:56 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:20:56 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:20:56 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:20:56 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:22:04 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:22:05 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:22:05 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:22:05 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:22:05 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the technical experince'
+2026-07-16 18:22:05 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:22:06 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:22:06 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:22:06 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the technical experinc...' with 3 chunks.
+2026-07-16 18:22:06 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:22:06 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:22:06 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the technical experince'
+2026-07-16 18:22:07 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SKILLS
+2026-07-16 18:22:07 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:22:07 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:22:07 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:22:07 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:22:07 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:22:20 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session mx8g6v active document set to ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:22:20 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:22:20 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:22:21 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:22:21 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'summary of this resume'
+2026-07-16 18:22:21 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 5 chunks (doc_id=ca832182-e564-4898-b606-1512dec24600) with threshold=0.0
+2026-07-16 18:22:21 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 5 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:22:21 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:22:21 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'summary of this resume...' with 3 chunks.
+2026-07-16 18:22:21 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:22:21 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:22:21 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'summary of this resume'
+2026-07-16 18:22:21 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SUMMARY
+2026-07-16 18:22:21 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:22:21 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:22:21 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'user'
+2026-07-16 18:22:21 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session mx8g6v from role 'assistant'
+2026-07-16 18:22:21 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id ca832182-e564-4898-b606-1512dec24600 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:29:56 | INFO    | backend.app.services.document_manager:delete_document:155 - Removed physical file: D:\MYGPT\data\uploads\ca832182-e564-4898-b606-1512dec24600.pdf
+2026-07-16 18:29:56 | INFO    | backend.app.services.document_manager:delete_document:162 - Removed document ca832182-e564-4898-b606-1512dec24600 from metadata database.
+2026-07-16 18:29:56 | INFO    | backend.app.services.indexing_service:delete_document_index:61 - Deleting document index: ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:29:56 | INFO    | backend.app.services.storage_service:delete_chunks:110 - Deleting chunks for document ca832182-e564-4898-b606-1512dec24600 from JSON store.
+2026-07-16 18:29:56 | INFO    | backend.app.services.knowledge_service:delete_knowledge:927 - Deleting structured knowledge for document: ca832182-e564-4898-b606-1512dec24600
+2026-07-16 18:30:14 | INFO    | backend.app.api.routers.document:upload_document:48 - API triggered upload for file RoselinMary.docx with chunk_size=500
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:40 - UPLOAD START
+2026-07-16 18:30:14 | INFO    | backend.app.services.document_manager:upload_document:73 - Saving uploaded document: RoselinMary.docx as d4114f6f-b9d8-4442-937b-db110e83a7a8.docx
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:46 - UPLOAD END
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:50 - PARSING START
+2026-07-16 18:30:14 | INFO    | backend.app.services.document_parser:parse:136 - PARSING START
+2026-07-16 18:30:14 | INFO    | backend.app.services.document_parser:parse:137 - Parsing document: D:\MYGPT\data\uploads\d4114f6f-b9d8-4442-937b-db110e83a7a8.docx
+2026-07-16 18:30:14 | INFO    | backend.app.services.document_parser:parse:193 - PARSING END
+2026-07-16 18:30:14 | INFO    | backend.app.services.document_parser:parse:194 - TOTAL LATENCY (parse): 326.01 ms
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:53 - PARSING END
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:60 - ========================================
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:61 - INGESTION DEBUG METRICS
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:62 - ========================================
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:63 - DOCUMENT TYPE: .DOCX
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:64 - Extracted Characters: 6122
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:65 - Extracted Words: 811
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:66 - Validation Passed: YES
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:67 - Execution Time: 475.71 ms
+2026-07-16 18:30:14 | INFO    | backend.app.services.ai_orchestrator:process_new_document:68 - ========================================
+2026-07-16 18:30:15 | INFO    | backend.app.services.ai_orchestrator:index_document_background:86 - CHUNKING START
+2026-07-16 18:30:15 | INFO    | backend.app.services.chunk_service:chunk_document:97 - Chunking document: d4114f6f-b9d8-4442-937b-db110e83a7a8 with size=500, overlap=50
+2026-07-16 18:30:15 | INFO    | backend.app.services.chunk_service:chunk_document:260 - Completed chunking. Generated 17 chunks for document: d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:30:15 | INFO    | backend.app.services.ai_orchestrator:index_document_background:88 - CHUNK COUNT: 17
+2026-07-16 18:30:15 | INFO    | backend.app.services.ai_orchestrator:index_document_background:99 - DOCUMENT UNDERSTANDING START
+2026-07-16 18:30:15 | INFO    | backend.app.services.knowledge_service:save_knowledge:915 - Persisting structured knowledge for document: d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:30:15 | INFO    | backend.app.services.ai_orchestrator:index_document_background:110 - DOCUMENT UNDERSTANDING END
+2026-07-16 18:30:15 | INFO    | backend.app.services.ai_orchestrator:index_document_background:111 - Knowledge Built: YES
+2026-07-16 18:30:15 | INFO    | backend.app.services.ai_orchestrator:index_document_background:115 - EMBEDDING START
+2026-07-16 18:30:21 | INFO    | backend.app.services.ai_orchestrator:index_document_background:118 - EMBEDDING END
+2026-07-16 18:30:21 | INFO    | backend.app.services.ai_orchestrator:index_document_background:122 - INDEXING START
+2026-07-16 18:30:21 | INFO    | backend.app.services.storage_service:save_chunks:87 - Saving 17 chunks for document d4114f6f-b9d8-4442-937b-db110e83a7a8 to JSON store.
+2026-07-16 18:30:22 | INFO    | backend.app.services.ai_orchestrator:index_document_background:127 - INDEXING END
+2026-07-16 18:30:22 | INFO    | backend.app.services.ai_orchestrator:index_document_background:128 - Indexed Chunks: 17
+2026-07-16 18:30:22 | INFO    | backend.app.services.ai_orchestrator:index_document_background:133 - TOTAL LATENCY: 6982.21 ms
+2026-07-16 18:30:27 | INFO    | app.main:websocket_training:158 - WebSocket client disconnected from training stream.
+2026-07-16 18:30:27 | INFO    | app.main:websocket_training:158 - WebSocket client disconnected from training stream.
+2026-07-16 18:30:55 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:30:55 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:30:55 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:30:55 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:30:55 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the adress of this candidate'
+2026-07-16 18:30:55 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:30:55 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:30:55 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:30:55 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the adress of this can...' with 3 chunks.
+2026-07-16 18:30:55 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 978 chars.
+2026-07-16 18:30:55 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:30:55 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the adress of this candidate'
+2026-07-16 18:30:56 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SKILLS
+2026-07-16 18:30:56 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:30:56 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:30:56 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:30:56 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:30:56 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:31:04 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:31:04 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:31:04 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:31:04 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:31:04 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'location'
+2026-07-16 18:31:04 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:31:05 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:31:05 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:31:05 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'location...' with 3 chunks.
+2026-07-16 18:31:05 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 981 chars.
+2026-07-16 18:31:05 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:31:05 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'location'
+2026-07-16 18:31:05 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: LOWEST
+2026-07-16 18:31:05 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:31:05 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:31:05 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:31:05 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:31:05 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:31:20 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:31:20 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:31:20 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:31:20 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:31:20 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'which job role'
+2026-07-16 18:31:20 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:31:21 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:31:21 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:31:21 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'which job role...' with 3 chunks.
+2026-07-16 18:31:21 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:31:21 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:31:21 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'which job role'
+2026-07-16 18:31:22 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: PROJECTS
+2026-07-16 18:31:22 | WARNING | backend.app.services.reasoning_service:reason:834 - Answer failed validation for intent PROJECTS. Falling back to default fact.
+2026-07-16 18:31:22 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:31:22 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:31:22 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:31:22 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:31:22 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:31:37 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:31:37 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:31:37 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:31:37 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:31:37 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'skills he known'
+2026-07-16 18:31:37 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:31:38 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:31:38 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:31:38 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'skills he known...' with 3 chunks.
+2026-07-16 18:31:38 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 997 chars.
+2026-07-16 18:31:38 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:31:38 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'skills he known'
+2026-07-16 18:31:38 | INFO    | backend.app.services.reasoning.entity_relationship:resolve:102 - Resolved reference query: 'skills he known' -> 'skills Developer
+
+Development known'
+2026-07-16 18:31:39 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SKILLS
+2026-07-16 18:31:39 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:31:39 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:31:39 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:31:39 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:31:39 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:31:47 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:31:47 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:31:47 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:31:47 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:31:47 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'skills he know'
+2026-07-16 18:31:47 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:31:47 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:31:47 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:31:47 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'skills he know...' with 3 chunks.
+2026-07-16 18:31:47 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:31:47 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:31:47 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'skills he know'
+2026-07-16 18:31:47 | INFO    | backend.app.services.reasoning.entity_relationship:resolve:102 - Resolved reference query: 'skills he know' -> 'skills Developer
+
+Development know'
+2026-07-16 18:31:47 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SKILLS
+2026-07-16 18:31:47 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:31:47 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:31:48 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:31:48 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:31:48 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:32:22 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:32:22 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:32:22 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:32:22 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:32:22 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'age of this candidate'
+2026-07-16 18:32:22 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:32:23 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:32:23 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:32:23 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'age of this candidate...' with 3 chunks.
+2026-07-16 18:32:23 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:32:23 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:32:23 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'age of this candidate'
+2026-07-16 18:32:23 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: HIGHEST
+2026-07-16 18:32:24 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:32:24 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:32:24 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:32:24 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:32:24 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:32:38 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:32:38 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:32:38 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:32:38 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:32:38 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'What is Mailmeroselin3012's work experience?'
+2026-07-16 18:32:38 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:32:38 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:32:38 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:32:39 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'What is Mailmeroselin3012's wo...' with 3 chunks.
+2026-07-16 18:32:39 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:32:39 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:32:39 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'What is Mailmeroselin3012's work experience?'
+2026-07-16 18:32:39 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EXPERIENCE
+2026-07-16 18:32:39 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:32:39 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:32:39 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:32:39 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:32:39 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:32:55 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:32:55 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:32:55 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:32:55 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:32:55 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'name of hte candidate'
+2026-07-16 18:32:56 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:32:58 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:32:58 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:32:58 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'name of hte candidate...' with 3 chunks.
+2026-07-16 18:32:58 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:32:58 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:32:58 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'name of hte candidate'
+2026-07-16 18:32:58 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: CANDIDATE_NAME
+2026-07-16 18:32:58 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:32:58 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:32:58 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:32:58 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:32:59 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:33:17 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:33:17 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:33:17 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:33:17 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:33:17 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'email of htis candidate'
+2026-07-16 18:33:18 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:33:19 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:33:19 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:33:19 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'email of htis candidate...' with 3 chunks.
+2026-07-16 18:33:19 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:33:19 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:33:19 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'email of htis candidate'
+2026-07-16 18:33:19 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EMAIL
+2026-07-16 18:33:20 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:33:20 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:33:20 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:33:20 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:33:20 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:33:40 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:33:41 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:33:41 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:33:41 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:33:41 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the short version summary'
+2026-07-16 18:33:41 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:33:41 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:33:41 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:33:41 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the short version summ...' with 3 chunks.
+2026-07-16 18:33:41 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:33:41 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:33:41 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the short version summary'
+2026-07-16 18:33:41 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SUMMARY
+2026-07-16 18:33:41 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:33:41 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:33:41 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:33:41 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:33:41 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:34:14 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:34:14 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:34:14 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:34:14 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:34:14 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'What projects has Mailmeroselin3012 worked on?'
+2026-07-16 18:34:15 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:34:16 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:34:16 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:34:16 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'What projects has Mailmeroseli...' with 3 chunks.
+2026-07-16 18:34:16 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 994 chars.
+2026-07-16 18:34:16 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:34:16 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'What projects has Mailmeroselin3012 worked on?'
+2026-07-16 18:34:16 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EMAIL
+2026-07-16 18:34:16 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:34:16 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:34:16 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:34:16 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:34:16 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:34:28 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:34:28 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:34:28 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:34:28 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:34:28 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'projects of the resume'
+2026-07-16 18:34:29 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:34:31 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:34:31 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:34:31 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'projects of the resume...' with 3 chunks.
+2026-07-16 18:34:31 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:34:31 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:34:32 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'projects of the resume'
+2026-07-16 18:34:32 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: PROJECTS
+2026-07-16 18:34:32 | WARNING | backend.app.services.reasoning_service:reason:834 - Answer failed validation for intent PROJECTS. Falling back to default fact.
+2026-07-16 18:34:32 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:34:32 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:34:32 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:34:32 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:34:32 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:34:58 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:34:58 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:34:58 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:34:58 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:34:58 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the educational qulaifications'
+2026-07-16 18:34:58 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:34:58 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:34:58 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:34:58 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the educational qulaif...' with 3 chunks.
+2026-07-16 18:34:58 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:34:58 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:34:58 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the educational qulaifications'
+2026-07-16 18:34:58 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EDUCATION
+2026-07-16 18:34:58 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:34:58 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:34:58 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:34:58 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:34:58 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:37:38 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:37:38 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:37:38 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:37:38 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:37:38 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the summary of hte candidate'
+2026-07-16 18:37:38 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:37:39 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:37:39 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:37:39 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the summary of hte can...' with 3 chunks.
+2026-07-16 18:37:39 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 970 chars.
+2026-07-16 18:37:39 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:37:39 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the summary of hte candidate'
+2026-07-16 18:37:39 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SUMMARY
+2026-07-16 18:37:39 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:37:39 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:37:39 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:37:39 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:37:39 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:38:05 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:38:05 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:38:05 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:38:05 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:38:05 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the  summary in 3 lines'
+2026-07-16 18:38:06 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:38:09 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:38:09 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:38:09 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the  summary in 3 line...' with 3 chunks.
+2026-07-16 18:38:09 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 993 chars.
+2026-07-16 18:38:09 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:38:09 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the  summary in 3 lines'
+2026-07-16 18:38:09 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SUMMARY
+2026-07-16 18:38:10 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:38:10 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:38:10 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:38:10 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:38:10 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:38:36 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:38:36 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:38:36 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:38:36 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:38:36 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'is he fit for frontend developer role'
+2026-07-16 18:38:37 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:38:37 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:38:37 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:38:37 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'is he fit for frontend develop...' with 3 chunks.
+2026-07-16 18:38:37 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:38:37 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:38:37 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'is he fit for frontend developer role'
+2026-07-16 18:38:37 | INFO    | backend.app.services.reasoning.entity_relationship:resolve:102 - Resolved reference query: 'is he fit for frontend developer role' -> 'is Developer
+
+Development fit for frontend developer role'
+2026-07-16 18:38:38 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EDUCATION
+2026-07-16 18:38:38 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:38:38 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:38:38 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:38:38 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:38:38 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:39:03 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:39:03 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:39:03 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:39:03 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:39:03 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'did he studied laravel php'
+2026-07-16 18:39:04 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:39:07 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:39:07 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:39:07 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'did he studied laravel php...' with 3 chunks.
+2026-07-16 18:39:07 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 968 chars.
+2026-07-16 18:39:07 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:39:07 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'did he studied laravel php'
+2026-07-16 18:39:07 | INFO    | backend.app.services.reasoning.entity_relationship:resolve:102 - Resolved reference query: 'did he studied laravel php' -> 'did Developer
+
+Development studied laravel php'
+2026-07-16 18:39:08 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SKILLS
+2026-07-16 18:39:08 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:39:08 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:39:08 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:39:08 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:39:08 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:39:24 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:39:24 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:39:24 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:39:24 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:39:24 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'give me the certificates he gained'
+2026-07-16 18:39:25 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:39:26 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:39:26 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:39:26 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'give me the certificates he ga...' with 3 chunks.
+2026-07-16 18:39:26 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:39:26 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:39:26 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'give me the certificates he gained'
+2026-07-16 18:39:26 | INFO    | backend.app.services.reasoning.entity_relationship:resolve:102 - Resolved reference query: 'give me the certificates he gained' -> 'give me the certificates Developer
+
+Development gained'
+2026-07-16 18:39:26 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: CERTIFICATIONS
+2026-07-16 18:39:26 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:39:26 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:39:26 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:39:26 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:39:26 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:39:45 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:39:45 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:39:45 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:39:45 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:39:45 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'did she know rest api'
+2026-07-16 18:39:46 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:39:48 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:39:48 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:39:48 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'did she know rest api...' with 3 chunks.
+2026-07-16 18:39:48 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:39:48 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:39:48 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'did she know rest api'
+2026-07-16 18:39:48 | INFO    | backend.app.services.reasoning.entity_relationship:resolve:102 - Resolved reference query: 'did she know rest api' -> 'did Developer
+
+Development know rest api'
+2026-07-16 18:39:49 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: SKILLS
+2026-07-16 18:39:49 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:39:49 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:39:49 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:39:49 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:39:49 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:39:58 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:39:58 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:39:58 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:39:58 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:39:58 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'css framework'
+2026-07-16 18:39:58 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:40:00 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:40:00 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:40:00 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'css framework...' with 3 chunks.
+2026-07-16 18:40:00 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:40:00 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:40:00 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'css framework'
+2026-07-16 18:40:00 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EXPERIENCE
+2026-07-16 18:40:01 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:40:01 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:40:01 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:40:01 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:40:01 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-16 18:40:18 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session lmnokb active document set to d4114f6f-b9d8-4442-937b-db110e83a7a8
+2026-07-16 18:40:18 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-16 18:40:18 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-16 18:40:18 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-16 18:40:18 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'What technical skills does Mailmeroselin3012 possess?'
+2026-07-16 18:40:19 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 17 chunks (doc_id=d4114f6f-b9d8-4442-937b-db110e83a7a8) with threshold=0.0
+2026-07-16 18:40:23 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 17 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-16 18:40:23 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-16 18:40:23 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'What technical skills does Mai...' with 3 chunks.
+2026-07-16 18:40:23 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-16 18:40:23 | INFO    | backend.app.services.reasoning_service:reason:739 - REASONING START
+2026-07-16 18:40:23 | INFO    | backend.app.services.reasoning_service:reason:740 - Reasoning query: 'What technical skills does Mailmeroselin3012 possess?'
+2026-07-16 18:40:23 | INFO    | backend.app.services.reasoning_service:reason:792 - Classified Intent: EMAIL
+2026-07-16 18:40:23 | INFO    | backend.app.services.answer_formatter:format_response:243 - Formatting final chat response. Confidence=93.00000000000001
+2026-07-16 18:40:24 | INFO    | backend.app.services.answer_formatter:format_response:244 - ANSWER GENERATED
+2026-07-16 18:40:24 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'user'
+2026-07-16 18:40:24 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session lmnokb from role 'assistant'
+2026-07-16 18:40:24 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id d4114f6f-b9d8-4442-937b-db110e83a7a8 to D:\MYGPT\data\training_samples.jsonl
