@@ -387,259 +387,55 @@ class KnowledgeBuilder:
         text_lower = text.lower()
         
         if doc_type == "Resume":
-            # 1. Independent Resume Fields Extraction
-            email = entities["emails"][0] if entities.get("emails") else None
-            phone = entities["phones"][0] if entities.get("phones") else None
+            from backend.app.services.reasoning.candidate_profile_builder import candidate_profile_builder
+            profile = candidate_profile_builder.build_profile(raw_entities=entities, raw_text=text)
 
-            # Extract Candidate Name (exclude family descriptors)
-            candidate_name = None
-            for line in text.split('\n'):
-                line_clean = line.strip()
-                if re.search(r'(?i)\b(?:father|mother|spouse|guardian|husband|wife|parent)\b', line_clean):
-                    continue
-                name_match = re.search(r'(?i)\bname\s*:\s*([A-Za-z\s]{2,40})(?:\n|,|$)', line_clean)
-                if name_match:
-                    candidate_name = name_match.group(1).strip()
-                    break
-            
-            if not candidate_name:
-                lines = [l.strip() for l in text.split('\n') if l.strip()]
-                for l in lines[:5]:
-                    if "@" in l or any(c.isdigit() for c in l) or "/" in l:
-                        continue
-                    if re.search(r'(?i)\b(?:father|mother|spouse|guardian|husband|wife|parent)\b', l):
-                        continue
-                    if len(l) < 40 and re.match(r'^[A-Z][a-zA-Z]*\s+[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)?$', l):
-                        candidate_name = l
-                        break
-            
-            if not candidate_name and email:
-                user_part = email.split('@')[0]
-                candidate_name = user_part.replace('.', ' ').replace('_', ' ').replace('-', ' ').title()
+            work_exp_formatted = [
+                f"{e.get('title', '')} at {e.get('company', '')} ({e.get('years', '')})"
+                for e in profile.get("experience_timeline", [])
+                if isinstance(e, dict)
+            ]
+            if not work_exp_formatted:
+                work_exp_formatted = ["Total experience: " + str(profile.get("total_experience", "Not Mentioned"))]
 
-            # Extract Family Names
-            father_name = None
-            father_match = re.search(r'(?i)(?:father\'s\s*name|father\s*name|name\s*of\s*father)\s*[:\-]?\s*([A-Za-z\s.]{2,40})', text)
-            if father_match:
-                father_name = father_match.group(1).split('\n')[0].strip()
+            edu_list = [
+                f"{e.get('degree', '')} from {e.get('institution', '')}"
+                for e in profile.get("education", [])
+                if isinstance(e, dict)
+            ]
+            cert_list = [
+                c.get("name") if isinstance(c, dict) else str(c)
+                for c in profile.get("certifications", [])
+            ]
+            projects_list = [
+                p.get("name") if isinstance(p, dict) else str(p)
+                for p in profile.get("projects", [])
+            ]
 
-            mother_name = None
-            mother_match = re.search(r'(?i)(?:mother\'s\s*name|mother\s*name|name\s*of\s*mother)\s*[:\-]?\s*([A-Za-z\s.]{2,40})', text)
-            if mother_match:
-                mother_name = mother_match.group(1).split('\n')[0].strip()
-
-            # Extract complete postal address (exclude company locations in experience)
-            address = None
-            header_text = text[:600]
-            addr_match = re.search(r'(?i)\b(?:permanent\s*address|correspondence\s*address|address\s*for\s*communication|residence|address)\s*[:\-]?\s*([^\n,]+(?:,\s*[^\n,]+){1,5})', header_text)
-            if addr_match:
-                address = addr_match.group(1).strip()
-            else:
-                lines = [l.strip() for l in header_text.split('\n') if l.strip()]
-                for l in lines:
-                    if re.search(r'\b(?:pincode|zipcode|pin|zip|address|location)\b', l, re.IGNORECASE) or re.search(r'\b\d{6}\b', l):
-                        if ":" in l:
-                            address = l.split(":", 1)[1].strip()
-                        else:
-                            address = l
-                        break
-
-            # Date of Birth, Gender, Languages, Objective
-            date_of_birth = None
-            dob_match = re.search(r'(?i)\b(?:date\s*of\s*birth|dob|d\.o\.b)\s*[:\-]?\s*([^\n]+)', text)
-            if dob_match:
-                date_of_birth = dob_match.group(1).strip()
-
-            gender = None
-            gender_match = re.search(r'(?i)\b(?:gender|sex)\s*[:\-]?\s*([A-Za-z]+)', text)
-            if gender_match:
-                gender = gender_match.group(1).strip()
-
-            languages = []
-            lang_match = re.search(r'(?i)\b(?:languages\s*known|languages|lang)\s*[:\-]?\s*([^\n]+)', text)
-            if lang_match:
-                languages = [l.strip() for l in re.split(r'[,;•\-*|\s]', lang_match.group(1)) if l.strip() and len(l.strip()) > 1]
-
-            objective = None
-            obj_match = re.search(r'(?i)\b(?:career\s*objective|objective)\s*[:\-]?\s*([^\n]+)', text)
-            if obj_match:
-                objective = obj_match.group(1).strip()
-
-            # Section helper
-            def get_section_content(keywords: List[str]) -> str:
-                for sec_name, content in sections.items():
-                    if any(k in sec_name.lower() for k in keywords):
-                        return content.strip()
-                lines = text.split('\n')
-                captured = []
-                capturing = False
-                for line in lines:
-                    line_lower = line.lower()
-                    is_start = False
-                    for kw in keywords:
-                        if re.search(r'\b' + re.escape(kw) + r's?\b[^:\n]*:', line_lower):
-                            is_start = True
-                            break
-                    if is_start:
-                        capturing = True
-                        parts = line.split(':', 1)
-                        if len(parts) > 1 and parts[1].strip():
-                            captured.append(parts[1].strip())
-                        continue
-                    if capturing:
-                        other_headers = ["education", "experience", "work", "project", "certification", "email", "phone", "address", "about", "language", "languages"]
-                        if ":" in line_lower and any(oh in line_lower for oh in other_headers if oh not in keywords):
-                            capturing = False
-                        else:
-                            captured.append(line.strip())
-                return "\n".join(captured) if captured else ""
-
-            # Recognize varied skill sections and merge them
-            skills_sec = get_section_content(["skills", "technical skills", "hardware knowledge", "core competencies", "professional skills", "software skills", "key skills", "technical expertise"])
-            skills_list = []
-            if skills_sec:
-                cleaned_skills = re.sub(r'\b[A-Za-z\s]+:', ' ', skills_sec)
-                items = re.split(r'[,;•\-*|/()]|\n', cleaned_skills)
-                for item in items:
-                    item_strip = item.strip()
-                    if not item_strip or len(item_strip) < 2 or len(item_strip) > 30:
-                        continue
-                    if item_strip.lower() in ["and", "or", "skills", "technologies", "competencies", "knowledge", "expertise", "core"]:
-                        continue
-                    skills_list.append(item_strip)
-
-            # Specific skill classifications
-            hardware_sec = get_section_content(["hardware knowledge", "hardware skills"])
-            hardware_skills = []
-            if hardware_sec:
-                hardware_skills = [i.strip() for i in re.split(r'[,;•\-*]|\n', hardware_sec) if i.strip() and len(i.strip()) < 30]
-
-            software_sec = get_section_content(["software skills", "software knowledge"])
-            software_skills = []
-            if software_sec:
-                software_skills = [i.strip() for i in re.split(r'[,;•\-*]|\n', software_sec) if i.strip() and len(i.strip()) < 30]
-
-            # Merge all unique skills
-            all_skills = list(set(skills_list + hardware_skills + software_skills))
-
-            # Education & Certifications (Extract separately)
-            edu_sec = get_section_content(["education", "academic", "degree", "university", "college", "school"])
-            edu_list = [l.strip() for l in edu_sec.split('\n') if l.strip()] if edu_sec else []
-
-            cert_sec = get_section_content(["certifications", "certificates", "training", "credentials"])
-            cert_list = [l.strip() for l in cert_sec.split('\n') if l.strip()] if cert_sec else []
-            
-            # Experience Handling: Periods, Total Calculation, Concise entries
-            exp_sec = get_section_content(["experience", "work", "employment", "career", "job"])
-            total_years = 0
-            work_experience = []
-            companies = []
-            designations = []
-            
-            if exp_sec:
-                exp_lines = [l.strip() for l in exp_sec.split('\n') if l.strip()]
-                for l in exp_lines:
-                    range_match = re.search(r'\b(19\d{2}|20\d{2})\b\s*(?:-|to|Present|Present\b)\s*\b(19\d{2}|20\d{2}|present|current)\b', l, re.IGNORECASE)
-                    if range_match:
-                        start_yr = int(range_match.group(1))
-                        end_str = range_match.group(2).lower()
-                        end_yr = 2026 if ("present" in end_str or "current" in end_str) else int(end_str)
-                        diff = end_yr - start_yr
-                        if diff >= 0:
-                            total_years += diff
-                        
-                        role = re.sub(r'\b(19\d{2}|20\d{2}).*$', '', l).strip()
-                        role = re.sub(r'^[•\-*\d\.\s]+', '', role).strip()
-                        if role:
-                            work_experience.append(f"{role} ({range_match.group(0)})")
-                
-                if total_years == 0:
-                    years = [int(y) for y in re.findall(r'\b(20\d{2})\b', exp_sec)]
-                    if len(years) >= 2:
-                        total_years = max(years) - min(years)
-
-                # Extract companies and designations
-                for c in entities.get("companies", []):
-                    if c in exp_sec:
-                        companies.append(c)
-                designations = list(set(re.findall(r'(?i)\b(?:developer|engineer|manager|architect|analyst|specialist|consultant|officer|administrator|intern|designer|lead)\b', exp_sec)))
-
-            total_exp_str = f"Total experience: {total_years} years" if total_years > 0 else "Total experience period not explicitly calculated"
-            if work_experience:
-                work_exp_formatted = work_experience + [total_exp_str]
-            else:
-                work_exp_formatted = [re.sub(r'^[•\-*\d\.\s]+', '', l).strip() for l in exp_sec.split('\n') if l.strip()][:4] + [total_exp_str]
-
-            # Projects handling: Split into individual entries
-            proj_sec = get_section_content(["project", "portfolio", "built", "developed"])
-            projects_list = []
-            if proj_sec:
-                proj_lines = [l.strip() for l in proj_sec.split('\n') if l.strip()]
-                curr_proj = []
-                for line in proj_lines:
-                    if re.match(r'^(?:\d+[\.\)]|•|\-)\s*(.*)', line) or (len(line) < 50 and any(kw in line.lower() for kw in ["project", "engine", "system", "app", "application", "platform"])):
-                        if curr_proj:
-                            projects_list.append(" ".join(curr_proj))
-                            curr_proj = []
-                        cleaned_proj = re.sub(r'^(?:\d+[\.\)]|•|\-)\s*', '', line).strip()
-                        curr_proj.append(cleaned_proj)
-                    else:
-                        curr_proj.append(line)
-                if curr_proj:
-                    projects_list.append(" ".join(curr_proj))
-
-                # If parsing produced a single item that is a comma-separated
-                # inline list (e.g. "ATS Resume Engine, LangMaster"), split it
-                # into individual entries so the count is accurate.
-                if len(projects_list) == 1 and ',' in projects_list[0]:
-                    split_items = [p.strip() for p in projects_list[0].split(',') if p.strip()]
-                    if len(split_items) > 1:
-                        projects_list = split_items
-
-            # Programmatic Resume Summary from facts
-            summary_clauses = []
-            if candidate_name:
-                summary_clauses.append(f"{candidate_name} is a professional")
-            else:
-                summary_clauses.append("The candidate is a professional")
-            
-            if all_skills:
-                summary_clauses.append(f"possessing expertise in {', '.join(all_skills[:5])}")
-            
-            if total_years > 0:
-                summary_clauses.append(f"with approximately {total_years} years of work experience")
-            
-            summary_text = " ".join(summary_clauses) + "."
-
-            if projects_list:
-                summary_text += f" Notable projects include {projects_list[0]}."
-            if edu_list:
-                summary_text += f" Completed education in {edu_list[0]}."
-            if objective:
-                summary_text += f" Goal: {objective}"
-
+            facts["candidate_profile"] = profile
             facts.update({
-                "candidate_name": candidate_name,
-                "father_name": father_name,
-                "mother_name": mother_name,
-                "phone": phone,
-                "email": email,
-                "address": address,
-                "date_of_birth": date_of_birth,
-                "gender": gender,
-                "languages": languages,
-                "profile_summary": summary_text,
-                "objective": objective,
-                "skills": all_skills,
-                "technical_skills": skills_list,
-                "hardware_skills": hardware_skills,
-                "software_skills": software_skills,
+                "candidate_name": profile["name"],
+                "father_name": profile["personal_info"].get("father_name"),
+                "mother_name": profile["personal_info"].get("mother_name"),
+                "phone": profile["personal_info"].get("phone"),
+                "email": profile["personal_info"].get("email"),
+                "address": profile["personal_info"].get("address"),
+                "date_of_birth": profile["personal_info"].get("date_of_birth"),
+                "gender": profile["personal_info"].get("gender"),
+                "languages": profile["personal_info"].get("languages", []),
+                "profile_summary": profile.get("recruiter_summary") or profile.get("summary", ""),
+                "objective": "Not Mentioned",
+                "skills": profile.get("skills", []),
+                "technical_skills": profile.get("skills", []),
+                "hardware_skills": [],
+                "software_skills": [],
                 "education": edu_list,
                 "certifications": cert_list,
                 "work_experience": work_exp_formatted,
                 "projects": projects_list,
-                "companies": companies,
-                "designations": designations
+                "companies": profile.get("companies", []),
+                "designations": [profile["designation"]] if profile.get("designation") != "Not Mentioned" else [],
+                "primary_domain": profile.get("primary_domain")
             })
             
         elif doc_type == "Invoice":
@@ -844,6 +640,8 @@ class KnowledgeBuilder:
                 "companies": facts.get("companies") or [],
                 "designations": facts.get("designations") or []
             })
+            if "candidate_profile" in facts:
+                base_obj["candidate_profile"] = facts["candidate_profile"]
         elif dt_lower == "invoice":
             base_obj.update({
                 "invoice_number": facts.get("invoice_number"),

@@ -33,23 +33,49 @@ class EntityExtractor:
             "github": None
         }
 
-        # 1. Integrate pre-computed knowledge entities and facts if available
+        # 1. Integrate pre-computed knowledge entities and candidate profile if available
+        profile = None
         if knowledge:
+            profile = knowledge.get("candidate_profile") or (knowledge.get("facts", {}).get("candidate_profile") if isinstance(knowledge.get("facts"), dict) else None)
+            
             # Extract root level keys
             for key, val in knowledge.items():
                 if key not in ["entities", "tables", "metadata", "sections"]:
                     entities[key] = val
-            
-            # Map legacy names if they exist
-            k_entities = knowledge.get("entities", {})
-            k_facts = knowledge.get("facts", {})
-            tables = knowledge.get("tables", [])
 
-            # Inject legacy properties for backward compatibility
+            k_entities = knowledge.get("entities", {})
+            k_facts = knowledge.get("facts", {}) if isinstance(knowledge.get("facts"), dict) else {}
+            tables = knowledge.get("tables", [])
+            entities["tables"] = tables
+
+        if profile:
+            entities["candidate_profile"] = profile
+            entities["name"] = profile["name"]
+            entities["candidate_name"] = profile["name"]
+            entities["phone"] = profile["personal_info"].get("phone")
+            entities["email"] = profile["personal_info"].get("email")
+            entities["address"] = profile["personal_info"].get("address")
+            entities["phones"] = [profile["personal_info"]["phone"]] if profile["personal_info"].get("phone") != "Not Mentioned" else []
+            entities["emails"] = [profile["personal_info"]["email"]] if profile["personal_info"].get("email") != "Not Mentioned" else []
+            entities["addresses"] = [profile["personal_info"]["address"]] if profile["personal_info"].get("address") != "Not Mentioned" else []
+            entities["skills"] = profile.get("skills", [])
+            entities["education"] = profile.get("education", [])
+            entities["experience"] = profile.get("experience_timeline", [])
+            entities["work_experience"] = profile.get("experience_timeline", [])
+            entities["companies"] = profile.get("companies", [])
+            entities["projects"] = profile.get("projects", [])
+            entities["certifications"] = profile.get("certifications", [])
+            entities["designation"] = profile.get("designation")
+            entities["location"] = profile.get("current_location")
+            entities["linkedin"] = profile["personal_info"].get("linkedin")
+            entities["github"] = profile["personal_info"].get("github")
+            entities["primary_domain"] = profile.get("primary_domain")
+        elif knowledge:
+            # Map legacy names if candidate profile not yet attached
             people_list = k_entities.get("people")
             entities["name"] = k_facts.get("name") or entities.get("candidate_name") or (people_list[0] if isinstance(people_list, list) and people_list else None)
-            entities["phones"] = k_facts.get("phones") or [entities.get("phone")] if entities.get("phone") else k_entities.get("phones", [])
-            entities["emails"] = k_facts.get("emails") or [entities.get("email")] if entities.get("email") else k_entities.get("emails", [])
+            entities["phones"] = k_facts.get("phones") or ([entities.get("phone")] if entities.get("phone") else k_entities.get("phones", []))
+            entities["emails"] = k_facts.get("emails") or ([entities.get("email")] if entities.get("email") else k_entities.get("emails", []))
             entities["addresses"] = [entities.get("address")] if entities.get("address") else k_entities.get("addresses", [])
             entities["companies"] = entities.get("companies") or k_entities.get("companies", [])
             entities["projects"] = entities.get("projects") or []
@@ -60,7 +86,6 @@ class EntityExtractor:
             entities["amounts"] = k_entities.get("amounts", [])
             entities["invoice_numbers"] = [k_facts.get("invoice_number")] if k_facts.get("invoice_number") else []
             entities["gst"] = k_facts.get("gst") or k_facts.get("tax")
-            entities["tables"] = tables
 
         # Partition raw text into sections dynamically
         sections: Dict[str, str] = {}

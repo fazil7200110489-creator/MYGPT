@@ -1,0 +1,562 @@
+{
+  "departments": {
+    "Technology Services": {
+      "department_name": "Technology Services",
+      "department_weight": 1.2,
+      "roles": {
+        "Frontend Developer": {
+          "role_name": "Frontend Developer",
+          "alternative_titles": [
+            "UI Developer",
+            "React Developer",
+            "Angular Developer",
+            "Frontend Engineer",
+            "Web Developer"
+          ],
+          "required_skills": [
+            "JavaScript",
+            "HTML",
+            "CSS",
+            "TypeScript"
+          ],
+          "preferred_skills": [
+            "React",
+            "Angular",
+            "Vue",
+            "Redux",
+            "TailwindCSS",
+            "Next.js"
+          ],
+          "nice_to_have_skills": [
+            "GraphQL",
+            "Webpack",
+            "Vite",
+            "Jest",
+            "Cypress"
+          ],
+          "experience_min_years": 2,
+          "education_requirements": [
+            "BCA",
+            "B.Tech",
+            "BE",
+            "MCA",
+            "B.Sc Computer Science"
+          ],
+          "certification_requirements": [
+            "AWS Certified Developer",
+            "Meta Frontend Developer Certificate"
+          ],
+          "tools": [
+            "Git",
+            "VS Code",
+            "Figma",
+            "npm",
+            "Postman"
+          ],
+          "technology_stack": [
+            "React",
+            "Angular",
+            "Vue",
+            "TypeScript",
+            "JavaScript",
+            "HTML5",
+            "CSS3"
+          ],
+          "synonyms": [
+            "ui engineer",
+            "web designer",
+            "react.js developer",
+            "frontend lead"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        },
+        "Backend Developer": {
+          "role_name": "Backend Developer",
+          "alternative_titles": [
+            "Server Engineer",
+            "Python Developer",
+            "Node.js Developer",
+            "Java Developer",
+            "API Developer"
+          ],
+          "required_skills": [
+            "Python",
+            "Java",
+            "Node.js",
+            "SQL",
+            "REST API"
+          ],
+          "preferred_skills": [
+            "FastAPI",
+            "Django",
+            "Spring Boot",
+            "Express.js",
+            "PostgreSQL",
+            "MongoDB"
+          ],
+          "nice_to_have_skills": [
+            "Docker",
+            "Kubernetes",
+            "Redis",
+            "Kafka",
+            "Microservices"
+          ],
+          "experience_min_years": 2,
+          "education_requirements": [
+            "B.Tech",
+            "BE",
+            "MCA",
+            "M.Tech",
+            "B.Sc Computer Science"
+          ],
+          "certification_requirements": [
+            "AWS Certified Solutions Architect",
+            "Oracle Certified Java Developer"
+          ],
+          "tools": [
+            "Git",
+            "Postman",
+            "Docker",
+            "Swagger",
+            "Jira"
+          ],
+          "technology_stack": [
+            "Python",
+            "Java",
+            "Node.js",
+            "FastAPI",
+            "Spring Boot",
+            "PostgreSQL"
+          ],
+          "synonyms": [
+            "backend engineer",
+            "server side developer",
+            "database developer"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        },
+        "Full Stack Developer": {
+          "role_name": "Full Stack Developer",
+          "alternative_titles": [
+            "Full Stack Engineer",
+            "MERN Developer",
+            "MEAN Developer",
+            "Software Engineer"
+          ],
+          "required_skills": [
+            "JavaScript",
+            "HTML",
+            "CSS",
+            "SQL",
+            "REST API"
+          ],
+          "preferred_skills": [
+            "React",
+            "Node.js",
+            "Express",
+            "MongoDB",
+            "PostgreSQL",
+            "TypeScript"
+          ],
+          "nice_to_have_skills": [
+            "Docker",
+            "AWS",
+            "GraphQL",
+            "Next.js",
+            "TailwindCSS"
+          ],
+          "experience_min_years": 3,
+          "education_requirements": [
+            "B.Tech",
+            "BE",
+            "MCA",
+            "BCA",
+            "M.Tech"
+          ],
+          "certification_requirements": [
+            "AWS Certified Developer",
+            "Full Stack Web Developer Certificate"
+          ],
+          "tools": [
+            "Git",
+            "VS Code",
+            "Postman",
+            "Docker",
+            "Jira"
+          ],
+          "technology_stack": [
+            "React",
+            "Node.js",
+            "Express",
+            "MongoDB",
+            "TypeScript",
+            "Python"
+          ],
+          "synonyms": [
+            "fullstack engineer",
+            "mern stack developer",
+            "mean stack engineer"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        },
+        "DevOps Engineer": {
+          "role_name": "DevOps Engineer",
+          "alternative_titles": [
+            "Site Reliability Engineer",
+            "Cloud Engineer",
+            "Infrastructure Engineer",
+            "Build Engineer"
+          ],
+          "required_skills": [
+            "Linux",
+            "Docker",
+            "CI/CD",
+            "Git",
+            "Shell Scripting"
+          ],
+          "preferred_skills": [
+            "Kubernetes",
+            "AWS",
+            "Terraform",
+            "Ansible",
+            "Jenkins",
+            "Prometheus"
+          ],
+          "nice_to_have_skills": [
+            "Azure",
+            "GCP",
+            "Python",
+            "Helm",
+            "Grafana"
+          ],
+          "experience_min_years": 3,
+          "education_requirements": [
+            "B.Tech",
+            "BE",
+            "MCA",
+            "B.Sc IT"
+          ],
+          "certification_requirements": [
+            "AWS Certified DevOps Engineer",
+            "CKA (Certified Kubernetes Administrator)"
+          ],
+          "tools": [
+            "Jenkins",
+            "Docker",
+            "Kubernetes",
+            "Terraform",
+            "GitLab"
+          ],
+          "technology_stack": [
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Terraform",
+            "Linux",
+            "Bash"
+          ],
+          "synonyms": [
+            "sre",
+            "cloud devops engineer",
+            "ci/cd specialist"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        },
+        "Cyber Security Specialist": {
+          "role_name": "Cyber Security Specialist",
+          "alternative_titles": [
+            "Security Analyst",
+            "InfoSec Specialist"
+          ],
+          "required_skills": [
+            "Network Security",
+            "Penetration Testing",
+            "SIEM"
+          ],
+          "preferred_skills": [
+            "Wireshark",
+            "Metasploit",
+            "Python"
+          ],
+          "nice_to_have_skills": [],
+          "experience_min_years": 3,
+          "education_requirements": [],
+          "certification_requirements": [],
+          "tools": [],
+          "technology_stack": [],
+          "synonyms": [],
+          "skill_weight": 4.5,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        }
+      }
+    },
+    "People And Culture": {
+      "department_name": "People And Culture",
+      "department_weight": 1.1,
+      "roles": {
+        "HR Manager": {
+          "role_name": "HR Manager",
+          "alternative_titles": [
+            "Human Resources Manager",
+            "HR Head",
+            "People Manager",
+            "Personnel Manager"
+          ],
+          "required_skills": [
+            "Recruitment",
+            "HRMS",
+            "Payroll",
+            "Employee Relations",
+            "Compliance"
+          ],
+          "preferred_skills": [
+            "Talent Acquisition",
+            "Labor Laws",
+            "Performance Management",
+            "Statutory Compliance"
+          ],
+          "nice_to_have_skills": [
+            "HR Analytics",
+            "SuccessFactors",
+            "Workday",
+            "Employee Engagement"
+          ],
+          "experience_min_years": 5,
+          "education_requirements": [
+            "MBA",
+            "PGDM",
+            "BBA",
+            "Master in Personnel Management"
+          ],
+          "certification_requirements": [
+            "CHRP",
+            "SHRM-CP",
+            "SHRM-SCP"
+          ],
+          "tools": [
+            "Excel",
+            "HRMS",
+            "Zoho People",
+            "Keka",
+            "LinkedIn Recruiter"
+          ],
+          "technology_stack": [
+            "HRMS",
+            "Payroll Software",
+            "Zoho",
+            "Keka",
+            "Excel"
+          ],
+          "synonyms": [
+            "hr lead",
+            "human resource manager",
+            "hr business partner"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        },
+        "Recruitment Executive": {
+          "role_name": "Recruitment Executive",
+          "alternative_titles": [
+            "Talent Acquisition Specialist",
+            "HR Recruiter",
+            "Technical Recruiter",
+            "Staffing Specialist"
+          ],
+          "required_skills": [
+            "Sourcing",
+            "Screening",
+            "Interviewing",
+            "Candidate Assessment"
+          ],
+          "preferred_skills": [
+            "End-to-End Recruitment",
+            "ATS Management",
+            "LinkedIn Sourcing",
+            "Job Portals"
+          ],
+          "nice_to_have_skills": [
+            "Headhunting",
+            "Technical Sourcing",
+            "Salary Negotiation"
+          ],
+          "experience_min_years": 1,
+          "education_requirements": [
+            "BBA",
+            "MBA",
+            "BA",
+            "B.Com"
+          ],
+          "certification_requirements": [
+            "Certified Talent Acquisition Specialist"
+          ],
+          "tools": [
+            "Naukri",
+            "LinkedIn Recruiter",
+            "Zoho Recruit",
+            "Excel",
+            "Greenhouse"
+          ],
+          "technology_stack": [
+            "ATS",
+            "LinkedIn",
+            "Naukri",
+            "Monster",
+            "Indeed"
+          ],
+          "synonyms": [
+            "recruiter",
+            "talent acquisition executive",
+            "hr recruiter"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        }
+      }
+    },
+    "Finance And Accounting": {
+      "department_name": "Finance And Accounting",
+      "department_weight": 1.1,
+      "roles": {
+        "Senior Accountant": {
+          "role_name": "Senior Accountant",
+          "alternative_titles": [
+            "Accountant",
+            "Accounts Manager",
+            "Financial Accountant",
+            "Chief Accountant"
+          ],
+          "required_skills": [
+            "Accounting",
+            "Tally",
+            "GST",
+            "Taxation",
+            "Financial Reporting"
+          ],
+          "preferred_skills": [
+            "Bookkeeping",
+            "Accounts Payable",
+            "Accounts Receivable",
+            "Reconciliation",
+            "Auditing"
+          ],
+          "nice_to_have_skills": [
+            "SAP FICO",
+            "QuickBooks",
+            "IFRS",
+            "Costing"
+          ],
+          "experience_min_years": 4,
+          "education_requirements": [
+            "B.Com",
+            "M.Com",
+            "CA",
+            "CMA",
+            "MBA Finance"
+          ],
+          "certification_requirements": [
+            "CA",
+            "CPA",
+            "CMA",
+            "GST Certified Practitioner"
+          ],
+          "tools": [
+            "Tally Prime",
+            "Excel",
+            "SAP",
+            "QuickBooks",
+            "Zohobooks"
+          ],
+          "technology_stack": [
+            "Tally",
+            "SAP FICO",
+            "Excel",
+            "QuickBooks"
+          ],
+          "synonyms": [
+            "accounts executive",
+            "senior accounts manager",
+            "finance executive"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        }
+      }
+    },
+    "Healthcare And Medical": {
+      "department_name": "Healthcare And Medical",
+      "department_weight": 1.1,
+      "roles": {
+        "Staff Nurse": {
+          "role_name": "Staff Nurse",
+          "alternative_titles": [
+            "Registered Nurse",
+            "Clinical Nurse",
+            "ICU Nurse",
+            "Nursing Officer"
+          ],
+          "required_skills": [
+            "Patient Care",
+            "Vital Signs",
+            "Medication Administration",
+            "Clinical Assessment"
+          ],
+          "preferred_skills": [
+            "ICU Care",
+            "Triage",
+            "Patient Monitoring",
+            "Emergency Care",
+            "EHR"
+          ],
+          "nice_to_have_skills": [
+            "BLS",
+            "ACLS",
+            "Pediatric Nursing",
+            "Surgical Assistance"
+          ],
+          "experience_min_years": 1,
+          "education_requirements": [
+            "B.Sc Nursing",
+            "GNM Nursing",
+            "M.Sc Nursing"
+          ],
+          "certification_requirements": [
+            "State Nursing Council Registration",
+            "BLS",
+            "ACLS"
+          ],
+          "tools": [
+            "EHR Systems",
+            "Infusion Pumps",
+            "Ventilator",
+            "Patient Monitor"
+          ],
+          "technology_stack": [
+            "Clinical EHR",
+            "Hospital Information System (HIS)"
+          ],
+          "synonyms": [
+            "nurse",
+            "clinical nurse practitioner",
+            "head nurse"
+          ],
+          "skill_weight": 4.0,
+          "role_weight": 2.5,
+          "domain_weight": 2.0
+        }
+      }
+    }
+  }
+}

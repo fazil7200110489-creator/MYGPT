@@ -63,6 +63,7 @@ class QuestionEntity(str, Enum):
     SUMMARY          = "SUMMARY"      # "summarize", "overview"
     CONTACT          = "CONTACT"      # broad "contact details"
     BASIC_PROFILE    = "BASIC_PROFILE"
+    COMPANIES        = "COMPANIES"    # "what companies worked in"
 
     # Family / Personal Details (not usually in resume)
     FATHER_NAME      = "FATHER_NAME"
@@ -104,16 +105,21 @@ ENTITY_TRIGGERS: List[Tuple[QuestionEntity, List[str]]] = [
         "app developer", "backend developer", "frontend developer",
         "full stack developer", "fullstack developer",
         "mobile developer", "devops engineer", "cloud engineer",
-        "ml engineer", "ai engineer", "data engineer",
+        "ml engineer", "ai engineer", "data engineer", "hr manager",
+        "clinical staff nurse", "payroll executive", "staff nurse",
         "work as", "work like", "act as", "serve as",
-        "developer", "engineer", "programmer",
+        "developer", "engineer", "programmer", "nurse", "manager",
     ]),
 
-    # Summary
+    # Summary & Profile
     (QuestionEntity.SUMMARY,          [
         "summarize", "summary", "overview", "brief", "synopsis",
         "profile summary", "who is", "who's", "who is this",
         "summarize education",
+    ]),
+    (QuestionEntity.COMPANIES,        [
+        "companies", "company", "companies worked", "companies worked in",
+        "employers", "worked in", "worked at", "list of companies", "organizations worked"
     ]),
 
     # Name
@@ -121,10 +127,14 @@ ENTITY_TRIGGERS: List[Tuple[QuestionEntity, List[str]]] = [
 
     # Contact details (broad query, prioritized before specific fields)
     (QuestionEntity.CONTACT,          ["contact details", "contact info", "contact information", "contact"]),
-    (QuestionEntity.EMAIL,            ["email", "gmail", "e-mail", "mail"]),
-    (QuestionEntity.PHONE,            ["phone", "mobile", "cell", "telephone"]),
+    (QuestionEntity.EMAIL,            ["email", "gmail", "e-mail", "mail", "mail id"]),
+    (QuestionEntity.PHONE,            ["phone", "mobile", "cell", "telephone", "phone number", "mobile number", "contact no", "phone no"]),
     (QuestionEntity.BASIC_PROFILE,    ["basic details", "basic profile", "basic info", "basic information"]),
-    (QuestionEntity.ADDRESS,          ["address", "location", "city", "residence", "place"]),
+    (QuestionEntity.ADDRESS,          [
+        "address", "location", "city", "residence", "place", "native", "native place",
+        "hometown", "permanent location", "current location", "residence address",
+        "full address", "district", "state", "where is candidate from", "where is the candidate from"
+    ]),
     (QuestionEntity.LINKEDIN,         ["linkedin"]),
     (QuestionEntity.GITHUB,           ["github"]),
 
@@ -132,14 +142,15 @@ ENTITY_TRIGGERS: List[Tuple[QuestionEntity, List[str]]] = [
     (QuestionEntity.DESIGNATION,      ["designation", "job role", "job title", "position", "role"]),
     (QuestionEntity.WORK_EXPERIENCE,  [
         "experience", "work history", "employment", "career",
-        "company", "worked", "employment history",
+        "company", "worked", "employment history", "experience of candidate", "career history"
     ]),
     (QuestionEntity.SKILLS,           [
-        "skills", "technical skills", "technologies", "frameworks",
-        "tools", "libraries", "tech stack", "software", "expertise",
+        "skills", "technical skills", "professional skills", "core skills",
+        "technologies", "frameworks", "tools", "libraries", "tech stack",
+        "software", "expertise", "competencies"
     ]),
     (QuestionEntity.PROGRAMMING_LANGS,["programming language", "programming languages", "coding language"]),
-    (QuestionEntity.LANGUAGES,        ["language", "languages", "speak", "spoken", "human language"]),
+    (QuestionEntity.LANGUAGES,        ["language", "languages", "speak", "spoken", "human language", "known languages"]),
     (QuestionEntity.PROJECTS,         ["projects", "project", "portfolio", "developed", "built", "application"]),
     (QuestionEntity.CERTIFICATIONS,   ["certifications", "certification", "certificate", "courses", "training"]),
     (QuestionEntity.EDUCATION,        [

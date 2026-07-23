@@ -95,15 +95,27 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
     },
     "ADDRESS": {
         "entities": [QuestionEntity.ADDRESS],
-        "keywords": ["address", "location", "city", "residence", "place"],
+        "keywords": [
+            "address", "location", "city", "residence", "place", "native", "native place",
+            "hometown", "permanent location", "current location", "where is candidate from",
+            "where is the candidate from", "residence address", "full address", "district", "state"
+        ],
+    },
+    "COMPANIES": {
+        "entities": [QuestionEntity.COMPANIES],
+        "keywords": [
+            "companies", "company", "companies worked", "companies worked in",
+            "worked in", "worked at", "employers", "organizations worked",
+            "list of companies", "company names", "all companies"
+        ],
     },
     "LINKEDIN": {
         "entities": [QuestionEntity.LINKEDIN],
-        "keywords": ["linkedin"],
+        "keywords": ["linkedin", "linkedin profile"],
     },
     "GITHUB": {
         "entities": [QuestionEntity.GITHUB],
-        "keywords": ["github"],
+        "keywords": ["github", "github profile"],
     },
     "DOMAIN": {
         "entities": [QuestionEntity.DOMAIN],
@@ -111,21 +123,22 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
     },
     "DESIGNATION": {
         "entities": [QuestionEntity.DESIGNATION],
-        "keywords": ["designation", "job title", "position"],
+        "keywords": ["designation", "job title", "position", "current role", "job role"],
     },
     "EXPERIENCE": {
         "entities": [QuestionEntity.WORK_EXPERIENCE],
         "keywords": [
-            "experience", "work history", "employment",
-            "career", "company", "worked",
+            "experience", "experience of candidate", "work history", "employment",
+            "career", "company", "worked", "employment history", "career history"
         ],
     },
     "SKILLS": {
         "entities": [QuestionEntity.SKILLS, QuestionEntity.PROGRAMMING_LANGS],
         "keywords": [
-            "skills", "technical skills", "technologies", "frameworks", "tools",
-            "libraries", "tech stack", "software", "expertise",
-            "programming language", "programming languages",
+            "skills", "technical skills", "professional skills", "core skills",
+            "technologies", "frameworks", "tools", "libraries", "tech stack",
+            "software", "expertise", "competencies", "programming language",
+            "programming languages",
         ],
     },
     "ERP_PLATFORMS": {

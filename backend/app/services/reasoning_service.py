@@ -986,6 +986,7 @@ class ReasoningService:
                         "ADDRESS": "Address",
                         "DESIGNATION": "Designation",
                         "EXPERIENCE": "Experience",
+                        "COMPANIES": "Companies Worked In",
                         "EDUCATION": "Education",
                         "SKILLS": "Skills",
                         "PROJECTS": f"Key Projects ({len(entities.get('projects') or [])})",
@@ -1104,20 +1105,37 @@ class ReasoningService:
                         cleaned_ans = "I couldn't find that information in the uploaded document."
                         confidence = 0.0
     
-            # Debug Logging
+            # Debug Logging & Reasoning Trace Output
             execution_time_ms = (time.time() - t_start) * 1000
+            from backend.app.services.reasoning.reasoning_trace import reasoning_trace_service
+            from backend.app.services.reasoning.answer_type_detector import answer_type_detector
+
+            ans_type = answer_type_detector.detect(classified_intent, resolved_question)
+            trace = reasoning_trace_service.create_trace(
+                question=resolved_question,
+                intent=classified_intent,
+                resolved_entity=f"CandidateProfile.{ans_type.value.lower()}" if doc_type.lower() == "resume" else f"{doc_type}.facts"
+            )
+            trace.evidence_used = f"{len(retrieved_chunks) if retrieved_chunks else 0} Chunks / Structured Profile"
+            trace.decision_taken = "Factual Profile Lookup" if "does not mention" not in cleaned_ans else "Absent Info Fallback"
+            trace.final_answer = cleaned_ans
+            trace.confidence_score = confidence
+
             print("\n" + "="*80)
-            print("MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)")
+            print("MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE WITH REASONING TRACE)")
             print("="*80)
             print(f"Document Type:      {doc_type}")
             print(f"Resolved Question:  {resolved_question}")
             print(f"Detected Intent:    {classified_intent}")
+            print(f"Answer Type Format: {ans_type.value}")
             print(f"Retrieved Chunks:   {len(retrieved_chunks) if retrieved_chunks else 0} chunks")
             print(f"Extracted Facts:    {len(synthesized_facts)} facts")
             print(f"Reasoning Steps:    {'; '.join(reasoning_steps)}")
-            print(f"Formatted Answer:   {cleaned_ans}")
+            print(f"Formatted Answer:   {str(cleaned_ans).replace('→', '->')}")
             print(f"Confidence:         {confidence:.1f}%")
             print(f"Execution Time:     {execution_time_ms:.2f} ms")
+            print("-" * 80)
+            print(trace.format_debug_summary())
             print("="*80 + "\n")
 
             return cleaned_ans, confidence, knowledge_used

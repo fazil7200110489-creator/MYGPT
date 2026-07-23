@@ -25,6 +25,7 @@ configure_logging()
 from backend.app.api.routers import (
     attention, checkpoints, dataset, embedding, inference, logs, model, tokenizer as tokenizer_router, train, transformer, document
 )
+from backend.app.api import recruiter_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -54,6 +55,7 @@ app.include_router(tokenizer_router.router, prefix="/api")
 app.include_router(train.router, prefix="/api")
 app.include_router(transformer.router, prefix="/api")
 app.include_router(document.router, prefix="/api")
+app.include_router(recruiter_router.router)
 
 
 @app.on_event("startup")

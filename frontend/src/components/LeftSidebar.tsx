@@ -56,7 +56,7 @@ export function LeftSidebar({
         <label className={`flex items-center justify-center gap-2 w-full p-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-sm cursor-pointer transition-all duration-200 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           <Upload className="h-4 w-4" />
           <span>{uploading ? 'Processing Resume...' : 'Upload New Resume'}</span>
-          <input type="file" onChange={onFileUpload} accept=".pdf,.docx,.txt" className="hidden" />
+          <input type="file" onChange={onFileUpload} accept=".pdf,.docx,.doc,.txt" multiple className="hidden" />
         </label>
       </div>
 

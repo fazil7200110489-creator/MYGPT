@@ -144,6 +144,23 @@ export const api = {
     return res.json()
   },
 
+  async uploadBatchResumes(files: File[]) {
+    const formData = new FormData()
+    files.forEach(file => {
+      formData.append('files', file)
+    })
+
+    const res = await fetch(`${BASE_URL}/api/v2/recruiter/upload_batch`, {
+      method: 'POST',
+      body: formData
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Batch resume upload failed')
+    }
+    return res.json()
+  },
+
   async deleteDocument(docId: string) {
     const res = await fetch(`${BASE_URL}/api/documents/${docId}`, {
       method: 'DELETE'

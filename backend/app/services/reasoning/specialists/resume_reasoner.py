@@ -74,21 +74,25 @@ def validate_experience(exp: Any) -> List[str]:
         return []
     items = []
     if isinstance(exp, list):
-        items = exp
+        for e in exp:
+            if isinstance(e, dict):
+                items.append(f"{e.get('title', '')} at {e.get('company', '')} ({e.get('years', '')})")
+            else:
+                items.append(str(e))
     else:
         items = [e.strip() for e in str(exp).split('\n') if e.strip()]
         
     valid = []
-    role_kws = {"engineer", "developer", "manager", "architect", "analyst", "specialist", "consultant", "officer", "lead", "designer", "professional"}
+    role_kws = {"engineer", "developer", "manager", "architect", "analyst", "specialist", "consultant", "officer", "lead", "designer", "professional", "executive", "bba", "mba"}
     for e in items:
         e_clean = e.strip()
         e_lower = e_clean.lower()
-        if "total experience" in e_lower:
+        if "total experience" in e_lower or "at" in e_lower or "-" in e_lower or "–" in e_lower:
             valid.append(e_clean)
             continue
         has_role = any(kw in e_lower for kw in role_kws)
-        has_company = any(kw in e_lower for kw in ["at", "company", "ltd", "inc", "corp", "systems", "solutions", "limited", "technologies", "software"])
-        if has_role and has_company:
+        has_company = any(kw in e_lower for kw in ["at", "company", "ltd", "inc", "corp", "systems", "solutions", "limited", "technologies", "software", "hotels", "university"])
+        if has_role or has_company:
             valid.append(e_clean)
     return valid
 
@@ -97,7 +101,11 @@ def validate_education(edu: Any) -> List[str]:
         return []
     items = []
     if isinstance(edu, list):
-        items = edu
+        for ed in edu:
+            if isinstance(ed, dict):
+                items.append(f"{ed.get('degree', '')} from {ed.get('institution', '')}")
+            else:
+                items.append(str(ed))
     else:
         items = [ed.strip() for ed in str(edu).split('\n') if ed.strip()]
         
@@ -148,15 +156,26 @@ def validate_languages(langs: Any) -> List[str]:
             valid.append(l_clean.title())
     return valid
 
-def calculate_total_experience(experience_list: List[str]) -> str:
+def calculate_total_experience(experience_list: Any) -> str:
+    if not experience_list:
+        return "0 years"
+    if not isinstance(experience_list, list):
+        experience_list = [experience_list]
+    clean_list = []
+    for item in experience_list:
+        if isinstance(item, dict):
+            clean_list.append(f"{item.get('title', '')} at {item.get('company', '')} ({item.get('years', '')})")
+        else:
+            clean_list.append(str(item))
+
     total_months = 0
     # Prefer pre-extracted if total experience text is already matched in items
-    for exp in experience_list:
+    for exp in clean_list:
         if "total experience" in exp.lower():
             match = re.search(r'\b\d+(?:\.\d+)?\s*(?:year|yr)s?\b', exp.lower())
             if match:
                 return match.group(0)
-    for exp in experience_list:
+    for exp in clean_list:
         exp_lower = exp.lower()
         if "total experience" in exp_lower:
             continue
@@ -751,9 +770,23 @@ class ResumeReasoner:
                     f"Confidence:\n88%"
                 )
 
-        # 3. Route through Candidate Profile Builder (Single Source of Truth)
+        # 3. Route through Candidate Profile Builder & Entity Resolver (Single Source of Truth)
         from backend.app.services.reasoning.candidate_profile_builder import candidate_profile_builder
-        profile = candidate_profile_builder.build_profile(entities, text)
+        from backend.app.services.reasoning.entity_resolver import entity_resolver
+
+        profile = entities.get("candidate_profile") if isinstance(entities, dict) else None
+        if not profile:
+            profile = candidate_profile_builder.build_profile(entities, text)
+            if isinstance(entities, dict):
+                entities["candidate_profile"] = profile
+
+        resolved_data, subtree_path, was_updated = entity_resolver.resolve(
+            profile=profile,
+            intent=intent_upper,
+            question=question,
+            raw_text=text,
+            raw_entities=entities
+        )
 
         if intent_upper in ["DOMAIN", "INDUSTRY"]:
             conf = profile.get("primary_domain_confidence", 85)
@@ -822,16 +855,28 @@ class ResumeReasoner:
                         f"Evidence:\n{', '.join(profile.get('location_sources', ['Location section']))}\n\n"
                         f"Confidence:\n88%"
                     )
-            # General location query
-            current = profile.get("current_location", "Not Mentioned")
-            permanent = profile.get("permanent_address", "Not Mentioned")
-            work = profile.get("work_location", "Not Mentioned")
-            if current == "Not Mentioned" and permanent == "Not Mentioned":
-                return "Not Mentioned"
-            result = f"Current Location: {current}\nPermanent Address: {permanent}"
-            if work and work != "Not Mentioned":
-                result += f"\nWork Location: {work}"
-            return result
+            # General address / native place query
+            addr_details = profile.get("address_details", {})
+            full_addr = profile.get("address") or profile.get("permanent_address") or profile.get("current_location")
+            if full_addr and full_addr != "Not Mentioned":
+                lines = [f"Address: {full_addr}"]
+                if addr_details.get("city") and addr_details["city"] != "Not Mentioned":
+                    lines.append(f"City: {addr_details['city']}")
+                if addr_details.get("state") and addr_details["state"] != "Not Mentioned":
+                    lines.append(f"State: {addr_details['state']}")
+                if addr_details.get("pincode") and addr_details["pincode"] != "Not Mentioned":
+                    lines.append(f"Pincode: {addr_details['pincode']}")
+                return "\n".join(lines)
+            return "The uploaded resume does not mention address details."
+
+        elif intent_upper == "COMPANIES":
+            companies = profile.get("companies", [])
+            if not companies:
+                timeline = profile.get("experience_timeline", [])
+                companies = [t["company"] for t in timeline if t.get("company") and t["company"] != "Not Mentioned"]
+            if companies:
+                return "Companies Worked In:\n\n" + "\n".join(f"• {c}" for c in dict.fromkeys(companies))
+            return "The uploaded resume does not mention company details."
 
         elif intent_upper == "DESIGNATION":
             return profile["designation"]
@@ -985,7 +1030,8 @@ class ResumeReasoner:
             return progs if progs else profile.get("skills") or None
 
         elif intent_upper in ["SUMMARY", "PROFILE_SUMMARY"]:
-            roles_str = ", ".join(profile["recommended_roles"]) if profile["recommended_roles"] else profile["designation"]
+            recommended_roles = role_inference_engine.recommend_roles(profile, profile["domain"])
+            roles_str = ", ".join(recommended_roles) if recommended_roles else profile["designation"]
             edu_list = profile.get("education", [])
             edu_str = edu_list[0]["degree"] if edu_list and edu_list[0].get("degree") != "Not Mentioned" else "Not Mentioned"
             certs = profile.get("certifications", [])
@@ -1121,6 +1167,7 @@ class ResumeReasoner:
         elif intent_upper == "BASIC_PROFILE":
             ct = profile.get("career_transition", {})
             transition_str = ct.get("transition_path", "Not Mentioned") if ct.get("is_transition") else "Not Applicable"
+            recs = role_inference_engine.recommend_roles(profile, profile["domain"])
             return {
                 "Name": profile["name"],
                 "Designation": profile["designation"],
@@ -1134,7 +1181,7 @@ class ResumeReasoner:
                 "Phone": profile["phone"],
                 "Current Location": profile.get("current_location", "Not Mentioned"),
                 "LinkedIn": profile["linkedin"],
-                "Recommended Roles": ", ".join(profile["recommended_roles"])
+                "Recommended Roles": ", ".join(recs)
             }
 
         elif intent_upper in ["GENERAL", "ROLE_INFERENCE"]:

@@ -2507,19 +2507,31 @@ function DocumentChatView({ showToast }: { showToast: any }) {
   }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const fileList = e.target.files
+    if (!fileList || fileList.length === 0) return
 
     setUploading(true)
+
     try {
-      showToast(`Uploading and indexing '${file.name}' locally...`, 'info')
-      const doc = await api.uploadDocument(file, 500)
-      if (doc.status === 'error') {
-        throw new Error(doc.error || 'Ingestion failed')
+      if (fileList.length === 1) {
+        // Single file upload - Version 1 pipeline exactly as before
+        const file = fileList[0]
+        showToast(`Uploading and indexing '${file.name}' locally...`, 'info')
+        const doc = await api.uploadDocument(file, 500)
+        if (doc.status === 'error') {
+          throw new Error(doc.error || 'Ingestion failed')
+        }
+        showToast(`Document '${file.name}' indexed successfully.`, 'success')
+        await loadDocuments()
+        setActiveDocId(doc.id)
+      } else {
+        // Multiple files upload - Version 2 batch upload pipeline
+        const files = Array.from(fileList)
+        showToast(`Batch uploading ${files.length} resumes for Recruiter Platform V2...`, 'info')
+        const res = await api.uploadBatchResumes(files)
+        showToast(`Batch complete: Processed ${res.processed_count}/${files.length} resumes successfully into Candidate Pool.`, 'success')
+        await loadDocuments()
       }
-      showToast(`Document '${file.name}' indexed successfully.`, 'success')
-      await loadDocuments()
-      setActiveDocId(doc.id)
     } catch (err: any) {
       showToast(err.message || 'Upload failed.', 'error')
     } finally {
@@ -2697,6 +2709,7 @@ function DocumentChatView({ showToast }: { showToast: any }) {
             type="file" 
             onChange={handleUpload} 
             disabled={uploading} 
+            multiple
             className="hidden" 
             accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.pptx,.ppt,.txt,.md,.markdown,.json,.html,.htm,.xml,.png,.jpg,.jpeg,.tiff,.bmp"
           />

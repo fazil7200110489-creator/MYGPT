@@ -95,17 +95,32 @@ class RoleInferenceEngine:
         target_role_info = None
 
         if not is_generic_question:
+            # Flatten roles and sort by role_name length descending to prioritize full title matches
+            all_taxonomy_roles = []
             for dom, roles in self.role_taxonomy.items():
-                for role_name, role_info in roles.items():
-                    role_words = set(re.findall(r"\b\w+\b", role_name.lower())) - {"developer", "engineer", "specialist", "executive", "analyst", "consultant"}
-                    q_words = set(re.findall(r"\b\w+\b", q_lower))
-                    if (role_name.lower() in q_lower) or (role_words and role_words.intersection(q_words)):
-                        target_role_name = role_name
-                        target_domain = dom
-                        target_role_info = role_info
-                        break
-                if target_role_name:
+                for r_name, r_info in roles.items():
+                    all_taxonomy_roles.append((dom, r_name, r_info))
+            all_taxonomy_roles.sort(key=lambda x: len(x[1]), reverse=True)
+
+            # Pass 1: Exact substring match
+            for dom, r_name, r_info in all_taxonomy_roles:
+                if r_name.lower() in q_lower:
+                    target_role_name = r_name
+                    target_domain = dom
+                    target_role_info = r_info
                     break
+
+            # Pass 2: Keyword intersection match if no exact substring match
+            if not target_role_name:
+                q_words = set(re.findall(r"\b\w+\b", q_lower))
+                stopwords = {"developer", "engineer", "specialist", "executive", "analyst", "consultant", "manager", "lead", "officer", "is", "he", "she", "suitable", "for"}
+                for dom, r_name, r_info in all_taxonomy_roles:
+                    r_words = set(re.findall(r"\b\w+\b", r_name.lower())) - stopwords
+                    if r_words and r_words.issubset(q_words):
+                        target_role_name = r_name
+                        target_domain = dom
+                        target_role_info = r_info
+                        break
 
         # Fallback handling
         if not target_role_name:
@@ -218,7 +233,11 @@ class RoleInferenceEngine:
 
         # Check domain-restricted recommendations from domain_taxonomy.json
         if hasattr(domain_detector, "domain_recommendations") and resolved_domain in domain_detector.domain_recommendations:
-            return list(domain_detector.domain_recommendations[resolved_domain])[:5]
+            recs = list(domain_detector.domain_recommendations[resolved_domain])[:5]
+            desig = entities.get("designation") if isinstance(entities, dict) else None
+            if desig and isinstance(desig, str) and desig.title() not in recs:
+                recs = [desig.title()] + recs[:4]
+            return recs
 
         # Check domain roles in role_taxonomy
         domain_roles = self.role_taxonomy.get(resolved_domain, {})
@@ -231,6 +250,41 @@ class RoleInferenceEngine:
             return [desig.title()]
 
         return [f"{resolved_domain} Professional" if resolved_domain not in ("General", "") else "General Candidate"]
+
+    def evaluate_runtime_recommendations(self, profile: Dict[str, Any]) -> Dict[str, Any]:
+        """Dynamically evaluates role suitability and recommendations at runtime from factual CandidateProfile.
+
+        Analyzes: Skills, Experience, Education, Domain, Seniority, Responsibilities.
+        """
+        domain = profile.get("primary_domain") or profile.get("domain") or "General"
+        designation = profile.get("designation") or "Professional"
+        skills = profile.get("skills", [])
+        exp = profile.get("total_experience", "0 Years")
+
+        recommended_titles = self.recommend_roles(profile, domain)
+
+        evaluations = []
+        for title in recommended_titles:
+            sim = self.calculate_role_similarity(profile, title, domain)
+            evaluations.append({
+                "role_title": title,
+                "suitability_tier": sim["suitability_tier"],
+                "match_percentage": sim["match_percentage"],
+                "matching_skills": sim["matching_skills"],
+                "missing_skills": sim["missing_skills"],
+                "reason": sim["reason"]
+            })
+
+        best_role = evaluations[0] if evaluations else None
+
+        return {
+            "primary_domain": domain,
+            "candidate_designation": designation,
+            "total_experience": exp,
+            "top_recommended_role": best_role["role_title"] if best_role else designation,
+            "recommendations": evaluations,
+            "summary_recommendation": f"Candidate is best fitted for {best_role['role_title']} ({best_role['match_percentage']}% match) based on skills and {domain} experience." if best_role else f"Suitable for {designation}."
+        }
 
     def compare_roles(
         self,

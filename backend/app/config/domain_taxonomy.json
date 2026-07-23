@@ -91,6 +91,36 @@
       "content marketing", "sales target", "client acquisition", "crm",
       "lead generation", "account management"
     ],
+    "Customer Support & BPO": [
+      "customer support", "customer service", "helpdesk", "call center", "bpo",
+      "client support", "technical support", "voice process", "non-voice process",
+      "customer care", "troubleshooting", "ticket resolution", "telecaller"
+    ],
+    "Electronics & Communications": [
+      "electronics engineer", "embedded systems", "vlsi", "microcontroller",
+      "pcb design", "firmware", "iot", "robotics", "circuit design", "fpga",
+      "telecom", "signal processing", "rf engineer"
+    ],
+    "Automobile Engineering": [
+      "automobile engineer", "automotive", "vehicle design", "powertrain",
+      "chassis", "ev engineer", "electric vehicle", "engine design", "auto cad"
+    ],
+    "Aviation & Aerospace": [
+      "pilot", "cabin crew", "flight attendant", "aircraft maintenance",
+      "avionics", "aerospace engineer", "flight operations", "airport manager"
+    ],
+    "Legal & Compliance": [
+      "legal counsel", "advocate", "lawyer", "legal officer", "corporate lawyer",
+      "compliance officer", "legal advisor", "litigation", "paralegal", "contracts"
+    ],
+    "Government & Public Sector": [
+      "government officer", "civil service", "public administration", "upsc",
+      "psu", "municipal", "revenue officer", "public sector"
+    ],
+    "Freshers & Entry Level": [
+      "fresher", "student", "trainee", "intern", "recent graduate", "entry level",
+      "b.tech fresher", "mba fresher", "bsc fresher", "apprentice"
+    ],
     "Education & Academia": [
       "teacher", "professor", "lecturer", "trainer", "academic",
       "curriculum", "e-learning", "instructional design", "faculty",
@@ -149,6 +179,31 @@
     "Sales & Marketing": [
       "Regional Sales Manager", "Business Development Manager",
       "Digital Marketing Manager", "Brand Manager"
+    ],
+    "Customer Support & BPO": [
+      "Customer Support Executive", "Technical Support Engineer",
+      "Helpdesk Team Lead", "Client Care Specialist"
+    ],
+    "Electronics & Communications": [
+      "Embedded Systems Engineer", "VLSI Design Engineer",
+      "PCB Design Specialist", "IoT Solutions Engineer"
+    ],
+    "Automobile Engineering": [
+      "Automobile Design Engineer", "EV Powertrain Specialist",
+      "Automotive Quality Engineer"
+    ],
+    "Aviation & Aerospace": [
+      "Aircraft Maintenance Engineer", "Flight Operations Officer",
+      "Avionics Specialist"
+    ],
+    "Legal & Compliance": [
+      "Legal Associate", "Corporate Counsel", "Compliance Specialist"
+    ],
+    "Government & Public Sector": [
+      "Public Relations Officer", "Administrative Officer", "Compliance Manager"
+    ],
+    "Freshers & Entry Level": [
+      "Graduate Trainee Engineer", "Management Trainee", "Junior Associate"
     ],
     "Education & Academia": [
       "Senior Faculty", "Academic Coordinator",

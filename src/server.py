@@ -23,6 +23,7 @@ from src.positional_encoding import SinusoidalPositionalEncoding
 from src.attention import CausalSelfAttention
 from src.trainer import TrainingManager
 from src.inference import generate
+from backend.app.api import recruiter_router
 
 
 app = FastAPI(title="MyGPT Studio API", version="2.0.0")
@@ -35,6 +36,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(recruiter_router.router)
 
 # Initialize globally shared managers
 tokenizer = BPETokenizer()

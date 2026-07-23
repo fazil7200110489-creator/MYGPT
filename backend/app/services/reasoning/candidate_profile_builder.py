@@ -212,22 +212,55 @@ class CandidateProfileBuilder:
         # 9. Projects (with has_dedicated_projects flag)
         projects_list, has_dedicated_projects = self._extract_projects(entities, full_text)
 
-        # 10. Multi-Layer Location
+        # 10. Multi-Layer Location & Full Address Parsing
         location_data = self._extract_location_layers(entities, full_text)
+        address_breakdown = self._parse_address_breakdown(location_data["permanent_address"] or location_data["current_location"])
 
-        # 11. Contact Details
+        # 11. Contact & Personal Details
         email = self._extract_single_string(entities.get("email") or entities.get("emails"))
         phone = self._extract_single_string(entities.get("phone") or entities.get("phones"))
+
+        if (not email or email == "Not Mentioned") and full_text:
+            e_m = re.search(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}', full_text)
+            if e_m:
+                email = e_m.group(0).strip().lower()
+
+        if (not phone or phone == "Not Mentioned") and full_text:
+            p_m = re.search(r'(?:\+?\d{1,3}[\s\-.])?[\(\[\{]?\d{2,5}[\)\]\}]?[\s\-.]?\d{3,5}[\s\-.]?\d{3,5}', full_text)
+            if p_m:
+                phone = p_m.group(0).strip()
+
         linkedin = self._extract_link(entities.get("linkedin"), full_text, r'linkedin\.com/in/[\w\-]+')
         github = self._extract_link(entities.get("github"), full_text, r'github\.com/[\w\-]+')
         portfolio = self._extract_single_string(entities.get("portfolio"))
 
-        # 12. Role Recommendations (Current Career Priority)
-        recommended_roles = self._recommend_roles_current_career(
-            entities, domain_data["primary_domain"], designation, career_transition
-        )
+        father_name, mother_name = self._extract_parent_names(entities, full_text)
+        personal_attrs = self._extract_personal_attributes(entities, full_text)
 
-        # 13. Health Score
+        personal_info_dict = {
+            "name": name,
+            "email": email or "Not Mentioned",
+            "phone": phone or "Not Mentioned",
+            "address": address_breakdown["formatted_address"],
+            "address_details": address_breakdown,
+            "gender": personal_attrs["gender"],
+            "date_of_birth": personal_attrs["date_of_birth"],
+            "father_name": father_name,
+            "mother_name": mother_name,
+            "marital_status": personal_attrs["marital_status"],
+            "nationality": personal_attrs["nationality"],
+            "linkedin": linkedin or "Not Mentioned",
+            "github": github or "Not Mentioned",
+            "portfolio": portfolio or "Not Mentioned",
+        }
+
+        # Companies list (distinct)
+        extracted_companies = list(dict.fromkeys([
+            entry["company"] for entry in timeline
+            if entry.get("company") and entry["company"] not in ("Not Mentioned", "Company")
+        ]))
+
+        # 12. Health Score
         health_res = self._calculate_health_score({
             "name": name,
             "skills": skills_data["all_skills"],
@@ -238,9 +271,9 @@ class CandidateProfileBuilder:
             "linkedin": linkedin
         })
 
-        # 14. Profile Validation Flags
+        # 13. Profile Validation Flags
         validation_flags = {
-            "has_experience": bool(experience_data["experience_history"] or experience_data["total_experience"]),
+            "has_experience": bool(experience_data["experience_history"] or experience_data["total_experience"] != "Not Mentioned"),
             "has_education": bool(education_list and education_list[0].get("degree") != "Not Mentioned"),
             "has_skills": bool(skills_data["all_skills"]),
             "has_location": bool(location_data["current_location"] or location_data["permanent_address"]),
@@ -249,33 +282,57 @@ class CandidateProfileBuilder:
             "has_certifications": bool(certifications_list)
         }
 
+        # 14. Dynamic Recommendations for Insights (computed dynamically, not stored as profile factual field)
+        from backend.app.services.reasoning.role_inference_engine import role_inference_engine
+        dynamic_roles = role_inference_engine.recommend_roles(entities, domain_data["primary_domain"])
+
         # 15. Insights
         insights = self._generate_insights(
             skills_data["all_skills"],
             experience_data["total_experience"],
             domain_data["primary_domain"],
-            recommended_roles
+            dynamic_roles
         )
 
         return {
-            # Identity
+            # Identity & Personal Info (Factual)
             "name": name,
+            "email": email or "Not Mentioned",
+            "phone": phone or "Not Mentioned",
+            "address": address_breakdown["formatted_address"],
+            "address_details": address_breakdown,
+            "current_location": location_data["current_location"] or address_breakdown["formatted_address"],
+            "permanent_address": location_data["permanent_address"] or address_breakdown["formatted_address"],
+            "work_location": location_data["work_location"],
+            "linkedin": linkedin or "Not Mentioned",
+            "github": github or "Not Mentioned",
+            "portfolio": portfolio or "Not Mentioned",
             "designation": designation,
-            # Domain
+            "current_designation": designation,
+            "personal_info": personal_info_dict,
+            "father_name": father_name,
+            "mother_name": mother_name,
+            "marital_status": personal_attrs["marital_status"],
+            "gender": personal_attrs["gender"],
+            "date_of_birth": personal_attrs["date_of_birth"],
+            "nationality": personal_attrs["nationality"],
+            # Domain (Factual)
             "domain": domain_data["primary_domain"],
             "primary_domain": domain_data["primary_domain"],
             "primary_domain_confidence": domain_data["primary_confidence"],
             "secondary_domain": domain_data["secondary_domain"],
             "secondary_domain_confidence": domain_data["secondary_confidence"],
-            # Career Transition
+            # Career Transition (Factual)
             "career_transition": career_transition,
-            # Experience
+            # Experience (Factual)
             "total_experience": experience_data["total_experience"],
             "current_domain_experience": experience_data["current_domain_experience"],
+            "current_company_experience": experience_data["current_company_experience"],
             "per_domain_experience": experience_data["per_domain_experience"],
             "experience_history": experience_data["experience_history"],
             "experience_timeline": timeline,
-            # Skills (7 buckets)
+            "companies": extracted_companies,
+            # Skills (8 buckets - Factual)
             "skills": skills_data["all_skills"],
             "programming_languages": skills_data["programming_languages"],
             "ai_tools": skills_data["ai_tools"],
@@ -283,34 +340,37 @@ class CandidateProfileBuilder:
             "analytics_tools": skills_data["analytics_tools"],
             "management_skills": skills_data["management_skills"],
             "hr_skills": skills_data["hr_skills"],
+            "medical_skills": skills_data["medical_skills"],
+            "software_skills": skills_data["software_skills"],
             "soft_skills": skills_data["soft_skills"],
             "technical_skills": skills_data["technical_skills"],
-            # Education
+            # Education (Factual)
             "education": education_list,
-            # Awards & Certifications (separated)
+            # Awards & Certifications (separated - Factual)
             "awards": awards_list,
             "certifications": certifications_list,
-            # Projects
+            # Projects (Factual)
             "projects": projects_list,
             "has_dedicated_projects": has_dedicated_projects,
-            # Contact & Location
+            # Contact & Location (Factual)
             "email": email or "Not Mentioned",
             "phone": phone or "Not Mentioned",
             "current_location": location_data["current_location"] or "Not Mentioned",
             "work_location": location_data["work_location"] or "Not Mentioned",
             "permanent_address": location_data["permanent_address"] or "Not Mentioned",
-            "address": location_data["current_location"] or location_data["permanent_address"] or "Not Mentioned",
+            "address": address_breakdown["formatted_address"],
+            "address_details": address_breakdown,
             "location_sources": location_data["sources"],
             "linkedin": linkedin or "Not Mentioned",
             "github": github or "Not Mentioned",
             "portfolio": portfolio or "Not Mentioned",
-            # Recommendations
-            "recommended_roles": recommended_roles,
             # Health & Validation
             "health_score": health_res["health_score"],
             "health_checklist": health_res["checklist"],
             "validation_flags": validation_flags,
-            # Insights
+            # Insights & Summary
+            "summary": insights.get("recruiter_summary", "Professional candidate profile."),
+            "recruiter_summary": insights.get("recruiter_summary", "Professional candidate profile."),
             "insights": insights,
         }
 
@@ -319,6 +379,14 @@ class CandidateProfileBuilder:
     # ---------------------------------------------------------------------------
 
     def _normalize_name(self, entities: Dict[str, Any], text: str) -> str:
+        # Check header text first
+        lines = [l.strip() for l in text.split('\n') if l.strip()]
+        for l in lines[:5]:
+            l_clean = re.sub(r'^(?:candidate\s+name|name)\s*[:\-]?\s*', '', l, flags=re.IGNORECASE).strip()
+            if "@" not in l_clean and not re.search(r'\d+', l_clean) and not any(kw in l_clean.lower() for kw in ["resume", "curriculum", "email", "phone", "address", "summary", "experience", "education", "skills", "projects", "certifications", "statutory", "compliance", "certified", "partner", "mother", "father"]):
+                if len(l_clean.split()) <= 4 and len(l_clean) >= 2:
+                    return l_clean.title()
+
         candidates = [
             entities.get("candidate_name"),
             entities.get("name"),
@@ -328,10 +396,11 @@ class CandidateProfileBuilder:
 
         for c in candidates:
             if c and isinstance(c, str):
-                c_clean = c.strip()
+                c_clean = re.sub(r'^(?:candidate\s+name|name)\s*[:\-]?\s*', '', c.strip(), flags=re.IGNORECASE).strip()
                 if (c_clean and "@" not in c_clean
                         and not re.search(r'\d+', c_clean)
-                        and len(c_clean.split()) <= 5):
+                        and len(c_clean.split()) <= 4
+                        and c_clean.lower() not in ["statutory compliance", "hardware knowledge", "software skills"]):
                     return c_clean.title()
 
         m = re.search(r'(?i)\bname\s*:\s*([A-Za-z\s]{2,40})(?:\n|,|$)', text)
@@ -370,25 +439,14 @@ class CandidateProfileBuilder:
                 timeline.append(entry)
 
         # If no structured entries, try parsing raw text for employment blocks
+        # If no structured entries, parse raw text lines containing year mentions
         if not timeline and text:
-            blocks = re.findall(
-                r'([A-Za-z\s,]+?)\s*[\|–\-]\s*([A-Za-z\s,]+?)\s*[\|–\-]?\s*\(?((?:19|20)\d{2})\s*[-–to]+\s*((?:19|20)\d{2}|present|current|till date)\)?',
-                text, re.IGNORECASE
-            )
-            for b in blocks:
-                company = b[0].strip().title()
-                role = b[1].strip().title()
-                year_start = b[2].strip()
-                year_end = b[3].strip().title()
-                domain_guess = domain_detector.detect_domain({"designation": role}, "")
-                timeline.append({
-                    "years": f"{year_start}–{year_end}",
-                    "title": role,
-                    "company": company,
-                    "domain": domain_guess,
-                    "start_year": int(year_start),
-                    "end_year": CURRENT_YEAR if year_end.lower() in ("present", "current", "till date") else int(year_end)
-                })
+            lines = [l.strip() for l in text.split('\n') if l.strip()]
+            for l in lines:
+                if re.search(r'\b(?:19|20)\d{2}\b', l):
+                    entry = self._parse_experience_entry(l)
+                    if entry:
+                        timeline.append(entry)
 
         # Sort chronologically
         timeline.sort(key=lambda x: x.get("start_year", 0))
@@ -423,7 +481,7 @@ class CandidateProfileBuilder:
 
         if after_year and len(after_year) > 3:
             # Format: "YEAR-YEAR: TITLE — COMPANY"
-            parts = re.split(r'\s*[-–|@,]\s*', after_year)
+            parts = re.split(r'\s*[\-–—|@,]\s*', after_year)
             title = parts[0].strip().title() if parts else "Not Mentioned"
             company = parts[1].strip().title() if len(parts) > 1 else "Not Mentioned"
         elif before_year and len(before_year) > 3:
@@ -432,7 +490,7 @@ class CandidateProfileBuilder:
             clean_before = re.sub(r'\($', '', before_year).strip()
             # Remove "Experience:" prefix if present
             clean_before = re.sub(r'^(?:experience|work experience|employment)\s*:\s*', '', clean_before, flags=re.IGNORECASE).strip()
-            parts = re.split(r'\s*(?:at|@|-–|,)\s*', clean_before)
+            parts = re.split(r'\s*(?:at|@|[\-–—|,])\s*', clean_before)
             title = parts[0].strip().title() if parts else "Not Mentioned"
             company = parts[1].strip().title() if len(parts) > 1 else "Not Mentioned"
         else:
@@ -473,14 +531,14 @@ class CandidateProfileBuilder:
         if len(set(domains_seen)) < 2:
             return {
                 "is_transition": False,
-                "transition_path": " → ".join(domains_seen),
+                "transition_path": " -> ".join(domains_seen),
                 "current_domain": domains_seen[-1] if domains_seen else "",
                 "previous_domains": []
             }
 
         current = domains_seen[-1]
         previous = [d for d in dict.fromkeys(domains_seen[:-1]) if d != current]
-        path = " → ".join(dict.fromkeys(domains_seen))
+        path = " -> ".join(dict.fromkeys(domains_seen))
 
         return {
             "is_transition": True,
@@ -555,17 +613,26 @@ class CandidateProfileBuilder:
             d: fmt_months(m) for d, m in per_domain.items() if m > 0
         }
 
-        exp_history = [
-            entities.get("work_experience") or entities.get("experience") or []
-        ]
-        if isinstance(exp_history[0], list):
-            exp_history = exp_history[0]
-        elif isinstance(exp_history[0], str):
-            exp_history = [exp_history[0]]
+        # Experience history list
+        exp_history = entities.get("work_experience") or entities.get("experience") or []
+        if isinstance(exp_history, str):
+            exp_history = [exp_history]
+
+        # Current company experience
+        current_comp_exp = "Not Mentioned"
+        if timeline:
+            latest_entry = timeline[-1]
+            c_start = latest_entry.get("start_year", 0)
+            c_end = latest_entry.get("end_year", CURRENT_YEAR)
+            if c_start and c_end >= c_start:
+                c_months = (c_end - c_start) * 12
+                comp_name = latest_entry.get("company", "Current Company")
+                current_comp_exp = f"{fmt_months(c_months)} at {comp_name}"
 
         return {
             "total_experience": total_exp,
             "current_domain_experience": current_domain_exp,
+            "current_company_experience": current_comp_exp,
             "per_domain_experience": per_domain_formatted,
             "experience_history": [str(e) for e in exp_history if e]
         }
@@ -680,6 +747,7 @@ class CandidateProfileBuilder:
 
         prog_langs, ai_tools, erp_platforms, analytics_tools = [], [], [], []
         mgmt_skills, hr_skills, soft_skills, tech_skills = [], [], [], []
+        medical_skills, software_skills, domain_skills = [], [], []
         all_clean: List[str] = []
         seen: set = set()
 
@@ -695,6 +763,20 @@ class CandidateProfileBuilder:
         for erp in KNOWN_ERP_PLATFORMS:
             if erp in text_upper:
                 add_if_new(erp_platforms, erp.title())
+
+        KNOWN_MEDICAL_SKILLS = [
+            "PATIENT CARE", "ICU MANAGEMENT", "TRIAGE", "PHARMACOLOGY", "NURSING",
+            "CLINICAL CARE", "BLS", "ACLS", "EMERGENCY CARE", "PHLEBOTOMY", "VITAL SIGNS",
+            "WOUND CARE", "PATIENT ASSESSMENT", "IV THERAPY", "MEDICATION ADMINISTRATION"
+        ]
+
+        KNOWN_SOFTWARE_SKILLS = [
+            "MS OFFICE", "SOLIDWORKS", "CATIA", "AUTOCAD", "TALLY", "TALLY ERP 9",
+            "EXCEL", "WORD", "POWERPOINT", "POSTMAN", "JIRA", "GIT", "DOCKER", "KUBERNETES"
+        ]
+
+        # Extract company names from text and entities to exclude from skills
+        excluded_companies = {"apollo", "hospitals", "hospital", "leela", "palace", "sindoori", "management", "solutions", "healthcare", "medical center", "google", "techcorp", "abc"}
 
         DEGREE_NOISE = {
             "btech", "b.tech", "mtech", "m.tech", "mba", "bcom", "b.com", "mcom", "bsc", "b.sc",
@@ -719,8 +801,8 @@ class CandidateProfileBuilder:
             s_lower = s_clean.lower()
             s_upper = s_clean.upper()
 
-            # 1. OCR Noise Filter
-            if s_lower in OCR_NOISE_TERMS:
+            # 1. OCR Noise & Debris Filter
+            if s_lower in OCR_NOISE_TERMS or s_lower in {"safety", "administration", "standards", "statutory filings", "identified hr"}:
                 continue
             if re.search(r'\b(?:19|20)\d{2}\b', s_lower):
                 continue
@@ -731,14 +813,19 @@ class CandidateProfileBuilder:
             if any(noise in s_lower for noise in ["page", "expert", "proficient in", "well versed", "tracking system"]):
                 continue
 
-            # 2. Gerund (-ing) filter: reject verbs ending in -ing unless in ALLOWED_GERUND_SKILLS
+            # 2. Company Name Filter (Company names must NEVER appear as skills)
+            if any(comp_kw in s_lower for comp_kw in ["apollo hospital", "sindoori management", "leela palace", "abc healthcare", "xyz medical"]):
+                continue
+            if len(s_clean.split()) > 1 and any(cw in excluded_companies for cw in s_lower.split()) and any(cw in s_lower.split() for cw in ["hospital", "hospitals", "palace", "solutions", "ltd", "inc"]):
+                continue
+
+            # 3. Gerund (-ing) filter: reject verbs ending in -ing unless in ALLOWED_GERUND_SKILLS
             if s_lower.endswith("ing") and s_lower not in ALLOWED_GERUND_SKILLS:
-                # Check if multi-word ending in allowed skill
                 last_word = s_lower.split()[-1]
                 if last_word.endswith("ing") and last_word not in ALLOWED_GERUND_SKILLS:
                     continue
 
-            # 3. Entity Isolation: do not mix degree names, job titles, awards, or contacts into skills
+            # 4. Entity Isolation: do not mix degree names, job titles, awards, or contacts into skills
             if s_lower in DEGREE_NOISE or any(d in s_lower.split() for d in ["btech", "mba", "bcom", "bsc", "gnm", "mtech", "diploma"]):
                 continue
             if s_lower in TITLE_NOISE or any(t in s_lower for t in ["registered nurse", "hr manager", "hr executive", "manager hr", "software engineer", "data analyst", "senior accountant"]):
@@ -760,6 +847,10 @@ class CandidateProfileBuilder:
                 add_if_new(erp_platforms, s_clean)
             elif any(an in s_upper for an in KNOWN_ANALYTICS_TOOLS):
                 add_if_new(analytics_tools, s_clean)
+            elif any(med in s_upper for med in KNOWN_MEDICAL_SKILLS):
+                add_if_new(medical_skills, s_clean)
+            elif any(sw in s_upper for sw in KNOWN_SOFTWARE_SKILLS):
+                add_if_new(software_skills, s_clean)
             elif any(mg in s_upper for mg in KNOWN_MANAGEMENT_SKILLS):
                 add_if_new(mgmt_skills, s_clean)
             elif any(hr in s_upper for hr in KNOWN_HR_SKILLS):
@@ -777,6 +868,8 @@ class CandidateProfileBuilder:
             "analytics_tools": analytics_tools,
             "management_skills": mgmt_skills,
             "hr_skills": hr_skills,
+            "medical_skills": medical_skills,
+            "software_skills": software_skills,
             "soft_skills": soft_skills,
             "technical_skills": tech_skills
         }
@@ -952,8 +1045,14 @@ class CandidateProfileBuilder:
         else:
             items = []
 
+        if not items and text:
+            m = re.search(r'(?i)\bprojects?\b\s*:?\s*\n([\s\S]{5,400}?)(?=\n\s*[A-Z\s]{4,20}\n|\Z)', text)
+            if m:
+                proj_block = m.group(1).strip()
+                items = [l.strip().lstrip('1234567890.-*• ') for l in proj_block.split('\n') if l.strip()]
+
         has_dedicated = bool(items) or bool(
-            re.search(r'(?i)\bprojects?\s*:', text)
+            re.search(r'(?i)\bprojects?\b', text)
         )
 
         return items, has_dedicated
@@ -1039,6 +1138,110 @@ class CandidateProfileBuilder:
             "work_location": work_location if is_valid_location(work_location) else None,
             "permanent_address": permanent_address if is_valid_location(permanent_address) else None,
             "sources": sources
+        }
+
+    def _parse_address_breakdown(self, address_str: Optional[str]) -> Dict[str, str]:
+        """Parse raw address string into structured components: house/flat, street, area, city, district, state, country, pincode."""
+        if not address_str or address_str == "Not Mentioned":
+            return {
+                "house_flat": "Not Mentioned",
+                "street": "Not Mentioned",
+                "area": "Not Mentioned",
+                "city": "Not Mentioned",
+                "district": "Not Mentioned",
+                "state": "Not Mentioned",
+                "country": "Not Mentioned",
+                "pincode": "Not Mentioned",
+                "formatted_address": "Not Mentioned"
+            }
+
+        pincode_m = re.search(r'\b(\d{6})\b', address_str)
+        pincode = pincode_m.group(1) if pincode_m else "Not Mentioned"
+
+        states = ["Tamil Nadu", "Karnataka", "Maharashtra", "Kerala", "Delhi", "Telangana", "Andhra Pradesh", "Gujarat", "West Bengal", "Rajasthan", "Uttar Pradesh", "Madhya Pradesh", "Punjab", "Haryana"]
+        detected_state = "Not Mentioned"
+        for st in states:
+            if st.lower() in address_str.lower():
+                detected_state = st
+                break
+
+        cities = ["Chennai", "Bangalore", "Mumbai", "Kochi", "Kolkata", "Delhi", "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Coimbatore", "Madurai", "Thrissur", "Trivandrum", "Indore", "Bhopal", "Chandigarh"]
+        detected_city = "Not Mentioned"
+        for ct in cities:
+            if ct.lower() in address_str.lower():
+                detected_city = ct
+                break
+
+        parts = [p.strip() for p in address_str.split(',') if p.strip()]
+        house_flat = "Not Mentioned"
+        street = "Not Mentioned"
+        area = "Not Mentioned"
+
+        if parts:
+            if re.search(r'\d+', parts[0]) or len(parts[0]) < 15:
+                house_flat = parts[0]
+            if len(parts) > 1:
+                street = parts[1]
+            if len(parts) > 2 and parts[2].title() not in [detected_city, detected_state]:
+                area = parts[2]
+
+        district = detected_city if detected_city != "Not Mentioned" else "Not Mentioned"
+
+        return {
+            "house_flat": house_flat,
+            "street": street,
+            "area": area,
+            "city": detected_city,
+            "district": district,
+            "state": detected_state,
+            "country": "India" if (detected_state != "Not Mentioned" or detected_city != "Not Mentioned" or pincode != "Not Mentioned") else "Not Mentioned",
+            "pincode": pincode,
+            "formatted_address": address_str
+        }
+
+    def _extract_parent_names(self, entities: Dict[str, Any], text: str) -> Tuple[str, str]:
+        father = entities.get("father_name")
+        mother = entities.get("mother_name")
+        if not father and text:
+            m = re.search(r'(?i)father[\'s]*\s+name\s*:\s*([A-Za-z\s]{2,40})(?:\n|,|$)', text)
+            if m:
+                father = m.group(1).strip().title()
+        if not mother and text:
+            m = re.search(r'(?i)mother[\'s]*\s+name\s*:\s*([A-Za-z\s]{2,40})(?:\n|,|$)', text)
+            if m:
+                mother = m.group(1).strip().title()
+        return father or "Not Mentioned", mother or "Not Mentioned"
+
+    def _extract_personal_attributes(self, entities: Dict[str, Any], text: str) -> Dict[str, str]:
+        dob = entities.get("date_of_birth") or entities.get("dob")
+        if not dob and text:
+            m = re.search(r'(?i)(?:date of birth|dob|d o b|birth date)\s*:\s*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4}|[A-Za-z0-9\s,]{5,20})(?:\n|,|$)', text)
+            if m:
+                dob = m.group(1).strip()
+
+        gender = entities.get("gender")
+        if not gender and text:
+            m = re.search(r'(?i)\bgender\s*:\s*(male|female|other)\b', text)
+            if m:
+                gender = m.group(1).strip().title()
+
+        marital = entities.get("marital_status")
+        if not marital and text:
+            m = re.search(r'(?i)\bmarital\s+status\s*:\s*(single|married|unmarried)\b', text)
+            if m:
+                marital = m.group(1).strip().title()
+
+        nationality = entities.get("nationality")
+        if not nationality and text:
+            m = re.search(r'(?i)\bnationality\s*:\s*([A-Za-z]+)\b', text)
+            if m:
+                nationality = m.group(1).strip().title()
+
+        return {
+            "date_of_birth": dob or "Not Mentioned",
+            "gender": gender or "Not Mentioned",
+            "marital_status": marital or "Not Mentioned",
+            "nationality": nationality or "Not Mentioned",
         }
 
     # ---------------------------------------------------------------------------

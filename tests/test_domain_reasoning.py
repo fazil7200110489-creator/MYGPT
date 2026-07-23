@@ -150,7 +150,7 @@ class TestCareerTransitionDetection:
             },
             CAREER_TRANSITION_RESUME
         )
-        recs = profile["recommended_roles"]
+        recs = role_inference_engine.recommend_roles(profile, profile["domain"])
         # Must NOT recommend nursing roles for current HR manager
         assert not any("nurse" in r.lower() for r in recs), f"Got nursing roles for HR manager: {recs}"
         assert any("hr" in r.lower() or "human resource" in r.lower() or "talent" in r.lower() for r in recs), \
@@ -493,7 +493,7 @@ class TestHealthcareDomain:
             HEALTHCARE_RESUME
         )
         # Should recommend healthcare roles, not IT or HR roles
-        recs = profile["recommended_roles"]
+        recs = role_inference_engine.recommend_roles(profile, profile["domain"])
         it_roles = [r for r in recs if "developer" in r.lower() or "software" in r.lower()]
         assert not it_roles, f"Should not recommend IT roles for doctor: {recs}"
 
@@ -654,3 +654,87 @@ class TestCandidateProfileNormalizer:
         # Should NOT return "working as a Which Role She Fit For"
         assert "Which Role She Fit For" not in ans, f"Sanitization failed: {ans}"
         assert "HR" in ans or "Human Resources" in ans or "Manager" in ans, f"Expected valid role suggestion: {ans}"
+
+    def test_company_extraction_and_query(self):
+        profile = candidate_profile_builder.build_profile(
+            {
+                "designation": "Manager HR",
+                "work_experience": [
+                    "2012-2017: Registered Nurse — Apollo Hospitals",
+                    "2017-2024: HR Executive — Leela Palace Hotels",
+                    "2024-Present: Manager HR — Sindoori Management Solutions"
+                ]
+            },
+            CAREER_TRANSITION_RESUME
+        )
+        companies = profile["companies"]
+        assert "Apollo Hospitals" in companies
+        assert "Leela Palace Hotels" in companies
+        assert "Sindoori Management Solutions" in companies
+
+        # Test reasoning query for companies
+        doc_id = "test_comp_query"
+        retrieved = _load(doc_id, CAREER_TRANSITION_RESUME)
+        ans, conf, _ = reasoning_service.reason(
+            context=CAREER_TRANSITION_RESUME,
+            question="What companies has the candidate worked in?",
+            retrieved_chunks=retrieved,
+            doc_id=doc_id
+        )
+        assert "Apollo Hospitals" in ans
+        assert "Leela Palace Hotels" in ans
+        assert "Sindoori Management Solutions" in ans
+
+    def test_company_names_never_in_skills(self):
+        raw_entities = {
+            "designation": "Manager HR",
+            "skills": ["Recruitment", "Apollo Hospitals Chennai", "Leela Palace", "Payroll", "safety", "administration"]
+        }
+        profile = candidate_profile_builder.build_profile(raw_entities, CAREER_TRANSITION_RESUME)
+        skills = profile["skills"]
+
+        assert "Recruitment" in skills
+        assert "Payroll" in skills
+        assert "Apollo Hospitals Chennai" not in skills
+        assert "Leela Palace" not in skills
+        assert "safety" not in skills
+
+    def test_full_address_and_native_place(self):
+        profile = candidate_profile_builder.build_profile(
+            {"address": "123 Main Street, Bangalore, Karnataka, 560001"},
+            "Address: 123 Main Street, Bangalore, Karnataka, 560001"
+        )
+        addr_details = profile["address_details"]
+        assert addr_details["city"] == "Bangalore"
+        assert addr_details["state"] == "Karnataka"
+        assert addr_details["pincode"] == "560001"
+
+        # Query native place
+        doc_id = "test_native_place"
+        retrieved = _load(doc_id, "Address: 123 Main Street, Bangalore, Karnataka, 560001")
+        ans, conf, _ = reasoning_service.reason(
+            context="Address: 123 Main Street, Bangalore, Karnataka, 560001",
+            question="Native place of candidate",
+            retrieved_chunks=retrieved,
+            doc_id=doc_id
+        )
+        assert "Bangalore" in ans or "Karnataka" in ans
+
+    def test_role_evaluation_taxonomy_clinical_staff_nurse(self):
+        nurse_resume = (
+            "Name: Nurse Priya\n"
+            "Designation: Staff Nurse\n"
+            "Skills: Patient Care, ICU Management, Triage, Pharmacology, Clinical Care, BLS, ACLS\n"
+            "Work Experience: 2018-2024: Staff Nurse — Apollo Hospitals\n"
+            "Education: B.Sc Nursing from Kerala University (2018)\n"
+        )
+        doc_id = "test_clinical_nurse_eval"
+        retrieved = _load(doc_id, nurse_resume)
+        ans, conf, _ = reasoning_service.reason(
+            context=nurse_resume,
+            question="Is she suitable for Clinical Staff Nurse?",
+            retrieved_chunks=retrieved,
+            doc_id=doc_id
+        )
+        # Should return Yes/Suitable based on skills/domain, NOT "Resume doesn't mention Clinical Staff Nurse"
+        assert "Yes" in ans or "Suitable" in ans or "Match" in ans, f"Expected suitable for Clinical Staff Nurse. Got: {ans}"

@@ -26,6 +26,10 @@
       "required": ["hrms", "payroll", "onboarding", "employee relations", "labor laws", "recruitment"],
       "description": "managing HR operations, HRMS, payroll processing, onboarding, and employee relations."
     },
+    "HR Manager": {
+      "required": ["hrms", "payroll", "recruitment", "employee engagement", "labor laws", "compliance"],
+      "description": "overseeing HR operations, talent acquisition, payroll management, and organizational compliance."
+    },
     "Recruiter": {
       "required": ["recruitment", "sourcing", "staffing", "interviewing", "talent acquisition"],
       "description": "end-to-end recruitment, candidate sourcing, talent acquisition, and interviewing."
@@ -128,6 +132,10 @@
     }
   },
   "Healthcare": {
+    "Clinical Staff Nurse": {
+      "required": ["patient care", "nursing", "icu", "triage", "pharmacology", "medication", "hospital"],
+      "description": "providing direct clinical patient care, nursing assessment, triage, and medication administration."
+    },
     "Staff Nurse": {
       "required": ["patient care", "nursing", "icu", "vitals", "medication", "hospital"],
       "description": "inpatient nursing care, administering medications, and vital monitoring."
@@ -143,6 +151,28 @@
     "Emergency Nurse": {
       "required": ["emergency care", "trauma", "triage", "cpr", "first aid"],
       "description": "emergency room trauma response, CPR administration, and triage management."
+    }
+  },
+  "Sales & Marketing": {
+    "Regional Sales Manager": {
+      "required": ["b2b sales", "lead generation", "crm", "salesforce", "account management", "negotiation"],
+      "description": "regional sales expansion, B2B client acquisition, CRM management, and revenue growth."
+    },
+    "Sales Executive": {
+      "required": ["sales", "lead generation", "crm", "client acquisition", "negotiation"],
+      "description": "lead generation, field sales, CRM tracking, and client negotiations."
+    }
+  },
+  "Customer Support & BPO": {
+    "Customer Support Specialist": {
+      "required": ["helpdesk", "customer service", "ticket resolution", "zendesk", "troubleshooting"],
+      "description": "customer query resolution, helpdesk ticket management, and technical troubleshooting."
+    }
+  },
+  "Freshers & Entry Level": {
+    "Graduate Trainee Engineer": {
+      "required": ["c++", "java", "sql", "data structures", "problem solving"],
+      "description": "entry-level software development, database queries, and algorithmic problem solving."
     }
   }
 }
