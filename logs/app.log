@@ -31594,3 +31594,102 @@ ValueError: Unable to extract readable text from the uploaded document.
 2026-07-22 19:03:21 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session n4b4vr from role 'user'
 2026-07-22 19:03:21 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session n4b4vr from role 'assistant'
 2026-07-22 19:03:22 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-23 10:46:12 | INFO    | backend.app.core.logging:configure_logging:48 - Application logging successfully initialized.
+2026-07-23 10:46:12 | INFO    | backend.app.services.model_manager:__init__:41 - ModelManager singleton initialized. CPU/GPU Device: cpu
+2026-07-23 10:46:12 | INFO    | backend.app.services.embedding_service:__init__:33 - Initializing MyGPTEmbedding provider.
+2026-07-23 10:46:17 | WARNING | backend.app.services.ocr_service:__init__:36 - Tesseract OCR is not installed or not in PATH. OCR will run in fallback mode: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-07-23 10:46:17 | INFO    | backend.app.services.reasoning_service:__init__:452 - Initializing ReasoningService.
+2026-07-23 10:46:17 | INFO    | backend.app.services.reasoning.domain_detector:_load_domain_taxonomy_from_json:46 - Loaded domain taxonomy dynamically from domain_taxonomy.json
+2026-07-23 10:46:17 | INFO    | backend.app.services.reasoning.role_inference_engine:_load_role_taxonomy_from_json:16 - Loaded role taxonomy dynamically from role_taxonomy.json
+2026-07-23 10:46:17 | INFO    | backend.app.services.conversation_memory:__init__:15 - ConversationMemory service initialized.
+2026-07-23 10:46:17 | INFO    | backend.app.services.reasoning.intent_classifier:_load_intent_aliases_from_json:54 - Loaded intent aliases dynamically from intent_aliases.json
+2026-07-23 10:46:17 | INFO    | backend.app.services.reasoning.intent_classifier:_precompute_embeddings:525 - Pre-computing semantic intent classifier embeddings...
+2026-07-23 10:46:17 | INFO    | backend.app.services.model_manager:load_model:92 - Initializing new GPT instance in ModelManager...
+2026-07-23 10:46:17 | ERROR   | backend.app.services.model_manager:load_model:122 - Failed to auto-load checkpoint on startup: 'config'
+2026-07-23 10:46:49 | INFO    | backend.app.services.reasoning.intent_classifier:_precompute_embeddings:534 - Semantic intent embeddings loaded successfully.
+2026-07-23 10:46:49 | INFO    | backend.app.services.reasoning.domain_detector:_load_domain_taxonomy_from_json:46 - Loaded domain taxonomy dynamically from domain_taxonomy.json
+2026-07-23 10:46:49 | INFO    | backend.app.services.reasoning.role_inference_engine:_load_role_taxonomy_from_json:16 - Loaded role taxonomy dynamically from role_taxonomy.json
+2026-07-23 10:46:49 | INFO    | backend.app.services.ai_orchestrator:__init__:23 - Initializing AIOrchestrator with v3 extensibility slots.
+2026-07-23 10:46:49 | INFO    | app.main:startup_event:61 - Initializing MyGPT services and attempting to restore checkpoints...
+2026-07-23 10:46:49 | INFO    | backend.app.services.model_manager:load_latest_checkpoint:192 - Successfully restored BPETokenizer vocabulary.
+2026-07-23 10:46:49 | INFO    | backend.app.services.model_manager:load_latest_checkpoint:205 - Successfully restored model configuration.
+2026-07-23 10:46:49 | ERROR   | backend.app.services.model_manager:load_latest_checkpoint:239 - Failed to restore model weights: Error(s) in loading state_dict for GPT:
+	size mismatch for token_embeddings.weight: copying a param with shape torch.Size([1113, 32]) from checkpoint, the shape in current model is torch.Size([1113, 160]).
+	size mismatch for pos_embeddings.pe: copying a param with shape torch.Size([1, 256, 32]) from checkpoint, the shape in current model is torch.Size([1, 130, 160]).
+	size mismatch for blocks.0.ln1.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.ln1.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.attn.q_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.0.attn.q_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.attn.k_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.0.attn.k_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.attn.v_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.0.attn.v_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.attn.out_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.0.attn.out_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.ln2.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.ln2.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.0.ffn.fc1.weight: copying a param with shape torch.Size([128, 32]) from checkpoint, the shape in current model is torch.Size([128, 160]).
+	size mismatch for blocks.0.ffn.fc2.weight: copying a param with shape torch.Size([32, 128]) from checkpoint, the shape in current model is torch.Size([160, 128]).
+	size mismatch for blocks.0.ffn.fc2.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.ln1.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.ln1.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.attn.q_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.1.attn.q_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.attn.k_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.1.attn.k_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.attn.v_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.1.attn.v_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.attn.out_proj.weight: copying a param with shape torch.Size([32, 32]) from checkpoint, the shape in current model is torch.Size([160, 160]).
+	size mismatch for blocks.1.attn.out_proj.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.ln2.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.ln2.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for blocks.1.ffn.fc1.weight: copying a param with shape torch.Size([128, 32]) from checkpoint, the shape in current model is torch.Size([128, 160]).
+	size mismatch for blocks.1.ffn.fc2.weight: copying a param with shape torch.Size([32, 128]) from checkpoint, the shape in current model is torch.Size([160, 128]).
+	size mismatch for blocks.1.ffn.fc2.bias: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for ln_f.gamma: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for ln_f.beta: copying a param with shape torch.Size([32]) from checkpoint, the shape in current model is torch.Size([160]).
+	size mismatch for lm_head.weight: copying a param with shape torch.Size([1113, 32]) from checkpoint, the shape in current model is torch.Size([1113, 160]).
+2026-07-23 10:46:49 | INFO    | backend.app.services.model_manager:load_latest_checkpoint:253 - Successfully restored training history.
+2026-07-23 10:46:49 | INFO    | app.main:startup_event:77 - Pre-loading MyGPT model structure into memory...
+2026-07-23 10:46:49 | INFO    | app.main:startup_event:80 - MyGPT model successfully pre-loaded on boot.
+2026-07-23 10:47:12 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session my0ck active document set to b5ff32ac-32fc-4996-92bc-6c9e3413a5cd
+2026-07-23 10:47:12 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-23 10:47:12 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-23 10:47:12 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-23 10:47:12 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'Skills'
+2026-07-23 10:47:13 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 2 chunks (doc_id=b5ff32ac-32fc-4996-92bc-6c9e3413a5cd) with threshold=0.0
+2026-07-23 10:47:13 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 2 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-23 10:47:13 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-23 10:47:13 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'Skills...' with 2 chunks.
+2026-07-23 10:47:13 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-23 10:47:13 | INFO    | backend.app.services.reasoning_service:reason:860 - REASONING START
+2026-07-23 10:47:13 | INFO    | backend.app.services.reasoning_service:reason:861 - Reasoning query: 'Skills'
+2026-07-23 10:47:13 | DEBUG   | backend.app.services.reasoning.intent_classifier:classify_multi:366 - IntentClassifier normalized: 'Skills' → 'skills'
+2026-07-23 10:47:13 | INFO    | backend.app.services.reasoning_service:reason:913 - Classified Intents: ['SKILLS']
+2026-07-23 10:47:13 | INFO    | backend.app.services.answer_formatter:format_response:249 - Formatting final chat response. Confidence=94.5
+2026-07-23 10:47:13 | INFO    | backend.app.services.answer_formatter:format_response:250 - ANSWER GENERATED
+2026-07-23 10:47:13 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session my0ck from role 'user'
+2026-07-23 10:47:13 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session my0ck from role 'assistant'
+2026-07-23 10:47:13 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-23 10:47:18 | INFO    | backend.app.services.conversation_memory:set_active_document:93 - Session my0ck active document set to b5ff32ac-32fc-4996-92bc-6c9e3413a5cd
+2026-07-23 10:47:18 | INFO    | backend.app.services.search_service:search:38 - RETRIEVAL START
+2026-07-23 10:47:18 | INFO    | backend.app.services.search_service:search:39 - TOP K: 3
+2026-07-23 10:47:18 | INFO    | backend.app.services.search_service:search:40 - SIMILARITY: 0.0
+2026-07-23 10:47:18 | INFO    | backend.app.services.search_service:search:41 - Search mode triggered: hybrid for query: 'Can you summarize EVLYN JANET's educational background and certifications?'
+2026-07-23 10:47:18 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:107 - Searching 2 chunks (doc_id=b5ff32ac-32fc-4996-92bc-6c9e3413a5cd) with threshold=0.0
+2026-07-23 10:47:18 | INFO    | backend.app.services.retrieval_service:retrieve_relevant_chunks:154 - Retrieved 2 relevant chunks (after overlap dedup) matching search criteria.
+2026-07-23 10:47:18 | INFO    | backend.app.services.ai_orchestrator:process_chat_query:178 - CONTEXT BUILD
+2026-07-23 10:47:18 | INFO    | backend.app.services.context_builder:build_context:30 - Building reasoning context for query 'Can you summarize EVLYN JANET'...' with 2 chunks.
+2026-07-23 10:47:18 | INFO    | backend.app.services.context_builder:build_context:98 - Reasoning context assembled successfully. Length: 1015 chars.
+2026-07-23 10:47:18 | INFO    | backend.app.services.reasoning_service:reason:860 - REASONING START
+2026-07-23 10:47:18 | INFO    | backend.app.services.reasoning_service:reason:861 - Reasoning query: 'Can you summarize EVLYN JANET's educational background and certifications?'
+2026-07-23 10:47:18 | DEBUG   | backend.app.services.reasoning.intent_classifier:classify_multi:366 - IntentClassifier normalized: 'Can you summarize EVLYN JANET's educational background and certifications?' → 'can you summarize evlyn janet's education and certifications'
+2026-07-23 10:47:18 | INFO    | backend.app.services.reasoning_service:reason:913 - Classified Intents: ['SUMMARY', 'EDUCATION', 'CERTIFICATIONS']
+2026-07-23 10:47:19 | INFO    | backend.app.services.reasoning_service:reason:929 - Resolving composite part: SUMMARY
+2026-07-23 10:47:19 | INFO    | backend.app.services.reasoning_service:reason:929 - Resolving composite part: EDUCATION
+2026-07-23 10:47:19 | INFO    | backend.app.services.reasoning_service:reason:929 - Resolving composite part: CERTIFICATIONS
+2026-07-23 10:47:19 | INFO    | backend.app.services.answer_formatter:format_response:249 - Formatting final chat response. Confidence=99.0
+2026-07-23 10:47:19 | INFO    | backend.app.services.answer_formatter:format_response:250 - ANSWER GENERATED
+2026-07-23 10:47:19 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session my0ck from role 'user'
+2026-07-23 10:47:19 | INFO    | backend.app.services.conversation_memory:add_message:50 - Added message to session my0ck from role 'assistant'
+2026-07-23 10:47:19 | INFO    | backend.app.services.trainer_service:save_training_sample:59 - Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
