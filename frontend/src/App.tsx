@@ -7,7 +7,8 @@ import {
   Flame, Sliders, Play, Square, Terminal, ShieldAlert, Sparkles,
   Download, ArrowRight, Eye, ChevronRight, Settings as SettingsIcon,
   Search, RefreshCw, MessageSquare, Upload, Trash2, Send, Bot, User,
-  FileText, CheckCircle2, AlertCircle
+  FileText, CheckCircle2, AlertCircle, GraduationCap, Briefcase, Award,
+  Globe, MapPin, Mail, Phone
 } from 'lucide-react'
 import { useStore } from './store/useStore'
 import type { DashboardStats, SystemSettings, LossData, ValLossData } from './store/useStore'
@@ -138,45 +139,45 @@ export default function App() {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-950 text-gray-100 font-sans selection:bg-indigo-500 selection:text-white relative">
+    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 text-slate-800 font-sans selection:bg-indigo-500 selection:text-white relative">
       
       {/* Dynamic Glowing Spot for visual design */}
       <div className="glow-spot top-10 left-1/4" />
       <div className="glow-spot bottom-10 right-1/4" />
 
       {/* 1. Header component */}
-      <header className="flex items-center justify-between px-6 py-4 glass-panel border-b border-gray-800 z-10 shrink-0">
+      <header className="flex items-center justify-between px-6 py-4 glass-panel border-b border-slate-200/80 z-10 shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Sparkles className="h-5 w-5 text-white animate-pulse" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-              MyGPT Studio
-              <span className="text-xs bg-indigo-500/20 text-indigo-400 font-semibold px-2 py-0.5 rounded-full border border-indigo-500/30">v2.0</span>
+            <h1 className="text-lg font-bold tracking-tight text-slate-850 flex items-center gap-2">
+               MyGPT Studio
+              <span className="text-xs bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full border border-indigo-200">v2.0</span>
             </h1>
-            <p className="text-xs text-gray-400">Deep Learning Model Laboratory</p>
+            <p className="text-xs text-slate-500">Deep Learning Model Laboratory</p>
           </div>
         </div>
 
         <div className="flex items-center gap-5">
           {/* GPU Status Badge */}
-          <div className="flex items-center gap-2 text-xs bg-gray-900 border border-gray-800 rounded-lg px-3 py-1.5">
-            <Cpu className={`h-4 w-4 ${stats?.device.includes('cuda') ? 'text-green-400 animate-pulse' : 'text-gray-400'}`} />
-            <span className="text-gray-400">Device:</span>
-            <span className="font-semibold text-gray-200 uppercase">{stats?.device || 'CPU'}</span>
+          <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
+            <Cpu className={`h-4 w-4 ${stats?.device.includes('cuda') ? 'text-green-500 animate-pulse' : 'text-slate-400'}`} />
+            <span className="text-slate-500">Device:</span>
+            <span className="font-semibold text-slate-700 uppercase">{stats?.device || 'CPU'}</span>
           </div>
 
           {/* WS Status badge */}
-          <div className="flex items-center gap-2 text-xs bg-gray-900 border border-gray-800 rounded-lg px-3 py-1.5">
-            <span className={`h-2 w-2 rounded-full ${wsConnected ? 'bg-green-400' : 'bg-red-400 animate-ping'}`} />
-            <span className="text-gray-400">WebSocket:</span>
-            <span className="font-semibold text-gray-200">{wsConnected ? 'Connected' : 'Offline'}</span>
+          <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
+            <span className={`h-2 w-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-rose-500 animate-ping'}`} />
+            <span className="text-slate-500">WebSocket:</span>
+            <span className="font-semibold text-slate-700">{wsConnected ? 'Connected' : 'Offline'}</span>
           </div>
 
           {/* Model active status */}
           {stats?.is_training && (
-            <div className="flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs px-3 py-1.5 rounded-lg animate-pulse">
+            <div className="flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-250 text-xs px-3 py-1.5 rounded-lg animate-pulse shadow-sm">
               <Flame className="h-4 w-4" />
               <span>Training Model...</span>
             </div>
@@ -188,7 +189,7 @@ export default function App() {
       <div className="flex flex-1 overflow-hidden">
         
         {/* 2. Left Sidebar Navigation */}
-        <aside className="w-64 glass-panel border-r border-gray-800 flex flex-col justify-between p-4 z-10 shrink-0">
+        <aside className="w-64 glass-panel border-r border-slate-200/80 flex flex-col justify-between p-4 z-10 shrink-0">
           <nav className="flex flex-col gap-1.5">
             <SidebarItem
               icon={<LayoutDashboard />}
@@ -271,17 +272,17 @@ export default function App() {
           </nav>
 
           {/* Quick specs at bottom of sidebar */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-3 text-xs flex flex-col gap-1">
-            <span className="text-gray-400 font-semibold uppercase tracking-wider text-[10px]">Model Architecture</span>
-            <div className="flex justify-between text-gray-300">
+          <div className="bg-slate-100 border border-slate-200 rounded-xl p-3 text-xs flex flex-col gap-1">
+            <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">Model Architecture</span>
+            <div className="flex justify-between text-slate-700">
               <span>Layers:</span>
               <span className="font-bold">{stats?.num_layers || 0}</span>
             </div>
-            <div className="flex justify-between text-gray-300">
+            <div className="flex justify-between text-slate-700">
               <span>Heads:</span>
               <span className="font-bold">{stats?.num_heads || 0}</span>
             </div>
-            <div className="flex justify-between text-gray-300">
+            <div className="flex justify-between text-slate-700">
               <span>Embedding Dim:</span>
               <span className="font-bold">{stats?.embedding_dim || 0}</span>
             </div>
@@ -289,7 +290,7 @@ export default function App() {
         </aside>
 
         {/* 3. Main Workspace Panel */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-gray-950/20 relative">
+        <main className="flex-1 flex flex-col overflow-hidden bg-slate-100/30 relative">
           
           {/* Main dynamic Tab content viewport */}
           <div className="flex-1 overflow-y-auto p-6">
@@ -309,28 +310,28 @@ export default function App() {
           </div>
 
           {/* 4. Bottom Console Panel */}
-          <div className={`glass-panel border-t border-gray-800 flex flex-col z-10 shrink-0 ${consoleCollapsed ? 'h-10' : 'h-48'}`}>
-            <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800 bg-gray-900/50">
-              <div className="flex items-center gap-2 text-xs font-semibold text-gray-300">
-                <Terminal className="h-4 w-4 text-indigo-400" />
+          <div className={`glass-panel border-t border-slate-200/80 flex flex-col z-10 shrink-0 ${consoleCollapsed ? 'h-10' : 'h-48'}`}>
+            <div className="flex justify-between items-center px-4 py-2 border-b border-slate-200 bg-slate-100/50">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                <Terminal className="h-4 w-4 text-indigo-650" />
                 <span>Background Execution Console</span>
               </div>
               <button
                 onClick={() => setConsoleCollapsed(!consoleCollapsed)}
-                className="text-xs text-gray-400 hover:text-gray-200 px-2 py-0.5 rounded hover:bg-gray-800 transition-all"
+                className="text-xs text-slate-500 hover:text-slate-800 px-2 py-0.5 rounded hover:bg-slate-200/50 transition-all font-medium"
               >
                 {consoleCollapsed ? 'Expand' : 'Collapse'}
               </button>
             </div>
             
             {!consoleCollapsed && (
-              <div className="flex-1 p-3 overflow-y-auto font-mono text-[11px] text-green-400 flex flex-col gap-1 bg-gray-950/80">
+              <div className="flex-1 p-3 overflow-y-auto font-mono text-[11px] text-emerald-400 flex flex-col gap-1 bg-slate-900">
                 {logs.length === 0 ? (
-                  <span className="text-gray-500">No output logs received. Start training or run inference to inspect...</span>
+                  <span className="text-slate-500">No output logs received. Start training or run inference to inspect...</span>
                 ) : (
                   logs.map((logLine, idx) => (
                     <div key={idx} className="leading-5">
-                      <span className="text-gray-500 select-none">$&nbsp;</span>
+                      <span className="text-slate-500 select-none">$&nbsp;</span>
                       {logLine}
                     </div>
                   ))
@@ -341,58 +342,58 @@ export default function App() {
         </main>
 
         {/* 5. Right Tensor Inspector Panel */}
-        <aside className="w-80 glass-panel border-l border-gray-800 p-5 flex flex-col justify-between z-10 shrink-0">
+        <aside className="w-80 glass-panel border-l border-slate-200/80 p-5 flex flex-col justify-between z-10 shrink-0">
           <div className="flex flex-col gap-5">
-            <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-              <Layers className="h-5 w-5 text-indigo-400" />
-              <h2 className="font-bold text-sm tracking-tight text-white uppercase">Tensor Inspector</h2>
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+              <Layers className="h-5 w-5 text-indigo-600" />
+              <h2 className="font-bold text-sm tracking-tight text-slate-800 uppercase">Tensor Inspector</h2>
             </div>
 
             {selectedTensor ? (
               <div className="flex flex-col gap-4 text-xs">
-                <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 flex flex-col gap-3">
+                <div className="bg-slate-100/60 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
                   <div>
-                    <span className="text-gray-400 block font-semibold text-[10px] uppercase">Selected Element</span>
-                    <span className="text-lg font-bold text-indigo-300 font-mono">"{selectedTensor.name}"</span>
+                    <span className="text-slate-500 block font-semibold text-[10px] uppercase">Selected Element</span>
+                    <span className="text-lg font-bold text-indigo-600 font-mono">"{selectedTensor.name}"</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-[11px]">
                     <div>
-                      <span className="text-gray-400 block">Vocab ID</span>
-                      <span className="font-bold text-gray-200 font-mono">{selectedTensor.id}</span>
+                      <span className="text-slate-500 block">Vocab ID</span>
+                      <span className="font-bold text-slate-700 font-mono">{selectedTensor.id}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">Tensor Shape</span>
-                      <span className="font-bold text-gray-200 font-mono">[{selectedTensor.shape.join(', ')}]</span>
+                      <span className="text-slate-500 block">Tensor Shape</span>
+                      <span className="font-bold text-slate-700 font-mono">[{selectedTensor.shape.join(', ')}]</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <span className="text-gray-400 font-semibold text-[10px] uppercase">Tensor Statistics</span>
-                  <div className="bg-gray-900/40 border border-gray-800/80 rounded-xl p-3 flex flex-col gap-1.5 font-mono text-[11px]">
+                  <span className="text-slate-500 font-semibold text-[10px] uppercase">Tensor Statistics</span>
+                  <div className="bg-slate-100/40 border border-slate-200/60 rounded-xl p-3 flex flex-col gap-1.5 font-mono text-[11px]">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Mean:</span>
-                      <span className="text-gray-200">{selectedTensor.mean.toFixed(6)}</span>
+                      <span className="text-slate-500">Mean:</span>
+                      <span className="text-slate-700">{selectedTensor.mean.toFixed(6)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Std Dev:</span>
-                      <span className="text-gray-200">{selectedTensor.std.toFixed(6)}</span>
+                      <span className="text-slate-500">Std Dev:</span>
+                      <span className="text-slate-700">{selectedTensor.std.toFixed(6)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Min Val:</span>
-                      <span className="text-gray-200">{selectedTensor.min.toFixed(6)}</span>
+                      <span className="text-slate-500">Min Val:</span>
+                      <span className="text-slate-700">{selectedTensor.min.toFixed(6)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Max Val:</span>
-                      <span className="text-gray-200">{selectedTensor.max.toFixed(6)}</span>
+                      <span className="text-slate-500">Max Val:</span>
+                      <span className="text-slate-700">{selectedTensor.max.toFixed(6)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Coordinate Weight Sparkline */}
                 <div className="flex flex-col gap-2">
-                  <span className="text-gray-400 font-semibold text-[10px] uppercase">Embedding Coordinate Sparkline</span>
-                  <div className="h-16 w-full bg-gray-950 border border-gray-800 rounded-xl overflow-hidden flex items-end px-1 gap-0.5">
+                  <span className="text-slate-500 font-semibold text-[10px] uppercase">Embedding Coordinate Sparkline</span>
+                  <div className="h-16 w-full bg-slate-50 border border-slate-200 rounded-xl overflow-hidden flex items-end px-1 gap-0.5">
                     {selectedTensor.vector.map((val, idx) => {
                       // Normalize val to a percentage height for demo sparkline
                       const abs = Math.abs(val)
@@ -404,7 +405,7 @@ export default function App() {
                         <div
                           key={idx}
                           style={{ height }}
-                          className={`flex-1 rounded-t-sm ${isPositive ? 'bg-indigo-500' : 'bg-purple-600'}`}
+                          className={`flex-1 rounded-t-sm ${isPositive ? 'bg-indigo-500' : 'bg-purple-655'}`}
                           title={`Index ${idx}: ${val.toFixed(4)}`}
                         />
                       )
@@ -414,16 +415,16 @@ export default function App() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-                <ShieldAlert className="h-8 w-8 text-gray-600" />
-                <p className="text-xs text-gray-500 px-4">No tensor selected. Click on tokens in the Tokenizer or Embedding pages to inspect their coordinates!</p>
+                <ShieldAlert className="h-8 w-8 text-slate-350" />
+                <p className="text-xs text-slate-400 px-4">No tensor selected. Click on tokens in the Tokenizer or Embedding pages to inspect their coordinates!</p>
               </div>
             )}
           </div>
 
           {/* Quick Hardware Inspector at very bottom */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-3 text-xs flex flex-col gap-2">
-            <span className="text-gray-400 font-semibold text-[10px] uppercase">Memory Overhead</span>
-            <div className="flex justify-between font-mono text-[11px] text-gray-300">
+          <div className="bg-slate-100/60 border border-slate-200 rounded-xl p-3 text-xs flex flex-col gap-2">
+            <span className="text-slate-500 font-semibold text-[10px] uppercase">Memory Overhead</span>
+            <div className="flex justify-between font-mono text-[11px] text-slate-600">
               <span>Weights Memory:</span>
               <span>~{((stats?.total_params || 0) * 4 / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
@@ -437,9 +438,9 @@ export default function App() {
           <div
             key={t.id}
             className={`px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold flex items-center gap-2 min-w-64 backdrop-blur-xl animate-bounce ${
-              t.type === 'success' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
-              t.type === 'error' ? 'bg-red-500/20 text-red-300 border-red-500/30' :
-              'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+              t.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+              t.type === 'error' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+              'bg-indigo-50 text-indigo-700 border-indigo-200'
             }`}
           >
             <span>{t.msg}</span>
@@ -466,8 +467,8 @@ function SidebarItem({ icon, label, active, onClick }: SidebarItemProps) {
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium transition-all duration-200 border ${
         active
-          ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/25 shadow-inner'
-          : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900 border-transparent'
+          ? 'bg-indigo-50 text-indigo-650 border-indigo-100 shadow-sm font-semibold'
+          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60 border-transparent'
       }`}
     >
       {React.cloneElement(icon as React.ReactElement<any>, { className: 'h-4 w-4 shrink-0' })}
@@ -1953,20 +1954,20 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
       const headers = rows[0];
       const dataRows = rows.slice(2);
       return (
-        <div className="overflow-x-auto border border-gray-800 rounded-xl my-2 max-w-full">
-          <table className="w-full text-left border-collapse text-[10px]">
+        <div className="overflow-x-auto border border-slate-250/65 rounded-xl my-2 max-w-full shadow-sm bg-white">
+          <table className="w-full text-left border-collapse text-[11px]">
             <thead>
-              <tr className="bg-gray-900 border-b border-gray-800 text-white font-semibold">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-800 font-semibold">
                 {headers.map((h, idx) => (
-                  <th key={idx} className="p-2.5">{h}</th>
+                  <th key={idx} className="p-3 font-semibold">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-850 bg-gray-950/20">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {dataRows.map((row, rIdx) => (
-                <tr key={rIdx} className="hover:bg-gray-900/30 text-gray-300">
+                <tr key={rIdx} className="hover:bg-slate-50/50 text-slate-750 transition-colors">
                   {row.map((cell, cIdx) => (
-                    <td key={cIdx} className="p-2.5">{cell}</td>
+                    <td key={cIdx} className="p-3">{cell}</td>
                   ))}
                 </tr>
               ))}
@@ -1986,18 +1987,18 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     const isYes = startsWithYes;
     const explanation = c.replace(/^(yes|no|✅ yes|❌ no)[,\s\.]*/i, "").trim();
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5 p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl shadow-sm">
         <div className="flex items-center">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase shadow-sm ${
             isYes 
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-              : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+              : "bg-rose-50 text-rose-700 border border-rose-200"
           }`}>
-            {isYes ? "✅ Yes" : "❌ No"}
+            {isYes ? "✓ Yes" : "✕ No"}
           </span>
         </div>
         {explanation && (
-          <p className="text-gray-300 leading-relaxed pl-0.5">{explanation}</p>
+          <p className="text-slate-700 leading-relaxed text-xs pl-0.5">{explanation}</p>
         )}
       </div>
     );
@@ -2010,13 +2011,15 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
 
   if (isPhone || isEmail || isName) {
     return (
-      <div className="flex items-center gap-3 py-1">
-        <span className="text-lg">{isPhone ? "📞" : isEmail ? "📧" : "👤"}</span>
+      <div className="flex items-center gap-3.5 p-3.5 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border border-indigo-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+        <div className="h-10 w-10 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center text-sm shadow-inner shrink-0">
+          {isPhone ? <Phone className="h-4.5 w-4.5" /> : isEmail ? <Mail className="h-4.5 w-4.5" /> : <User className="h-4.5 w-4.5" />}
+        </div>
         <div>
-          <div className="text-[8px] uppercase tracking-wider text-gray-500 font-semibold">
-            {isPhone ? "Phone Number" : isEmail ? "Email Address" : "Candidate Name"}
+          <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">
+            {isPhone ? "Phone Number" : isEmail ? "Email Address" : "Candidate Profile"}
           </div>
-          <div className="text-white font-bold text-[11px] select-all">{c}</div>
+          <div className="text-slate-800 font-bold text-[13px] select-all mt-0.5">{c}</div>
         </div>
       </div>
     );
@@ -2026,11 +2029,13 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
   if (q.includes("how many") || q.includes("count") || q.includes("total experience") || q.includes("years of experience")) {
     if (/^\d+(\s*years)?$/i.test(c)) {
       return (
-        <div className="flex items-center gap-3 py-1">
-          <span className="text-lg">📊</span>
+        <div className="flex items-center gap-3.5 p-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+          <div className="h-10 w-10 bg-indigo-50 text-indigo-700 rounded-xl flex items-center justify-center text-lg shadow-sm border border-indigo-100/40 shrink-0">
+            📊
+          </div>
           <div>
-            <div className="text-[8px] uppercase tracking-wider text-gray-500 font-semibold">Total Count / Experience</div>
-            <div className="text-indigo-400 font-extrabold text-sm">{c}</div>
+            <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Total Metric Value</div>
+            <div className="text-indigo-650 font-extrabold text-lg mt-0.5">{c}</div>
           </div>
         </div>
       );
@@ -2073,22 +2078,24 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     if (blocks.length > 0) {
       return (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
-            <span>🚀 Projects</span>
+          <div className="flex items-center gap-2 font-bold text-slate-800 text-xs uppercase tracking-wider">
+            <span className="text-indigo-600">🚀</span>
+            <span>Key Projects ({blocks.length})</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {blocks.map((block, i) => (
-              <div key={i} className="bg-gray-950/40 border border-gray-855 p-3 rounded-xl relative overflow-hidden flex flex-col justify-between hover:border-gray-800 transition-all">
-                <div className="absolute top-2 right-3 font-bold text-lg text-gray-800/40 select-none">#{i + 1}</div>
+              <div key={i} className="bg-white border border-slate-200 p-4 rounded-xl relative overflow-hidden flex flex-col justify-between hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-300">
+                <div className="absolute top-2 right-4 font-bold text-2xl text-slate-100 select-none">0{i + 1}</div>
                 <div>
-                  <div className="font-bold text-white text-[11px] mb-1.5 pr-8 truncate">
+                  <div className="font-bold text-slate-900 text-xs mb-2 pr-8 leading-tight">
                     {block.title}
                   </div>
                   {block.details.length > 0 && (
-                    <ul className="space-y-1 text-gray-400 text-[10px] pl-1">
+                    <ul className="space-y-1.5 text-slate-650 text-[11px] pl-1">
                       {block.details.map((detail, dIdx) => (
-                        <li key={dIdx} className="leading-normal">
-                          {detail}
+                        <li key={dIdx} className="leading-relaxed flex items-start gap-1.5">
+                          <span className="text-indigo-500 shrink-0 mt-1">•</span>
+                          <span>{detail}</span>
                         </li>
                       ))}
                     </ul>
@@ -2107,21 +2114,22 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
       return (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
-            <span>💼 Work Experience</span>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
+            <Briefcase className="h-4.5 w-4.5 text-indigo-600" />
+            <span>Professional Experience</span>
           </div>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {blocks.map((block, i) => (
-              <div key={i} className="bg-gray-950/40 border border-gray-855 p-3 rounded-xl hover:border-gray-800 transition-all">
-                <div className="font-bold text-white flex items-center gap-2 mb-1.5">
-                  <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full" />
+              <div key={i} className="bg-white border border-slate-205 p-4 rounded-xl hover:shadow-md hover:shadow-indigo-500/5 hover:border-indigo-300 transition-all duration-300">
+                <div className="font-bold text-slate-900 flex items-center gap-2.5 mb-2.5 text-xs">
+                  <span className="h-2 w-2 bg-indigo-650 rounded-full shadow-sm" />
                   {block.title}
                 </div>
                 {block.details.length > 0 && (
-                  <ul className="space-y-1 pl-3.5 text-gray-400 text-[10px]">
+                  <ul className="space-y-1.5 pl-4 text-slate-600 text-[11px]">
                     {block.details.map((detail, dIdx) => (
-                      <li key={dIdx} className="list-disc leading-relaxed">
+                      <li key={dIdx} className="list-disc leading-relaxed pl-0.5">
                         {detail}
                       </li>
                     ))}
@@ -2140,21 +2148,22 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
       return (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
-            <span>🎓 Education</span>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
+            <GraduationCap className="h-4.5 w-4.5 text-indigo-600" />
+            <span>Education & Credentials</span>
           </div>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {blocks.map((block, i) => (
-              <div key={i} className="bg-gray-950/40 border border-gray-855 p-3 rounded-xl hover:border-gray-800 transition-all">
-                <div className="font-bold text-white flex items-center gap-2 mb-1.5">
-                  <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full" />
+              <div key={i} className="bg-white border border-slate-205 p-4 rounded-xl hover:shadow-md hover:border-indigo-300 transition-all duration-300">
+                <div className="font-bold text-slate-900 flex items-center gap-2.5 mb-2 text-xs">
+                  <span className="h-2 w-2 bg-purple-600 rounded-full shadow-sm" />
                   {block.title}
                 </div>
                 {block.details.length > 0 && (
-                  <ul className="space-y-1 pl-3.5 text-gray-400 text-[10px]">
+                  <ul className="space-y-1.5 pl-4 text-slate-600 text-[11px]">
                     {block.details.map((detail, dIdx) => (
-                      <li key={dIdx} className="list-disc leading-relaxed">
+                      <li key={dIdx} className="list-disc leading-relaxed pl-0.5">
                         {detail}
                       </li>
                     ))}
@@ -2173,13 +2182,14 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
       return (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
-            <span>💻 Skills</span>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 font-bold text-slate-800 text-xs uppercase tracking-wider">
+            <span className="text-indigo-600">💻</span>
+            <span>Skills & Expertise</span>
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-1">
+          <div className="flex flex-wrap gap-2 mt-1">
             {blocks.map((block, i) => (
-              <span key={i} className="bg-indigo-500/10 border border-indigo-500/15 text-indigo-300 text-[10px] px-2.5 py-1 rounded-full font-medium transition-all hover:bg-indigo-500/20">
+              <span key={i} className="bg-indigo-50 border border-indigo-100 hover:border-indigo-300 text-indigo-700 text-[11px] px-3.5 py-1.5 rounded-full font-medium transition-all hover:bg-indigo-100/50 shadow-sm cursor-default">
                 {block.title}
               </span>
             ))}
@@ -2194,18 +2204,21 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
       return (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
-            <span>🏆 Certifications</span>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
+            <Award className="h-4.5 w-4.5 text-indigo-600" />
+            <span>Certifications & Achievements</span>
           </div>
-          <ul className="space-y-1 pl-1">
+          <div className="grid grid-cols-1 gap-2.5">
             {blocks.map((block, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full shrink-0" />
-                <span>{block.title}</span>
-              </li>
+              <div key={i} className="flex items-center gap-3 p-3.5 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+                <div className="h-8 w-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-sm shadow-sm border border-amber-100/40 shrink-0">
+                  🏅
+                </div>
+                <span className="font-semibold text-slate-800 text-xs">{block.title}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       );
     }
@@ -2218,18 +2231,21 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
       return (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-1.5 font-semibold text-white mb-1">
-            <span>{isLang ? "🌍 Languages" : "🏠 Address"}</span>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
+            {isLang ? <Globe className="h-4.5 w-4.5 text-indigo-600" /> : <MapPin className="h-4.5 w-4.5 text-indigo-600" />}
+            <span>{isLang ? "Languages" : "Contact Location"}</span>
           </div>
-          <ul className="space-y-1 pl-1">
+          <div className="grid grid-cols-1 gap-2.5">
             {blocks.map((block, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full shrink-0" />
-                <span>{block.title}</span>
-              </li>
+              <div key={i} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+                <div className="h-8 w-8 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center text-sm shrink-0">
+                  {isLang ? "🗣️" : "📍"}
+                </div>
+                <span className="font-semibold text-slate-800 text-xs">{block.title}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       );
     }
@@ -2237,11 +2253,12 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
 
   // Default to Summary paragraph block
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1.5 font-semibold text-white mb-0.5">
-        <span>📝 Summary</span>
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
+        <span className="text-indigo-655">📝</span>
+        <span>Document Summary</span>
       </div>
-      <p className="leading-relaxed">{c}</p>
+      <p className="leading-relaxed text-slate-700 text-xs text-justify bg-slate-50/50 p-4 border border-slate-200/50 rounded-xl shadow-inner">{c}</p>
     </div>
   );
 }
@@ -2257,6 +2274,42 @@ function DocumentChatView({ showToast }: { showToast: any }) {
   const [chatLoading, setChatLoading] = useState(false)
   const [previewSearch, setPreviewSearch] = useState('')
   const [sidebarSearch, setSidebarSearch] = useState('')
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+
+  // Toggle section accordion
+  const toggleSection = (sec: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sec]: !prev[sec]
+    }))
+  }
+
+  // Auto-expand sections that have search matches
+  useEffect(() => {
+    if (activeDocDetails?.chunks) {
+      const grouped: Record<string, any[]> = {}
+      activeDocDetails.chunks.forEach((c: any) => {
+        const sec = c.section || 'General'
+        if (c.text.toLowerCase().includes(previewSearch.toLowerCase())) {
+          if (!grouped[sec]) grouped[sec] = []
+          grouped[sec].push(c)
+        }
+      })
+      
+      const expanded: Record<string, boolean> = {}
+      if (previewSearch.trim() !== '') {
+        // Expand matches
+        Object.keys(grouped).forEach((sec) => {
+          expanded[sec] = true
+        })
+      } else {
+        // Default: Expand first section
+        const firstSec = activeDocDetails.chunks[0]?.section || 'General'
+        expanded[firstSec] = true
+      }
+      setExpandedSections(expanded)
+    }
+  }, [previewSearch, activeDocDetails])
   
   const [messages, setMessages] = useState<any[]>([])
   const [inputVal, setInputVal] = useState('')
@@ -2509,23 +2562,32 @@ function DocumentChatView({ showToast }: { showToast: any }) {
     c.text.toLowerCase().includes(previewSearch.toLowerCase())
   ) || []
 
+  const chunksBySection: Record<string, any[]> = {}
+  filteredChunks.forEach((c: any) => {
+    const sec = c.section || 'General'
+    if (!chunksBySection[sec]) {
+      chunksBySection[sec] = []
+    }
+    chunksBySection[sec].push(c)
+  })
+
   return (
-    <div className="flex gap-6 h-full overflow-hidden text-xs text-gray-300">
-      <div className="w-64 glass-panel rounded-2xl p-4 flex flex-col gap-4 border border-gray-800 bg-gray-950/20 shrink-0">
-        <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-          <span className="font-bold text-xs uppercase text-gray-400 tracking-wider">Document Library</span>
+    <div className="flex gap-6 h-full overflow-hidden text-xs text-slate-600">
+      <div className="w-64 glass-panel rounded-2xl p-4 flex flex-col gap-4 border border-slate-200 bg-white/70 shadow-sm shrink-0">
+        <div className="flex justify-between items-center border-b border-slate-250/60 pb-2">
+          <span className="font-bold text-xs uppercase text-slate-700 tracking-wider">Document Library</span>
           <button 
             onClick={handleResetChat} 
-            className="text-[10px] text-indigo-400 hover:text-indigo-300 hover:underline font-semibold"
+            className="text-[10px] text-indigo-650 hover:text-indigo-850 hover:underline font-semibold"
           >
             Reset Chat
           </button>
         </div>
 
-        <label className="flex flex-col items-center justify-center border border-dashed border-gray-850 hover:border-indigo-500/50 rounded-xl p-4 cursor-pointer transition-all bg-gray-900/10">
-          <Upload className="h-5 w-5 text-gray-500 mb-1.5" />
-          <span className="text-[10px] text-gray-400 text-center font-medium">Click to upload doc</span>
-          <span className="text-[8px] text-gray-500 text-center mt-0.5">PDF, DOCX, XLSX, PPTX, Images...</span>
+        <label className="flex flex-col items-center justify-center border border-dashed border-slate-350 hover:border-indigo-500/60 rounded-xl p-4 cursor-pointer transition-all bg-slate-50/50 shadow-sm">
+          <Upload className="h-5 w-5 text-slate-400 mb-1.5" />
+          <span className="text-[10px] text-slate-600 text-center font-medium">Click to upload doc</span>
+          <span className="text-[8px] text-slate-400 text-center mt-0.5">PDF, DOCX, XLSX, PPTX, Images...</span>
           <input 
             type="file" 
             onChange={handleUpload} 
@@ -2536,44 +2598,44 @@ function DocumentChatView({ showToast }: { showToast: any }) {
         </label>
 
         {uploading && (
-          <div className="flex items-center gap-2 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-3 py-2 rounded-xl text-[10px] animate-pulse">
+          <div className="flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-xl text-[10px] animate-pulse">
             <RefreshCw className="h-3 w-3 animate-spin" />
             <span>Ingesting & indexing local vector blocks...</span>
           </div>
         )}
 
         <div className="relative">
-          <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-gray-500" />
+          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
           <input
             type="text"
             placeholder="Search documents..."
             value={sidebarSearch}
             onChange={(e) => setSidebarSearch(e.target.value)}
-            className="w-full bg-gray-950/80 border border-gray-850 rounded-xl pl-8 pr-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-450 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto flex flex-col gap-1 pr-1 border-t border-gray-900 pt-3">
+        <div className="flex-1 overflow-y-auto flex flex-col gap-1 pr-1 border-t border-slate-100 pt-3">
           {filteredDocs.length === 0 ? (
-            <div className="text-center text-gray-600 italic py-4">No documents found.</div>
+            <div className="text-center text-slate-400 italic py-4">No documents found.</div>
           ) : (
             filteredDocs.map((doc) => (
               <div
                 key={doc.id}
                 onClick={() => doc.status === 'processed' && setActiveDocId(doc.id)}
-                className={`group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer border transition-all ${
+                className={`group flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer border transition-all shadow-sm ${
                   activeDocId === doc.id
-                    ? 'bg-indigo-600/10 border-indigo-500 text-white'
-                    : 'bg-gray-900/30 border-gray-850 hover:bg-gray-900/50 hover:text-white'
+                    ? 'bg-indigo-50 border-indigo-300 text-indigo-905 font-semibold'
+                    : 'bg-white border-slate-200 hover:bg-slate-50/80 hover:text-slate-900 text-slate-650'
                 }`}
               >
                 <div className="flex flex-col overflow-hidden mr-2">
                   <div className="flex items-center gap-2">
                     {getFileIcon(doc.file_type)}
-                    <span className="truncate font-medium text-[11px]">{doc.filename}</span>
+                    <span className="truncate font-semibold text-[11px]">{doc.filename}</span>
                   </div>
                   {['uploaded', 'processing', 'extracting', 'chunking', 'embedding', 'indexing'].includes(doc.status) && (
-                    <span className="text-[8px] text-indigo-400 font-semibold italic pl-6 mt-0.5">
+                    <span className="text-[8px] text-indigo-650 font-semibold italic pl-6 mt-0.5">
                       {doc.status === 'uploaded' && 'Uploaded'}
                       {doc.status === 'processing' && 'Processing...'}
                       {doc.status === 'extracting' && 'Extracting text...'}
@@ -2585,7 +2647,7 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {['uploaded', 'processing', 'extracting', 'chunking', 'embedding', 'indexing'].includes(doc.status) && (
-                    <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" />
+                    <RefreshCw className="h-3 w-3 animate-spin text-indigo-600" />
                   )}
                   {doc.status === 'error' && (
                     <span title={doc.error} className="flex items-center">
@@ -2594,7 +2656,7 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                   )}
                   <button
                     onClick={(e) => handleDelete(doc.id, e)}
-                    className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-rose-400 p-0.5 rounded transition-all"
+                    className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 p-0.5 rounded transition-all"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -2605,45 +2667,45 @@ function DocumentChatView({ showToast }: { showToast: any }) {
         </div>
       </div>
 
-      <div className="flex-1 glass-panel rounded-2xl flex flex-col border border-gray-800 overflow-hidden bg-gray-950/10">
+      <div className="flex-1 glass-panel rounded-2xl flex flex-col border border-slate-200 overflow-hidden bg-white shadow-sm">
         {!activeDocId ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
-            <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-indigo-400 mb-4 animate-bounce">
+            <div className="p-4 bg-indigo-50 rounded-full border border-indigo-100 text-indigo-600 mb-4 animate-bounce">
               <MessageSquare className="h-8 w-8" />
             </div>
-            <h3 className="text-base font-bold text-white mb-2">Local Knowledge Chat</h3>
-            <p className="text-gray-400 text-xs leading-relaxed mb-4">
+            <h3 className="text-base font-bold text-slate-800 mb-2">Local Knowledge Chat</h3>
+            <p className="text-slate-500 text-xs leading-relaxed mb-4">
               Upload documents in the library to start an offline QA session. 
               The assistant will reason over extracted segments using your custom MyGPT model.
             </p>
-            <div className="text-[10px] text-gray-500 border-t border-gray-900 pt-3 w-full">
+            <div className="text-[10px] text-slate-400 border-t border-slate-100 pt-3 w-full">
               Supported Formats: PDF, DOCX, TXT, Markdown, CSV, Excel, PowerPoint, JSON, HTML, Images (OCR)
             </div>
           </div>
         ) : (
           <>
-            <div className="px-4 py-3 border-b border-gray-800 bg-gray-900/30 flex justify-between items-center">
+            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
               <div className="flex items-center gap-2 overflow-hidden">
-                <FileText className="h-4 w-4 text-indigo-400 shrink-0" />
-                <span className="font-semibold text-white truncate max-w-xs md:max-w-md">
+                <FileText className="h-4 w-4 text-indigo-650 shrink-0" />
+                <span className="font-bold text-slate-800 truncate max-w-xs md:max-w-md">
                   Active: {documents.find(d => d.id === activeDocId)?.filename}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Local Inference</span>
+                <span className="text-[9px] bg-emerald-50 border border-emerald-250 text-emerald-700 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Local Inference</span>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
               {messages.length === 0 && (
-                <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-500 p-8">
-                  <Bot className="h-8 w-8 text-gray-700 mb-2" />
+                <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-450 p-8">
+                  <Bot className="h-8 w-8 text-slate-350 mb-2" />
                   <p className="text-xs">Ask a question about the active document to start reasoning.</p>
                   <div className="grid grid-cols-2 gap-2 mt-4 max-w-sm">
-                    <button onClick={() => handleSend("Summarize this document.")} className="text-[10px] bg-gray-900/40 hover:bg-gray-900/60 border border-gray-855 hover:border-gray-750 px-3 py-2 rounded-xl text-left transition-all truncate text-gray-400 hover:text-white">
+                    <button onClick={() => handleSend("Summarize this document.")} className="text-[10px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-2 rounded-xl text-left transition-all truncate text-slate-500 hover:text-slate-800 shadow-sm cursor-pointer">
                       Summarize this document
                     </button>
-                    <button onClick={() => handleSend("What are the important points?")} className="text-[10px] bg-gray-900/40 hover:bg-gray-900/60 border border-gray-855 hover:border-gray-750 px-3 py-2 rounded-xl text-left transition-all truncate text-gray-400 hover:text-white">
+                    <button onClick={() => handleSend("What are the important points?")} className="text-[10px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-2 rounded-xl text-left transition-all truncate text-slate-500 hover:text-slate-800 shadow-sm cursor-pointer">
                       What are the important points?
                     </button>
                   </div>
@@ -2654,8 +2716,8 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                 <div key={idx} className={`flex gap-3 max-w-3xl ${msg.role === 'user' ? 'self-end flex-row-reverse' : 'self-start'}`}>
                   <div className={`p-2 rounded-full border shrink-0 h-max ${
                     msg.role === 'user'
-                      ? 'bg-gray-800 border-gray-700 text-gray-300'
-                      : 'bg-indigo-600/10 border-indigo-500/30 text-indigo-400'
+                      ? 'bg-indigo-50 border-indigo-150 text-indigo-650 shadow-sm'
+                      : 'bg-slate-105 border-slate-200 text-slate-700 shadow-sm'
                   }`}>
                     {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                   </div>
@@ -2663,8 +2725,8 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                   <div className="flex flex-col gap-2">
                     <div className={`rounded-2xl px-4 py-2.5 text-[11px] leading-relaxed shadow-sm ${
                       msg.role === 'user'
-                        ? 'bg-gray-900 text-gray-200 border border-gray-800 rounded-tr-none'
-                        : 'bg-gray-900/65 text-gray-300 border border-gray-850 rounded-tl-none'
+                        ? 'bg-indigo-600 text-white rounded-tr-none'
+                        : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
                     }`}>
                       {msg.role === 'user' ? (
                         msg.content
@@ -2673,9 +2735,9 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                       )}
                       {msg.loading && (
                         <span className="inline-flex gap-0.5 ml-1 animate-pulse">
-                          <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full"></span>
-                          <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full"></span>
-                          <span className="h-1.5 w-1.5 bg-indigo-400 rounded-full"></span>
+                          <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
+                          <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
+                          <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
                         </span>
                       )}
                     </div>
@@ -2683,18 +2745,18 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                     {msg.role === 'assistant' && msg.metadata && (
                       <div className="flex flex-col gap-2 pl-1">
                         {msg.metadata.sources && msg.metadata.sources.length > 0 && (
-                          <details className="text-[10px] text-gray-500 cursor-pointer">
-                            <summary className="hover:text-indigo-400 select-none font-semibold transition-all">
+                          <details className="text-[10px] text-slate-500 cursor-pointer">
+                            <summary className="hover:text-indigo-650 select-none font-semibold transition-all">
                               Source References ({msg.metadata.sources.length} sections)
                             </summary>
-                            <div className="flex flex-col gap-1.5 mt-2 bg-gray-950/40 p-2.5 rounded-xl border border-gray-900/50">
+                            <div className="flex flex-col gap-1.5 mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 shadow-sm">
                               {msg.metadata.sources.map((src: any, sIdx: number) => (
-                                <div key={sIdx} className="border-b border-gray-900/80 pb-1.5 last:border-0 last:pb-0">
-                                  <div className="flex justify-between text-[9px] font-semibold text-gray-400 mb-0.5">
+                                <div key={sIdx} className="border-b border-slate-100 pb-1.5 last:border-0 last:pb-0">
+                                  <div className="flex justify-between text-[9px] font-semibold text-slate-500 mb-0.5">
                                     <span>Page {src.page_number} | Section: {src.section}</span>
-                                    <span className="text-indigo-400 font-bold">Match: {(src.score * 100).toFixed(0)}%</span>
+                                    <span className="text-indigo-650 font-bold">Match: {(src.score * 100).toFixed(0)}%</span>
                                   </div>
-                                  <p className="text-[9px] text-gray-500 italic font-sans leading-normal">"{src.text}"</p>
+                                  <p className="text-[9px] text-slate-500 italic font-sans leading-normal">"{src.text}"</p>
                                 </div>
                               ))}
                             </div>
@@ -2702,19 +2764,30 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                         )}
 
                         {msg.metadata.confidence !== undefined && (
-                          <div className="flex items-center gap-1.5 text-[9px] font-semibold text-gray-500">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                            <span>MyGPT Confidence: <strong className="text-white">{msg.metadata.confidence}%</strong></span>
+                          <div className="flex flex-col gap-1 w-full max-w-xs mt-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 shadow-sm">
+                            <div className="flex justify-between items-center text-[10px] font-semibold text-slate-500">
+                              <span className="flex items-center gap-1.5">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-505 shrink-0" />
+                                MyGPT Confidence
+                              </span>
+                              <span className="text-slate-800 font-bold">{msg.metadata.confidence}%</span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-indigo-600 rounded-full transition-all duration-500" 
+                                style={{ width: `${msg.metadata.confidence}%` }} 
+                              />
+                            </div>
                           </div>
                         )}
 
                         {msg.metadata.suggested_questions && msg.metadata.suggested_questions.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                          <div className="flex flex-wrap gap-1.5 mt-2.5">
                             {msg.metadata.suggested_questions.map((q: string, qIdx: number) => (
                               <button
                                 key={qIdx}
                                 onClick={() => handleSend(q)}
-                                className="text-[9px] bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400/90 hover:text-indigo-300 border border-indigo-500/15 hover:border-indigo-400/30 px-2 py-1 rounded-lg transition-all"
+                                className="text-[10px] bg-white hover:bg-indigo-55 text-indigo-650 hover:text-indigo-700 border border-indigo-100 hover:border-indigo-300 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-200 font-medium cursor-pointer"
                               >
                                 {q}
                               </button>
@@ -2729,10 +2802,10 @@ function DocumentChatView({ showToast }: { showToast: any }) {
 
               {chatLoading && messages[messages.length - 1]?.role === 'user' && (
                 <div className="flex gap-3 max-w-lg self-start">
-                  <div className="p-2 rounded-full border bg-indigo-600/10 border-indigo-500/30 text-indigo-400 shrink-0">
-                    <Bot className="h-4 w-4 animate-spin" />
+                  <div className="p-2 rounded-full border bg-slate-100 border-slate-200 text-slate-500 shrink-0">
+                    <Bot className="h-4 w-4 animate-spin text-indigo-600" />
                   </div>
-                  <div className="bg-gray-900/65 text-gray-400 border border-gray-855 rounded-2xl rounded-tl-none px-4 py-2.5 text-[11px] flex items-center gap-2 shadow-sm animate-pulse">
+                  <div className="bg-white text-slate-500 border border-slate-200 rounded-2xl rounded-tl-none px-4 py-2.5 text-[11px] flex items-center gap-2 shadow-sm animate-pulse">
                     <span>Searching context and reasoning...</span>
                   </div>
                 </div>
@@ -2741,7 +2814,7 @@ function DocumentChatView({ showToast }: { showToast: any }) {
               <div ref={chatEndRef} />
             </div>
 
-            <div className="p-4 border-t border-gray-800 bg-gray-950/20">
+            <div className="p-4 border-t border-slate-200 bg-slate-50/50">
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
@@ -2755,12 +2828,12 @@ function DocumentChatView({ showToast }: { showToast: any }) {
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
                   disabled={chatLoading}
-                  className="w-full bg-gray-950 border border-gray-800 rounded-xl pl-4 pr-12 py-3 text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 disabled:opacity-50"
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 disabled:opacity-50 shadow-sm"
                 />
                 <button
                   type="submit"
                   disabled={chatLoading || !inputVal.trim()}
-                  className="absolute right-2 top-2 p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-40 disabled:hover:bg-indigo-600"
+                  className="absolute right-2 top-2 p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-40 disabled:hover:bg-indigo-600 shrink-0"
                 >
                   <Send className="h-3.5 w-3.5" />
                 </button>
@@ -2771,37 +2844,62 @@ function DocumentChatView({ showToast }: { showToast: any }) {
       </div>
 
       {activeDocId && activeDocDetails && (
-        <div className="w-80 glass-panel rounded-2xl p-4 flex flex-col gap-4 border border-gray-800 bg-gray-950/20 shrink-0">
-          <div className="border-b border-gray-800 pb-2">
-            <span className="font-bold text-xs uppercase text-gray-400 tracking-wider">Document Preview</span>
+        <div className="w-80 glass-panel rounded-2xl p-4 flex flex-col gap-4 border border-slate-200 bg-white/70 shadow-sm shrink-0">
+          <div className="border-b border-slate-200 pb-2">
+            <span className="font-bold text-xs uppercase text-slate-700 tracking-wider">Document Preview</span>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-gray-500" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
               placeholder="Find keywords in document..."
               value={previewSearch}
               onChange={(e) => setPreviewSearch(e.target.value)}
-              className="w-full bg-gray-950/80 border border-gray-850 rounded-xl pl-8 pr-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-450 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-1 border-t border-gray-900 pt-3">
-            {filteredChunks.length === 0 ? (
-              <div className="text-center text-gray-600 italic py-4">No content chunks match keyword.</div>
+          <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-1 border-t border-slate-200 pt-3">
+            {Object.keys(chunksBySection).length === 0 ? (
+              <div className="text-center text-slate-400 italic py-6">No content chunks match keyword.</div>
             ) : (
-              filteredChunks.map((chunk: any, cIdx: number) => (
-                <div key={cIdx} className="bg-gray-900/30 border border-gray-850 rounded-xl p-3 flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center text-[9px] font-semibold text-indigo-400">
-                    <span>Page {chunk.page_number}</span>
-                    <span className="text-gray-500">{chunk.section}</span>
+              Object.entries(chunksBySection).map(([sectionName, chunks]) => {
+                const isExpanded = !!expandedSections[sectionName]
+                return (
+                  <div key={sectionName} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300">
+                    {/* Section Header Button */}
+                    <button
+                      onClick={() => toggleSection(sectionName)}
+                      className={`w-full flex items-center justify-between p-3 text-left transition-colors duration-150 ${
+                        isExpanded ? 'bg-indigo-50/50 text-indigo-755 border-b border-slate-100 font-semibold' : 'bg-slate-50 hover:bg-slate-100/70 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-bold text-[11px] uppercase tracking-wide truncate max-w-[200px]">{sectionName}</span>
+                        <span className="text-[9px] text-slate-400 mt-0.5">{chunks.length} {chunks.length === 1 ? 'paragraph' : 'paragraphs'}</span>
+                      </div>
+                      <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform duration-250 ${isExpanded ? 'rotate-90 text-indigo-500' : ''}`} />
+                    </button>
+
+                    {/* Section Chunks List */}
+                    {isExpanded && (
+                      <div className="p-2.5 bg-white flex flex-col gap-2.5 divide-y divide-slate-100">
+                        {chunks.map((chunk: any, cIdx: number) => (
+                          <div key={cIdx} className="pt-2.5 first:pt-0 flex flex-col gap-1.5">
+                            <div className="flex justify-between items-center text-[9px] font-semibold text-slate-450">
+                              <span className="bg-slate-100 px-1.5 py-0.5 rounded">Page {chunk.page_number}</span>
+                            </div>
+                            <p className="text-[10.5px] text-slate-650 leading-relaxed font-sans select-text selection:bg-indigo-100 selection:text-indigo-900 text-justify">
+                              {chunk.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-[10px] text-gray-400 leading-relaxed font-mono select-text selection:bg-indigo-500 selection:text-white">
-                    {chunk.text}
-                  </p>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>

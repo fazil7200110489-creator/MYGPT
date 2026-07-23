@@ -1,0 +1,1804 @@
+FFF                                                                      [100%]
+================================== FAILURES ===================================
+_____________________ test_conversational_reasoning_v2_3 ______________________
+tests\test_reasoning_pipeline.py:348: in test_conversational_reasoning_v2_3
+    assert "3 years" in ans_exp
+E   assert '3 years' in "I couldn't identify a resume-related question. Please ask about the candidate's skills, education, experience, projects, certifications, or contact details."
+---------------------------- Captured stdout call -----------------------------
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'phone number...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'mobile number...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'contact details...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'phone...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 4])
+Token Embeddings:          torch.Size([1, 4, 160])
+Positional Embeddings:     torch.Size([1, 4, 160])
+Stacked Transformer Block: torch.Size([1, 4, 160])
+LayerNorm (ln_f):          torch.Size([1, 4, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'mobile...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 5])
+Token Embeddings:          torch.Size([1, 5, 160])
+Positional Embeddings:     torch.Size([1, 5, 160])
+Stacked Transformer Block: torch.Size([1, 5, 160])
+LayerNorm (ln_f):          torch.Size([1, 5, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'cell...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 5])
+Token Embeddings:          torch.Size([1, 5, 160])
+Positional Embeddings:     torch.Size([1, 5, 160])
+Stacked Transformer Block: torch.Size([1, 5, 160])
+LayerNorm (ln_f):          torch.Size([1, 5, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'how to call...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'contact info...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'telephone...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'reach out to them...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 13])
+Token Embeddings:          torch.Size([1, 13, 160])
+Positional Embeddings:     torch.Size([1, 13, 160])
+Stacked Transformer Block: torch.Size([1, 13, 160])
+LayerNorm (ln_f):          torch.Size([1, 13, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'reach them...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'contact number...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'email address...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'gmail...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'send email...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'contact email...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'e-mail...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'mail...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 5])
+Token Embeddings:          torch.Size([1, 5, 160])
+Positional Embeddings:     torch.Size([1, 5, 160])
+Stacked Transformer Block: torch.Size([1, 5, 160])
+LayerNorm (ln_f):          torch.Size([1, 5, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'electronic mail address...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 18])
+Token Embeddings:          torch.Size([1, 18, 160])
+Positional Embeddings:     torch.Size([1, 18, 160])
+Stacked Transformer Block: torch.Size([1, 18, 160])
+LayerNorm (ln_f):          torch.Size([1, 18, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'what are their skills...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 15])
+Token Embeddings:          torch.Size([1, 15, 160])
+Positional Embeddings:     torch.Size([1, 15, 160])
+Stacked Transformer Block: torch.Size([1, 15, 160])
+LayerNorm (ln_f):          torch.Size([1, 15, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'technologies used...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 13])
+Token Embeddings:          torch.Size([1, 13, 160])
+Positional Embeddings:     torch.Size([1, 13, 160])
+Stacked Transformer Block: torch.Size([1, 13, 160])
+LayerNorm (ln_f):          torch.Size([1, 13, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'technical expertise...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 15])
+Token Embeddings:          torch.Size([1, 15, 160])
+Positional Embeddings:     torch.Size([1, 15, 160])
+Stacked Transformer Block: torch.Size([1, 15, 160])
+LayerNorm (ln_f):          torch.Size([1, 15, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'programming languages...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 16])
+Token Embeddings:          torch.Size([1, 16, 160])
+Positional Embeddings:     torch.Size([1, 16, 160])
+Stacked Transformer Block: torch.Size([1, 16, 160])
+LayerNorm (ln_f):          torch.Size([1, 16, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'frameworks...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'tools...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 4])
+Token Embeddings:          torch.Size([1, 4, 160])
+Positional Embeddings:     torch.Size([1, 4, 160])
+Stacked Transformer Block: torch.Size([1, 4, 160])
+LayerNorm (ln_f):          torch.Size([1, 4, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'skills...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'tech stack...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'what can they program in...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 20])
+Token Embeddings:          torch.Size([1, 20, 160])
+Positional Embeddings:     torch.Size([1, 20, 160])
+Stacked Transformer Block: torch.Size([1, 20, 160])
+LayerNorm (ln_f):          torch.Size([1, 20, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'projects built...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'what did they build...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 14])
+Token Embeddings:          torch.Size([1, 14, 160])
+Positional Embeddings:     torch.Size([1, 14, 160])
+Stacked Transformer Block: torch.Size([1, 14, 160])
+LayerNorm (ln_f):          torch.Size([1, 14, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'portfolio applications...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 18])
+Token Embeddings:          torch.Size([1, 18, 160])
+Positional Embeddings:     torch.Size([1, 18, 160])
+Stacked Transformer Block: torch.Size([1, 18, 160])
+LayerNorm (ln_f):          torch.Size([1, 18, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'work portfolio...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'projects...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'applications...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'systems built...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'education...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 4])
+Token Embeddings:          torch.Size([1, 4, 160])
+Positional Embeddings:     torch.Size([1, 4, 160])
+Stacked Transformer Block: torch.Size([1, 4, 160])
+LayerNorm (ln_f):          torch.Size([1, 4, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'qualifications...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'degree...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 4])
+Token Embeddings:          torch.Size([1, 4, 160])
+Positional Embeddings:     torch.Size([1, 4, 160])
+Stacked Transformer Block: torch.Size([1, 4, 160])
+LayerNorm (ln_f):          torch.Size([1, 4, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'university...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'college...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'where did they study...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 16])
+Token Embeddings:          torch.Size([1, 16, 160])
+Positional Embeddings:     torch.Size([1, 16, 160])
+Stacked Transformer Block: torch.Size([1, 16, 160])
+LayerNorm (ln_f):          torch.Size([1, 16, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'academic background...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 18])
+Token Embeddings:          torch.Size([1, 18, 160])
+Positional Embeddings:     torch.Size([1, 18, 160])
+Stacked Transformer Block: torch.Size([1, 18, 160])
+LayerNorm (ln_f):          torch.Size([1, 18, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'schooling...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'certifications...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'certificates...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'awards received...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'courses done...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'training...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 4])
+Token Embeddings:          torch.Size([1, 4, 160])
+Positional Embeddings:     torch.Size([1, 4, 160])
+Stacked Transformer Block: torch.Size([1, 4, 160])
+LayerNorm (ln_f):          torch.Size([1, 4, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'credentials...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'summary...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'summarize the profile...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 14])
+Token Embeddings:          torch.Size([1, 14, 160])
+Positional Embeddings:     torch.Size([1, 14, 160])
+Stacked Transformer Block: torch.Size([1, 14, 160])
+LayerNorm (ln_f):          torch.Size([1, 14, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'overview...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'synopsis...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'brief...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'abstract...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'key points...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'profile summary...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 13])
+Token Embeddings:          torch.Size([1, 13, 160])
+Positional Embeddings:     torch.Size([1, 13, 160])
+Stacked Transformer Block: torch.Size([1, 13, 160])
+LayerNorm (ln_f):          torch.Size([1, 13, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'summarize the document...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 14])
+Token Embeddings:          torch.Size([1, 14, 160])
+Positional Embeddings:     torch.Size([1, 14, 160])
+Stacked Transformer Block: torch.Size([1, 14, 160])
+LayerNorm (ln_f):          torch.Size([1, 14, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'work experience...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'employment history...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 15])
+Token Embeddings:          torch.Size([1, 15, 160])
+Positional Embeddings:     torch.Size([1, 15, 160])
+Stacked Transformer Block: torch.Size([1, 15, 160])
+LayerNorm (ln_f):          torch.Size([1, 15, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'career details...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'where did they work...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 13])
+Token Embeddings:          torch.Size([1, 13, 160])
+Positional Embeddings:     torch.Size([1, 13, 160])
+Stacked Transformer Block: torch.Size([1, 13, 160])
+LayerNorm (ln_f):          torch.Size([1, 13, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'previous jobs...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'experience...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'work history...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'total amount due...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'grand total...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'invoice total...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 9])
+Token Embeddings:          torch.Size([1, 9, 160])
+Positional Embeddings:     torch.Size([1, 9, 160])
+Stacked Transformer Block: torch.Size([1, 9, 160])
+LayerNorm (ln_f):          torch.Size([1, 9, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'how much is the total...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 14])
+Token Embeddings:          torch.Size([1, 14, 160])
+Positional Embeddings:     torch.Size([1, 14, 160])
+Stacked Transformer Block: torch.Size([1, 14, 160])
+LayerNorm (ln_f):          torch.Size([1, 14, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'billing total...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'total cost...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'amount to pay...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'count of entries...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 12])
+Token Embeddings:          torch.Size([1, 12, 160])
+Positional Embeddings:     torch.Size([1, 12, 160])
+Stacked Transformer Block: torch.Size([1, 12, 160])
+LayerNorm (ln_f):          torch.Size([1, 12, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'how many items...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 12])
+Token Embeddings:          torch.Size([1, 12, 160])
+Positional Embeddings:     torch.Size([1, 12, 160])
+Stacked Transformer Block: torch.Size([1, 12, 160])
+LayerNorm (ln_f):          torch.Size([1, 12, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'number of rows...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 12])
+Token Embeddings:          torch.Size([1, 12, 160])
+Positional Embeddings:     torch.Size([1, 12, 160])
+Stacked Transformer Block: torch.Size([1, 12, 160])
+LayerNorm (ln_f):          torch.Size([1, 12, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'total count...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'count transactions...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'how many rows...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 12])
+Token Embeddings:          torch.Size([1, 12, 160])
+Positional Embeddings:     torch.Size([1, 12, 160])
+Stacked Transformer Block: torch.Size([1, 12, 160])
+LayerNorm (ln_f):          torch.Size([1, 12, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'number of records...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 12])
+Token Embeddings:          torch.Size([1, 12, 160])
+Positional Embeddings:     torch.Size([1, 12, 160])
+Stacked Transformer Block: torch.Size([1, 12, 160])
+LayerNorm (ln_f):          torch.Size([1, 12, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'average value...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 10])
+Token Embeddings:          torch.Size([1, 10, 160])
+Positional Embeddings:     torch.Size([1, 10, 160])
+Stacked Transformer Block: torch.Size([1, 10, 160])
+LayerNorm (ln_f):          torch.Size([1, 10, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'mean value...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 8])
+Token Embeddings:          torch.Size([1, 8, 160])
+Positional Embeddings:     torch.Size([1, 8, 160])
+Stacked Transformer Block: torch.Size([1, 8, 160])
+LayerNorm (ln_f):          torch.Size([1, 8, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'avg...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 4])
+Token Embeddings:          torch.Size([1, 4, 160])
+Positional Embeddings:     torch.Size([1, 4, 160])
+Stacked Transformer Block: torch.Size([1, 4, 160])
+LayerNorm (ln_f):          torch.Size([1, 4, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'average amount...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'average price...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'highest...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'maximum value...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 12])
+Token Embeddings:          torch.Size([1, 12, 160])
+Positional Embeddings:     torch.Size([1, 12, 160])
+Stacked Transformer Block: torch.Size([1, 12, 160])
+LayerNorm (ln_f):          torch.Size([1, 12, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'max...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 4])
+Token Embeddings:          torch.Size([1, 4, 160])
+Positional Embeddings:     torch.Size([1, 4, 160])
+Stacked Transformer Block: torch.Size([1, 4, 160])
+LayerNorm (ln_f):          torch.Size([1, 4, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'largest amount...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'most expensive...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'maximum price...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 13])
+Token Embeddings:          torch.Size([1, 13, 160])
+Positional Embeddings:     torch.Size([1, 13, 160])
+Stacked Transformer Block: torch.Size([1, 13, 160])
+LayerNorm (ln_f):          torch.Size([1, 13, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'lowest...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 6])
+Token Embeddings:          torch.Size([1, 6, 160])
+Positional Embeddings:     torch.Size([1, 6, 160])
+Stacked Transformer Block: torch.Size([1, 6, 160])
+LayerNorm (ln_f):          torch.Size([1, 6, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'minimum value...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'min...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 3])
+Token Embeddings:          torch.Size([1, 3, 160])
+Positional Embeddings:     torch.Size([1, 3, 160])
+Stacked Transformer Block: torch.Size([1, 3, 160])
+LayerNorm (ln_f):          torch.Size([1, 3, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'smallest amount...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 11])
+Token Embeddings:          torch.Size([1, 11, 160])
+Positional Embeddings:     torch.Size([1, 11, 160])
+Stacked Transformer Block: torch.Size([1, 11, 160])
+LayerNorm (ln_f):          torch.Size([1, 11, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'cheapest...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 7])
+Token Embeddings:          torch.Size([1, 7, 160])
+Positional Embeddings:     torch.Size([1, 7, 160])
+Stacked Transformer Block: torch.Size([1, 7, 160])
+LayerNorm (ln_f):          torch.Size([1, 7, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'minimum price...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 12])
+Token Embeddings:          torch.Size([1, 12, 160])
+Positional Embeddings:     torch.Size([1, 12, 160])
+Stacked Transformer Block: torch.Size([1, 12, 160])
+LayerNorm (ln_f):          torch.Size([1, 12, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 COMPOSITE PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Basic details
+Detected Intents:   ['BASIC_PROFILE', 'DESIGNATION', 'ADDRESS', 'EXPERIENCE', 'EDUCATION']
+Formatted Answer:   Basic Details
+Name:
+Navneet Priya
+
+Designation:
+Software Engineer
+
+Location:
+123 Main Street, Bangalore, Karnataka, 560001
+
+Experience:
+3 years
+
+Education:
+Bachelor of Computer Applications from ABC College (2020-2023)
+
+Email:
+navneet@gmail.com
+
+Phone:
+9263394143
+
+Designation
+Software Engineer
+
+Address
+123 Main Street, Bangalore, Karnataka, 560001
+
+Experience
+• Software Engineer at Google ((2023-2026)
+ - Responsibilities: Handled project execution and technical responsibilities.
+• Total experience: 3 years
+
+Education
+• Bachelor of Computer Applications from ABC College (2020-2023)
+ - Institution: Not specified
+ - University: Not specified
+ - Percentage/CGPA: Not specified
+ - Year: Not specified
+Confidence:         92.1%
+Execution Time:     691.80 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What frameworks does he know?
+Detected Intent:    SKILLS
+Retrieved Chunks:   1 chunks
+Extracted Facts:    3 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   • Flask
+• Angular 4
+• Yii2
+Confidence:         88.5%
+Execution Time:     83.66 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What languages does she speak?
+Detected Intent:    HUMAN_LANGUAGES
+Retrieved Chunks:   1 chunks
+Extracted Facts:    1 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   • English
+• Tamil
+• Hindi
+Confidence:         88.5%
+Execution Time:     58.41 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What programming languages does he know?
+Detected Intent:    PROGRAMMING_LANGUAGES
+Retrieved Chunks:   1 chunks
+Extracted Facts:    1 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   • Python
+Confidence:         88.5%
+Execution Time:     65.31 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is his current company?
+Detected Intent:    EXPERIENCE
+Retrieved Chunks:   1 chunks
+Extracted Facts:    2 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   • Software Engineer at Google ((2023-2026)
+ - Responsibilities: Handled project execution and technical responsibilities.
+• Total experience: 3 years
+Confidence:         90.5%
+Execution Time:     38.45 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is his job role?
+Detected Intent:    DESIGNATION
+Retrieved Chunks:   1 chunks
+Extracted Facts:    9 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   Software Engineer
+Confidence:         92.5%
+Execution Time:     32.69 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Is he male or female?
+Detected Intent:    GENDER
+Retrieved Chunks:   1 chunks
+Extracted Facts:    9 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   The uploaded resume does not mention this information.
+Confidence:         99.0%
+Execution Time:     38.88 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is his salary?
+Detected Intent:    SALARY
+Retrieved Chunks:   1 chunks
+Extracted Facts:    9 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   The uploaded resume does not mention this information.
+Confidence:         99.0%
+Execution Time:     36.85 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is his notice period?
+Detected Intent:    NOTICE_PERIOD
+Retrieved Chunks:   1 chunks
+Extracted Facts:    9 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   The uploaded resume does not mention this information.
+Confidence:         99.0%
+Execution Time:     33.34 ms
+================================================================================
+
+---------------------------- Captured stderr call -----------------------------
+2026-07-17 18:52:09.843 | INFO     | backend.app.services.reasoning_service:__init__:452 - Initializing ReasoningService.
+2026-07-17 18:52:09.847 | INFO     | backend.app.services.reasoning.intent_classifier:_precompute_embeddings:173 - Pre-computing semantic intent classifier seed embeddings...
+2026-07-17 18:52:09.857 | INFO     | backend.app.services.model_manager:load_model:92 - Initializing new GPT instance in ModelManager...
+2026-07-17 18:52:10.202 | ERROR    | backend.app.services.model_manager:load_model:122 - Failed to auto-load checkpoint on startup: 'config'
+2026-07-17 18:52:39.637 | INFO     | backend.app.services.reasoning.intent_classifier:_precompute_embeddings:180 - Successfully loaded semantic intent clusters.
+2026-07-17 18:52:40.124 | INFO     | backend.app.services.knowledge_service:save_knowledge:923 - Persisting structured knowledge for document: test_doc_v2_3
+2026-07-17 18:52:40.321 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:40.322 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Basic details'
+2026-07-17 18:52:40.674 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['BASIC_PROFILE', 'DESIGNATION', 'ADDRESS', 'EXPERIENCE', 'EDUCATION']
+2026-07-17 18:52:40.815 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: BASIC_PROFILE
+2026-07-17 18:52:40.952 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: DESIGNATION
+2026-07-17 18:52:40.953 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: ADDRESS
+2026-07-17 18:52:40.969 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: EXPERIENCE
+2026-07-17 18:52:40.986 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: EDUCATION
+2026-07-17 18:52:41.014 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.014 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What frameworks does he know?'
+2026-07-17 18:52:41.044 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['SKILLS']
+2026-07-17 18:52:41.098 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.100 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What languages does she speak?'
+2026-07-17 18:52:41.127 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['HUMAN_LANGUAGES']
+2026-07-17 18:52:41.157 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.175 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What programming languages does he know?'
+2026-07-17 18:52:41.196 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['PROGRAMMING_LANGUAGES']
+2026-07-17 18:52:41.223 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.228 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is his current company?'
+2026-07-17 18:52:41.246 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['EXPERIENCE']
+2026-07-17 18:52:41.263 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.263 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is his job role?'
+2026-07-17 18:52:41.278 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['DESIGNATION']
+2026-07-17 18:52:41.296 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.296 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Is he male or female?'
+2026-07-17 18:52:41.313 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['GENDER']
+2026-07-17 18:52:41.336 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.336 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is his salary?'
+2026-07-17 18:52:41.348 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['SALARY']
+2026-07-17 18:52:41.373 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.373 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is his notice period?'
+2026-07-17 18:52:41.388 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['NOTICE_PERIOD']
+2026-07-17 18:52:41.407 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.408 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Is he experienced?'
+2026-07-17 18:52:41.423 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['UNKNOWN_QUERY']
+2026-07-17 18:52:41.440 | INFO     | backend.app.services.reasoning_service:reason:1017 - Query did not match any resume-related intent. Returning unknown-query fallback.
+_________________ test_conversational_entity_aggregation_v2_6 _________________
+tests\test_reasoning_pipeline.py:514: in test_conversational_entity_aggregation_v2_6
+    assert "Address\n123 Main Street" in ans
+E   AssertionError: assert 'Address\n123 Main Street' in 'Candidate Name\nNavneet Priya\n\nPhone\n9263394143\n\nEmail\nnavneet@gmail.com'
+---------------------------- Captured stdout call -----------------------------
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 COMPOSITE PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Name, email and phone
+Detected Intents:   ['CANDIDATE_NAME', 'EMAIL', 'PHONE']
+Formatted Answer:   Candidate Name
+Navneet Priya
+
+Email
+navneet@gmail.com
+
+Phone
+9263394143
+Confidence:         92.49999999999999%
+Execution Time:     104.78 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 COMPOSITE PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Education and languages
+Detected Intents:   ['EDUCATION', 'HUMAN_LANGUAGES']
+Formatted Answer:   Education
+• Bachelor of Computer Applications from ABC College (2020-2023)
+ - Institution: Not specified
+ - University: Not specified
+ - Percentage/CGPA: Not specified
+ - Year: Not specified
+
+Languages
+• English
+• Hindi
+Confidence:         88.5%
+Execution Time:     51.59 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 COMPOSITE PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Projects and skills
+Detected Intents:   ['PROJECTS', 'SKILLS']
+Formatted Answer:   Key Projects (2)
+1. ATS Resume Engine
+2. LangMaster
+
+Skills
+• Python
+• Yii2
+• Angular 4
+Confidence:         90.5%
+Execution Time:     35.42 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 COMPOSITE PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Basic details
+Detected Intents:   ['BASIC_PROFILE', 'DESIGNATION', 'ADDRESS', 'EXPERIENCE', 'EDUCATION']
+Formatted Answer:   Basic Details
+Name:
+Navneet Priya
+
+Designation:
+Software Engineer
+
+Location:
+123 Main Street, Bangalore, Karnataka, 560001
+
+Experience:
+3 years
+
+Education:
+Bachelor of Computer Applications from ABC College (2020-2023)
+
+Email:
+navneet@gmail.com
+
+Phone:
+9263394143
+
+Designation
+Software Engineer
+
+Address
+123 Main Street, Bangalore, Karnataka, 560001
+
+Experience
+• Software Engineer at Google ((2023-2026)
+ - Responsibilities: Handled project execution and technical responsibilities.
+• Total experience: 3 years
+
+Education
+• Bachelor of Computer Applications from ABC College (2020-2023)
+ - Institution: Not specified
+ - University: Not specified
+ - Percentage/CGPA: Not specified
+ - Year: Not specified
+Confidence:         92.1%
+Execution Time:     64.31 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 COMPOSITE PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Contact details
+Detected Intents:   ['CANDIDATE_NAME', 'PHONE', 'EMAIL']
+Formatted Answer:   Candidate Name
+Navneet Priya
+
+Phone
+9263394143
+
+Email
+navneet@gmail.com
+Confidence:         92.49999999999999%
+Execution Time:     48.24 ms
+================================================================================
+
+---------------------------- Captured stderr call -----------------------------
+2026-07-17 18:52:41.778 | INFO     | backend.app.services.knowledge_service:save_knowledge:923 - Persisting structured knowledge for document: test_doc_conversational_v2_6
+2026-07-17 18:52:41.846 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.846 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Name, email and phone'
+2026-07-17 18:52:41.926 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['CANDIDATE_NAME', 'EMAIL', 'PHONE']
+2026-07-17 18:52:41.934 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: CANDIDATE_NAME
+2026-07-17 18:52:41.936 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: EMAIL
+2026-07-17 18:52:41.942 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: PHONE
+2026-07-17 18:52:41.952 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:41.952 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Education and languages'
+2026-07-17 18:52:41.963 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['EDUCATION', 'HUMAN_LANGUAGES']
+2026-07-17 18:52:41.990 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: EDUCATION
+2026-07-17 18:52:42.001 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: HUMAN_LANGUAGES
+2026-07-17 18:52:42.011 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.011 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Projects and skills'
+2026-07-17 18:52:42.024 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['PROJECTS', 'SKILLS']
+2026-07-17 18:52:42.039 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: PROJECTS
+2026-07-17 18:52:42.042 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: SKILLS
+2026-07-17 18:52:42.047 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.050 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Basic details'
+2026-07-17 18:52:42.071 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['BASIC_PROFILE', 'DESIGNATION', 'ADDRESS', 'EXPERIENCE', 'EDUCATION']
+2026-07-17 18:52:42.077 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: BASIC_PROFILE
+2026-07-17 18:52:42.086 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: DESIGNATION
+2026-07-17 18:52:42.087 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: ADDRESS
+2026-07-17 18:52:42.092 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: EXPERIENCE
+2026-07-17 18:52:42.101 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: EDUCATION
+2026-07-17 18:52:42.112 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.112 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Contact details'
+2026-07-17 18:52:42.129 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['CANDIDATE_NAME', 'PHONE', 'EMAIL']
+2026-07-17 18:52:42.142 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: CANDIDATE_NAME
+2026-07-17 18:52:42.151 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: PHONE
+2026-07-17 18:52:42.152 | INFO     | backend.app.services.reasoning_service:reason:915 - Resolving composite part: EMAIL
+_________________ test_resume_name_filtering_and_suggestions __________________
+tests\test_reasoning_pipeline.py:279: in test_resume_name_filtering_and_suggestions
+    assert "The uploaded document does not mention this" in ans_no
+E   assert 'The uploaded document does not mention this' in "I couldn't identify a resume-related question. Please ask about the candidate's skills, education, experience, projects, certifications, or contact details."
+---------------------------- Captured stdout call -----------------------------
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is the candidate's name?
+Detected Intent:    CANDIDATE_NAME
+Retrieved Chunks:   1 chunks
+Extracted Facts:    1 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   Navneet Priya
+Confidence:         92.5%
+Execution Time:     25.69 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is the father's name?
+Detected Intent:    FATHER_NAME
+Retrieved Chunks:   1 chunks
+Extracted Facts:    1 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   Late Ram Sanehi
+Confidence:         92.5%
+Execution Time:     28.21 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is the phone number?
+Detected Intent:    PHONE
+Retrieved Chunks:   1 chunks
+Extracted Facts:    3 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   9263394143
+Confidence:         92.5%
+Execution Time:     37.36 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is the email address?
+Detected Intent:    EMAIL
+Retrieved Chunks:   1 chunks
+Extracted Facts:    1 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   navneet@gmail.com
+Confidence:         92.5%
+Execution Time:     47.32 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is the candidate address?
+Detected Intent:    ADDRESS
+Retrieved Chunks:   1 chunks
+Extracted Facts:    1 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   123 Main Street, Bangalore, Karnataka, 560001
+Confidence:         92.5%
+Execution Time:     28.02 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What skills do they have?
+Detected Intent:    SKILLS
+Retrieved Chunks:   1 chunks
+Extracted Facts:    2 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   • Python
+• Assembly
+• Java
+• Hardware Knowledge: Assembly
+Confidence:         88.5%
+Execution Time:     46.65 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is their education?
+Detected Intent:    EDUCATION
+Retrieved Chunks:   1 chunks
+Extracted Facts:    2 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   • Bachelor of Computer Applications
+ - Institution: Not specified
+ - University: Not specified
+ - Percentage/CGPA: Not specified
+ - Year: Not specified
+Confidence:         88.5%
+Execution Time:     34.56 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What projects have they done?
+Detected Intent:    PROJECTS
+Retrieved Chunks:   1 chunks
+Extracted Facts:    2 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   1. ATS Resume Engine
+2. LangMaster
+Confidence:         88.5%
+Execution Time:     31.89 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What is their experience?
+Detected Intent:    EXPERIENCE
+Retrieved Chunks:   1 chunks
+Extracted Facts:    2 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   • Software Engineer (2020-2024) at Organization (2020-2024)
+ - Responsibilities: Handled project execution and technical responsibilities.
+• Total experience: 4 years
+Confidence:         90.5%
+Execution Time:     26.89 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  What certifications does he have?
+Detected Intent:    CERTIFICATIONS
+Retrieved Chunks:   1 chunks
+Extracted Facts:    9 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   No certifications were found in the resume.
+Confidence:         99.0%
+Execution Time:     31.75 ms
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Summarize the profile
+Detected Intent:    SUMMARY
+Retrieved Chunks:   1 chunks
+Extracted Facts:    10 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   Navneet Priya is a professional Engineer. They have a total of 4 years of professional work experience. For their academic background. they completed Bachelor of Computer Applications. Their core technical skills include Python. Assembly. Java. Hardware Knowledge: Assembly. Additionally. they have successfully developed major projects such as ATS Resume Engine. LangMaster. They are committed to leveraging their expertise for software design and organizational development.
+Confidence:         90.5%
+Execution Time:     37.25 ms
+================================================================================
+
+
+================================================================================
+DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: 'Did she study Python?...'
+================================================================================
+Input Tokens Tensor:       torch.Size([1, 18])
+Token Embeddings:          torch.Size([1, 18, 160])
+Positional Embeddings:     torch.Size([1, 18, 160])
+Stacked Transformer Block: torch.Size([1, 18, 160])
+LayerNorm (ln_f):          torch.Size([1, 18, 160])
+Mean-Pooled Output Vector: torch.Size([160])
+================================================================================
+
+
+================================================================================
+MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)
+================================================================================
+Document Type:      resume
+Resolved Question:  Did she study Python?
+Detected Intent:    EMAIL
+Retrieved Chunks:   1 chunks
+Extracted Facts:    1 facts
+Reasoning Steps:    Routing to ResumeReasoner
+Formatted Answer:   Yes. The resume mentions experience with Python.
+Confidence:         89.5%
+Execution Time:     235.59 ms
+================================================================================
+
+---------------------------- Captured stderr call -----------------------------
+2026-07-17 18:52:42.380 | INFO     | backend.app.services.knowledge_service:save_knowledge:923 - Persisting structured knowledge for document: test_ref_doc_suggestions
+2026-07-17 18:52:42.444 | INFO     | backend.app.services.answer_formatter:format_response:249 - Formatting final chat response. Confidence=90.0
+2026-07-17 18:52:42.444 | INFO     | backend.app.services.answer_formatter:format_response:250 - ANSWER GENERATED
+2026-07-17 18:52:42.553 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.556 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is the candidate's name?'
+2026-07-17 18:52:42.562 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['CANDIDATE_NAME']
+2026-07-17 18:52:42.580 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.580 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is the father's name?'
+2026-07-17 18:52:42.595 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['FATHER_NAME']
+2026-07-17 18:52:42.609 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.609 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is the phone number?'
+2026-07-17 18:52:42.628 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['PHONE']
+2026-07-17 18:52:42.646 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.650 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is the email address?'
+2026-07-17 18:52:42.670 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['EMAIL']
+2026-07-17 18:52:42.695 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.702 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is the candidate address?'
+2026-07-17 18:52:42.711 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['ADDRESS']
+2026-07-17 18:52:42.727 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.728 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What skills do they have?'
+2026-07-17 18:52:42.742 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['SKILLS']
+2026-07-17 18:52:42.775 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.775 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is their education?'
+2026-07-17 18:52:42.794 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['EDUCATION']
+2026-07-17 18:52:42.818 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.818 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What projects have they done?'
+2026-07-17 18:52:42.832 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['PROJECTS']
+2026-07-17 18:52:42.851 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.851 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What is their experience?'
+2026-07-17 18:52:42.863 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['EXPERIENCE']
+2026-07-17 18:52:42.886 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.886 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'What certifications does he have?'
+2026-07-17 18:52:42.901 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['CERTIFICATIONS']
+2026-07-17 18:52:42.926 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.927 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Summarize the profile'
+2026-07-17 18:52:42.944 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['SUMMARY']
+2026-07-17 18:52:42.967 | INFO     | backend.app.services.conversation_memory:add_message:50 - Added message to session test_format_conversion_session from role 'user'
+2026-07-17 18:52:42.967 | INFO     | backend.app.services.conversation_memory:add_message:50 - Added message to session test_format_conversion_session from role 'assistant'
+2026-07-17 18:52:42.967 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.967 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Give me in points'
+2026-07-17 18:52:42.972 | INFO     | backend.app.services.reasoning_service:reason:874 - Intercepted formatting instruction query. Re-formatting previous response.
+2026-07-17 18:52:42.972 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:42.972 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Did she study Python?'
+2026-07-17 18:52:43.188 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['EMAIL']
+2026-07-17 18:52:43.219 | INFO     | backend.app.services.reasoning_service:reason:846 - REASONING START
+2026-07-17 18:52:43.220 | INFO     | backend.app.services.reasoning_service:reason:847 - Reasoning query: 'Did she study at Honeywell?'
+2026-07-17 18:52:43.229 | INFO     | backend.app.services.reasoning_service:reason:899 - Classified Intents: ['UNKNOWN_QUERY']
+2026-07-17 18:52:43.242 | INFO     | backend.app.services.reasoning_service:reason:1017 - Query did not match any resume-related intent. Returning unknown-query fallback.
+=========================== short test summary info ===========================
+FAILED tests/test_reasoning_pipeline.py::test_conversational_reasoning_v2_3
+FAILED tests/test_reasoning_pipeline.py::test_conversational_entity_aggregation_v2_6
+FAILED tests/test_reasoning_pipeline.py::test_resume_name_filtering_and_suggestions
+3 failed in 93.65s (0:01:33)

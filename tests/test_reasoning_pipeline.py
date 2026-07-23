@@ -1,4 +1,6 @@
+import re
 import pytest
+
 from backend.app.services.reasoning.intent_classifier import IntentClassifier
 from backend.app.services.reasoning.entity_relationship import EntityRelationshipResolver
 from backend.app.services.reasoning.entity_extractor import EntityExtractor
@@ -275,3 +277,396 @@ def test_resume_name_filtering_and_suggestions():
         doc_id=doc_id
     )
     assert "The uploaded document does not mention this" in ans_no
+
+
+def test_conversational_reasoning_v2_3():
+    from backend.app.services.knowledge_service import knowledge_builder, knowledge_store
+    from backend.app.services.reasoning_service import reasoning_service
+
+    resume_text = (
+        "Name: Navneet Priya\n"
+        "Email: navneet@gmail.com\n"
+        "Phone: 9263394143\n"
+        "Address: 123 Main Street, Bangalore, Karnataka, 560001\n"
+        "Designation: Software Engineer\n"
+        "Languages Known: English, Tamil, Hindi\n"
+        "Skills: Python, Yii2, Angular 4, Flask, PostgreSQL, Git\n"
+        "Education: Bachelor of Computer Applications from ABC College (2020-2023)\n"
+        "Experience: Software Engineer at Google (2023-2026)\n"
+        "Projects: ATS Resume Engine, LangMaster\n"
+    )
+    knowledge = knowledge_builder.build_knowledge(resume_text, ".txt")
+    doc_id = "test_doc_v2_3"
+    knowledge_store.save_knowledge(doc_id, knowledge)
+    retrieved_chunks = [{"doc_id": doc_id, "page_number": 1, "section": "Content", "text": resume_text}]
+
+    # 1. Test Basic Details
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Basic details", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Name:\nNavneet Priya" in ans
+    assert "Designation:\nSoftware Engineer" in ans
+    assert "Experience:\n3 years" in ans
+    assert "Email:\nnavneet@gmail.com" in ans
+
+    # 2. Test Frameworks extract (via SKILLS intent with frameworks query)
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="What frameworks does he know?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Yii2" in ans
+    assert "Angular 4" in ans
+    assert "Flask" in ans
+    assert "Python" not in ans
+
+    # 3. Test Human Languages
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="What languages does she speak?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "English" in ans
+    assert "Tamil" in ans
+    assert "Hindi" in ans
+    assert "Python" not in ans
+
+    # 4. Test Programming Languages
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="What programming languages does he know?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Python" in ans
+    assert "English" not in ans
+
+    # 5. Test Current Company & Designation
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="What is his current company?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Google" in ans
+
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="What is his job role?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Software Engineer" in ans
+
+    # 6. Test Unknown / Personal Inference Zero-tolerance
+    ans_gender, _, _ = reasoning_service.reason(context=resume_text, question="Is he male or female?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "does not mention this information" in ans_gender
+
+    ans_salary, _, _ = reasoning_service.reason(context=resume_text, question="What is his salary?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "does not mention this information" in ans_salary
+
+    ans_notice, _, _ = reasoning_service.reason(context=resume_text, question="What is his notice period?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "does not mention this information" in ans_notice
+
+    # 7. Test Inferable / Derived Questions without thresholds
+    ans_exp, _, _ = reasoning_service.reason(context=resume_text, question="Is he experienced?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "3 years" in ans_exp
+
+    ans_grad, _, _ = reasoning_service.reason(context=resume_text, question="Is he graduated?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Yes. The candidate holds a Bachelor of Computer Applications" in ans_grad
+
+
+def test_composite_questions():
+    from backend.app.services.knowledge_service import knowledge_builder, knowledge_store
+    from backend.app.services.reasoning_service import reasoning_service
+
+    resume_text = (
+        "Name: Navneet Priya\n"
+        "Email: navneet@gmail.com\n"
+        "Phone: 9263394143\n"
+        "Address: 123 Main Street, Bangalore, Karnataka, 560001\n"
+        "Designation: Software Engineer\n"
+        "Skills: Python, Yii2, Angular 4\n"
+        "Education: Bachelor of Computer Applications from ABC College (2020-2023)\n"
+        "Experience: Software Engineer at Google (2023-2026)\n"
+        "Projects: ATS Resume Engine, LangMaster\n"
+    )
+    knowledge = knowledge_builder.build_knowledge(resume_text, ".txt")
+    doc_id = "test_doc_composite"
+    knowledge_store.save_knowledge(doc_id, knowledge)
+    retrieved_chunks = [{"doc_id": doc_id, "page_number": 1, "section": "Content", "text": resume_text}]
+
+    # 1. Test Name + Email + Phone (ordered)
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Name, email and phone", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Candidate Name\nNavneet Priya" in ans
+    assert "Email\nnavneet@gmail.com" in ans
+    assert "Phone\n9263394143" in ans
+    name_pos = ans.find("Candidate Name")
+    email_pos = ans.find("Email")
+    phone_pos = ans.find("Phone")
+    assert name_pos < email_pos < phone_pos
+
+    # 2. Test User-specified ordering: Phone, name, email
+    ans_order, _, _ = reasoning_service.reason(context=resume_text, question="Phone, name, email", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    name_pos2 = ans_order.find("Candidate Name")
+    email_pos2 = ans_order.find("Email")
+    phone_pos2 = ans_order.find("Phone")
+    assert phone_pos2 < name_pos2 < email_pos2
+
+    # 3. Test Experience + Education
+    ans_exp_edu, _, _ = reasoning_service.reason(context=resume_text, question="Experience and education", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Experience\n" in ans_exp_edu
+    assert "Education\n" in ans_exp_edu
+    assert "Software Engineer at Google" in ans_exp_edu
+    assert "Bachelor of Computer Applications" in ans_exp_edu
+
+    # 4. Test Projects + Skills + Certifications (where Certifications is fallback)
+    ans_proj_skills_cert, _, _ = reasoning_service.reason(context=resume_text, question="Projects, skills and certifications", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Key Projects (2)\n" in ans_proj_skills_cert
+    assert "Skills\n" in ans_proj_skills_cert
+    assert "Certifications\n" in ans_proj_skills_cert
+    assert "ATS Resume Engine" in ans_proj_skills_cert
+    assert "Python" in ans_proj_skills_cert
+    assert "No certifications were found in the resume." in ans_proj_skills_cert
+
+    # 5. Test Basic Details (single intent, remains unchanged)
+    ans_basic, _, _ = reasoning_service.reason(context=resume_text, question="Basic details", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Name:\nNavneet Priya" in ans_basic
+
+    # 6. Test Partial failures (Name, email and salary where salary has fallback)
+    ans_fail, _, _ = reasoning_service.reason(context=resume_text, question="Name, email and salary", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Candidate Name\nNavneet Priya" in ans_fail
+    assert "Email\nnavneet@gmail.com" in ans_fail
+    assert "does not mention this information" in ans_fail
+
+    # 7. Test Duplicate requested entities: Name + Email + Name
+    ans_dup, _, _ = reasoning_service.reason(context=resume_text, question="What is his name and email and name?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert ans_dup.count("Candidate Name") == 1
+    assert ans_dup.count("Email") == 1
+
+
+def test_reasoning_consistency_v2_4():
+    from backend.app.services.knowledge_service import knowledge_builder, knowledge_store
+    from backend.app.services.reasoning_service import reasoning_service
+
+    resume_text = (
+        "Name: Navneet Priya\n"
+        "Email: navneet@gmail.com\n"
+        "Phone: 9263394143\n"
+        "Address: 123 Main Street, Bangalore, Karnataka, 560001\n"
+        "Designation: Software Engineer\n"
+        "Skills: Python, Yii2, Angular 4\n"
+        "Education: Bachelor of Computer Applications from ABC College (2020-2023)\n"
+        "Experience: Software Engineer at Google (2023-2026)\n"
+        "Projects: ATS Resume Engine, LangMaster\n"
+    )
+    knowledge = knowledge_builder.build_knowledge(resume_text, ".txt")
+    doc_id = "test_doc_consistency_v2_4"
+    knowledge_store.save_knowledge(doc_id, knowledge)
+    retrieved_chunks = [{"doc_id": doc_id, "page_number": 1, "section": "Content", "text": resume_text}]
+
+    # 1. Verify dynamic confidence calculations
+    ans_composite, conf_composite, _ = reasoning_service.reason(context=resume_text, question="Projects, skills and certifications", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert 25.0 <= conf_composite <= 99.0
+    ans_single, conf_single, _ = reasoning_service.reason(context=resume_text, question="What is his name?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert 25.0 <= conf_single <= 99.0
+
+    # 2. Verify section list counts
+    assert "Key Projects (2)\n" in ans_composite
+
+    # 3. Verify single source of truth entity store consistency
+    ans_summary, _, _ = reasoning_service.reason(context=resume_text, question="Summarize the profile", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    ans_basic_detail, _, _ = reasoning_service.reason(context=resume_text, question="Basic details", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    
+    assert "Software Engineer" in ans_summary
+    assert "Software Engineer" in ans_basic_detail
+    assert "3 years" in ans_summary
+    assert "3 years" in ans_basic_detail
+
+
+def test_conversational_entity_aggregation_v2_6():
+    from backend.app.services.knowledge_service import knowledge_builder, knowledge_store
+    from backend.app.services.reasoning_service import reasoning_service
+
+    resume_text = (
+        "Name: Navneet Priya\n"
+        "Email: navneet@gmail.com\n"
+        "Phone: 9263394143\n"
+        "Address: 123 Main Street, Bangalore, Karnataka, 560001\n"
+        "Designation: Software Engineer\n"
+        "Skills: Python, Yii2, Angular 4\n"
+        "Languages: English, Hindi\n"
+        "Education: Bachelor of Computer Applications from ABC College (2020-2023)\n"
+        "Experience: Software Engineer at Google (2023-2026)\n"
+        "Projects: ATS Resume Engine, LangMaster\n"
+    )
+    knowledge = knowledge_builder.build_knowledge(resume_text, ".txt")
+    doc_id = "test_doc_conversational_v2_6"
+    knowledge_store.save_knowledge(doc_id, knowledge)
+    retrieved_chunks = [{"doc_id": doc_id, "page_number": 1, "section": "Content", "text": resume_text}]
+
+    # 1. Name + Email + Phone
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Name, email and phone", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Candidate Name\nNavneet Priya" in ans
+    assert "Email\nnavneet@gmail.com" in ans
+    assert "Phone\n9263394143" in ans
+
+    # 2. Education + Languages
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Education and languages", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Education\n" in ans
+    assert "Languages\n" in ans
+    assert "English" in ans
+
+    # 3. Projects + Skills
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Projects and skills", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Key Projects (2)\n" in ans
+    assert "Skills\n" in ans
+    assert "Python" in ans
+
+    # 4. Basic Details (composite/legacy hybrid)
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Basic details", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Name:\nNavneet Priya" in ans
+    assert "Designation\nSoftware Engineer" in ans
+    assert "Address\n123 Main Street" in ans
+    assert "Experience\n" in ans
+    assert "Education\n" in ans
+
+    # 5. Contact Details (grouped)
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Contact details", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Candidate Name\nNavneet Priya" in ans
+    assert "Phone\n9263394143" in ans
+    assert "Email\nnavneet@gmail.com" in ans
+    assert "Address\n123 Main Street" in ans
+    
+    # Assert logical order: Name -> Phone -> Email -> Address
+    name_pos = ans.find("Candidate Name")
+    phone_pos = ans.find("Phone")
+    email_pos = ans.find("Email")
+    addr_pos = ans.find("Address")
+    assert name_pos < phone_pos < email_pos < addr_pos
+
+    # 6. Academic Details (grouped)
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Academic details", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Education\n" in ans
+    assert "Certifications\n" in ans
+
+    # 7. Technical Profile (grouped)
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Technical profile", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Skills\n" in ans
+    assert "Programming Languages\n" in ans
+    assert "Key Projects (2)\n" in ans
+
+    # 8. Mixed existing and missing entities
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Name, email and salary", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Candidate Name\nNavneet Priya" in ans
+    assert "Email\nnavneet@gmail.com" in ans
+    assert "Salary\nThe uploaded resume does not mention this information." in ans
+
+    # 9. Repeated entities
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="What is his name and email and name?", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert ans.count("Candidate Name") == 1
+    assert ans.count("Email") == 1
+
+    # 10. Natural language grouped requests
+    ans, _, _ = reasoning_service.reason(context=resume_text, question="Give me technical profile and contact details", retrieved_chunks=retrieved_chunks, doc_id=doc_id)
+    assert "Skills\n" in ans
+    assert "Candidate Name\n" in ans
+    skills_pos = ans.find("Skills")
+    name_pos2 = ans.find("Candidate Name")
+    assert skills_pos < name_pos2
+
+
+def test_conversational_query_understanding_v2_7():
+    """v2.7 – Conversational Query Understanding regression tests."""
+    from backend.app.services.reasoning.intent_classifier import IntentClassifier
+    from backend.app.services.reasoning.entity_extractor import EntityExtractor
+    from backend.app.services.reasoning.specialists.resume_reasoner import ResumeReasoner
+    from backend.app.services.reasoning_service import ReasoningService
+
+    classifier = IntentClassifier()
+    extractor  = EntityExtractor()
+    reasoner   = ResumeReasoner()
+
+    # ── 1. Spell correction: "ksills" → "skills" ─────────────────────────────
+    assert "SKILLS" in classifier.classify_multi("ksills"), \
+        "'ksills' should be spell-corrected to 'skills' and resolve to SKILLS"
+
+    # ── 2. Phrase normalization: "phone no" → PHONE ──────────────────────────
+    assert "PHONE" in classifier.classify_multi("phone no"), \
+        "'phone no' should normalize to 'phone number' and resolve to PHONE"
+
+    # ── 3. Phrase normalization: "mail id" → EMAIL ───────────────────────────
+    assert "EMAIL" in classifier.classify_multi("mail id"), \
+        "'mail id' should normalize to 'email' and resolve to EMAIL"
+
+    # ── 4. Phrase normalization: "linked inn" → not classified as random intent
+    intents_li = classifier.classify_multi("linked inn")
+    # Should NOT return an obviously wrong intent (e.g. it normalizes to linkedin)
+    assert "UNKNOWN_QUERY" not in intents_li or len(intents_li) == 1, \
+        "'linked inn' should normalize cleanly"
+
+    # ── 5. Spell correction: "pthon" → "python" before tech detection ────────
+    preprocessed = classifier._preprocess_query("pthon")
+    assert "python" in preprocessed, \
+        "'pthon' should be corrected to 'python' by _preprocess_query"
+
+    # ── 6. Phrase normalization: "qualification" → EDUCATION ─────────────────
+    assert "EDUCATION" in classifier.classify_multi("what are her qualifications"), \
+        "'qualifications' should normalize to 'education' and resolve to EDUCATION"
+
+    # ── 7. Technology yes/no – "did she know python" (Python in skills) ──────
+    resume_text_py = (
+        "Name: Priya\n"
+        "Skills: Python, React, Django\n"
+        "Projects: PriceTracker, InventoryApp\n"
+        "Experience: Software Developer at TechCorp (2022-2025)\n"
+    )
+    from backend.app.services.knowledge_service import knowledge_builder, knowledge_store
+    knowledge_py = knowledge_builder.build_knowledge(resume_text_py, ".txt")
+    doc_py = "test_v2_7_py"
+    knowledge_store.save_knowledge(doc_py, knowledge_py)
+    entities_py = extractor.extract(resume_text_py, knowledge_py)
+    facts_py = ["Skills: Python, React, Django", "Experience: Software Developer at TechCorp (2022-2025)"]
+    ans_py = reasoner.reason(entities_py, facts_py, "SKILLS", question="did she know python")
+    assert "yes" in ans_py.lower(), \
+        f"Expected 'Yes' answer for 'did she know python', got: {ans_py}"
+    assert "python" in ans_py.lower(), \
+        f"Expected Python to be mentioned in yes/no answer, got: {ans_py}"
+
+    # ── 8. Technology yes/no – "did she got IBM" (IBM as cert, not a skill) ──
+    resume_text_ibm = (
+        "Name: Priya\n"
+        "Skills: Python, React\n"
+        "Certifications: IBM Data Science Professional Certificate\n"
+        "Experience: Software Developer at TechCorp (2022-2025)\n"
+    )
+    knowledge_ibm = knowledge_builder.build_knowledge(resume_text_ibm, ".txt")
+    doc_ibm = "test_v2_7_ibm"
+    knowledge_store.save_knowledge(doc_ibm, knowledge_ibm)
+    entities_ibm = extractor.extract(resume_text_ibm, knowledge_ibm)
+    facts_ibm = ["Certifications: IBM Data Science Professional Certificate"]
+    ans_ibm = reasoner.reason(entities_ibm, facts_ibm, "CERTIFICATIONS", question="did she got IBM")
+    # IBM should be found (it's in certifications corpus) but NOT assumed a technology
+    assert "yes" in ans_ibm.lower(), \
+        f"Expected 'Yes' for IBM (it's in resume), got: {ans_ibm}"
+    # Should NOT say "experience with" for a cert
+    assert "certification" in ans_ibm.lower() or "ibm" in ans_ibm.lower(), \
+        f"Expected IBM to be mentioned correctly, got: {ans_ibm}"
+
+    # ── 9. Unknown query: "love" → fallback message ───────────────────────────
+    reasoning_svc = ReasoningService()
+    resume_text_gen = (
+        "Name: Navneet Priya\n"
+        "Email: navneet@gmail.com\n"
+        "Phone: 9263394143\n"
+        "Skills: Python, Yii2\n"
+        "Education: BCA from ABC College (2020-2023)\n"
+        "Experience: Software Engineer at Google (2023-2026)\n"
+    )
+    knowledge_gen = knowledge_builder.build_knowledge(resume_text_gen, ".txt")
+    doc_gen = "test_v2_7_gen"
+    knowledge_store.save_knowledge(doc_gen, knowledge_gen)
+    retrieved_gen = [{"text": resume_text_gen, "doc_id": doc_gen}]
+    ans_love, conf_love, _ = reasoning_svc.reason(
+        context=resume_text_gen,
+        question="love",
+        retrieved_chunks=retrieved_gen,
+        doc_id=doc_gen
+    )
+    assert "couldn't identify" in ans_love.lower() or "resume-related" in ans_love.lower(), \
+        f"'love' should trigger unknown-query fallback, got: {ans_love}"
+    assert conf_love == 0.0, \
+        f"Confidence for unknown query should be 0.0, got: {conf_love}"
+
+    # ── 10. Contact extraction – LinkedIn and GitHub OCR tolerance ────────────
+    text_contacts = (
+        "Name: Dev Sharma\n"
+        "LinkedIn: linkedin.com/in/devsharma\n"
+        "GitHub: github.com/devsharma\n"
+        "Phone: +91 98765 43210\n"
+        "Email: dev.sharma@example.com\n"
+    )
+    entities_c = extractor.extract(text_contacts)
+    assert entities_c.get("linkedin") == "devsharma", \
+        f"Expected LinkedIn handle 'devsharma', got: {entities_c.get('linkedin')}"
+    assert entities_c.get("github") == "devsharma", \
+        f"Expected GitHub handle 'devsharma', got: {entities_c.get('github')}"
+    # Phone should be normalized (digits only + optional +)
+    phones_c = entities_c.get("phones", [])
+    assert any(re.search(r'9876543210', p) for p in phones_c), \
+        f"Expected normalized phone, got: {phones_c}"

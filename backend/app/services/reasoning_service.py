@@ -710,6 +710,112 @@ class ReasoningService:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
+    def _calculate_derived_confidence(
+        self,
+        cleaned_ans: str,
+        entities: Dict[str, Any],
+        retrieved_chunks: List[Dict[str, Any]],
+        is_composite: bool = False,
+        detected_intents: Optional[List[str]] = None,
+        single_intent: Optional[str] = None,
+        single_valid: bool = True,
+        single_yes_no: bool = False
+    ) -> float:
+        # If it's a fallback negative answer, confidence is very high (99.0)
+        negative_phrases = ["does not mention", "no certifications were found", "i couldn't find that information"]
+        if any(p in cleaned_ans.lower() for p in negative_phrases):
+            return 99.0
+
+        if is_composite:
+            intents = detected_intents or []
+            if not intents:
+                return 85.0
+            scores = []
+            for intent in intents:
+                intent_headers = {
+                    "CANDIDATE_NAME": "Candidate Name", "EMAIL": "Email", "PHONE": "Phone",
+                    "ADDRESS": "Address", "DESIGNATION": "Designation", "EXPERIENCE": "Experience",
+                    "EDUCATION": "Education", "SKILLS": "Skills", "PROJECTS": "Projects",
+                    "CERTIFICATIONS": "Certifications", "SUMMARY": "Summary", "HUMAN_LANGUAGES": "Languages",
+                    "PROGRAMMING_LANGUAGES": "Programming Languages", "GENDER": "Gender",
+                    "FATHER_NAME": "Father's Name", "MOTHER_NAME": "Mother's Name",
+                    "SALARY": "Salary", "NOTICE_PERIOD": "Notice Period", "RELOCATION": "Relocation",
+                    "MARITAL_STATUS": "Marital Status"
+                }
+                header = intent_headers.get(intent, intent.title())
+                section_val = ""
+                parts = cleaned_ans.split("\n\n")
+                for p in parts:
+                    if p.startswith(header):
+                        section_val = p[len(header):].strip()
+                        break
+                
+                sec_valid = True
+                if section_val and not any(phrase in section_val.lower() for phrase in negative_phrases):
+                    sec_valid = self.validator.validate(section_val, intent)
+                
+                sec_yes_no = False
+                scores.append(self._calculate_single_confidence(section_val, intent, entities, retrieved_chunks, sec_valid, sec_yes_no))
+            return sum(scores) / len(scores)
+        else:
+            return self._calculate_single_confidence(cleaned_ans, single_intent, entities, retrieved_chunks, single_valid, single_yes_no)
+
+    def _calculate_single_confidence(
+        self,
+        cleaned_ans: str,
+        intent: str,
+        entities: Dict[str, Any],
+        retrieved_chunks: List[Dict[str, Any]],
+        is_valid: bool,
+        is_yes_no: bool
+    ) -> float:
+        negative_phrases = ["does not mention", "no certifications were found", "i couldn't find that information"]
+        if any(p in cleaned_ans.lower() for p in negative_phrases):
+            return 99.0
+
+        # 1. Evidence Quality
+        evidence_quality = 0.50
+        if retrieved_chunks:
+            has_section_match = any("section" in c and c["section"] != "Content" for c in retrieved_chunks)
+            evidence_quality = 0.95 if has_section_match else 0.75
+            
+        # 2. Validation Success
+        validation_success = 1.0 if is_valid else 0.2
+        
+        # 3. Answer Type
+        cleaned_lower = cleaned_ans.lower()
+        if is_yes_no:
+            ans_type_factor = 0.85
+        elif "total experience" in cleaned_lower or re.search(r'\b\d+\s+years\b', cleaned_lower):
+            ans_type_factor = 0.90
+        else:
+            chunks_text = "\n".join(c.get("text", "") for c in retrieved_chunks).lower() if retrieved_chunks else ""
+            if cleaned_lower in chunks_text or any(part.strip() in chunks_text for part in cleaned_lower.split('\n') if len(part.strip()) > 10):
+                ans_type_factor = 1.0
+            else:
+                ans_type_factor = 0.80
+                
+        # 4. Consistency of the underlying structured data
+        consistency_factor = 1.0
+        if entities and "experience" in entities:
+            try:
+                from backend.app.services.reasoning.specialists.resume_reasoner import calculate_total_experience
+                exp = entities.get("experience") or []
+                total_exp = calculate_total_experience(exp)
+                if total_exp != "0 years":
+                    exp_years_match = re.search(r'\b\d+\b', total_exp)
+                    if exp_years_match:
+                        correct_years = exp_years_match.group(0)
+                        mentioned_years = re.findall(r'\b(\d+(?:\.\d+)?)\s*years\b', cleaned_lower)
+                        if mentioned_years and any(y != correct_years for y in mentioned_years):
+                            consistency_factor = 0.70
+            except Exception:
+                pass
+
+        # Combine: 30% Evidence, 30% Validation, 20% Answer Type, 20% Consistency
+        raw_confidence = (0.3 * evidence_quality + 0.3 * validation_success + 0.2 * ans_type_factor + 0.2 * consistency_factor) * 100.0
+        return min(99.0, max(25.0, raw_confidence))
+
     def reason(
         self,
         context: str,
@@ -735,146 +841,293 @@ class ReasoningService:
             Tuple of (answer_text, confidence_score, knowledge_used).
         """
         import json
-        t_start = time.time()
-        logger.info("REASONING START")
-        logger.info(f"Reasoning query: '{question}'")
-
-        # Intercept formatting instructions: "Give me in points", "Convert to bullets", "List them"
-        q_clean = question.strip().strip('."\'?').lower()
-        if q_clean in ["give me in points", "convert to bullets", "list them", "in points", "to bullets", "list", "bullet points", "convert to list"]:
-            from backend.app.services.conversation_memory import conversation_memory
-            history = conversation_memory.get_history(session_id) if session_id else []
-            last_ans = None
-            for msg in reversed(history):
-                if msg["role"] == "assistant":
-                    last_ans = msg["content"]
-                    break
-            
-            if last_ans:
-                raw_lines = [l.strip() for l in last_ans.split('\n') if l.strip()]
-                if len(raw_lines) == 1 and "," in raw_lines[0]:
-                    raw_lines = [item.strip() for item in raw_lines[0].split(",") if item.strip()]
+        try:
+            t_start = time.time()
+            logger.info("REASONING START")
+            logger.info(f"Reasoning query: '{question}'")
+    
+            # Intercept formatting instructions: "Give me in points", "Convert to bullets", "List them"
+            q_clean = question.strip().strip('."\'?').lower()
+            if q_clean in ["give me in points", "convert to bullets", "list them", "in points", "to bullets", "list", "bullet points", "convert to list"]:
+                from backend.app.services.conversation_memory import conversation_memory
+                history = conversation_memory.get_history(session_id) if session_id else []
+                last_ans = None
+                for msg in reversed(history):
+                    if msg["role"] == "assistant":
+                        last_ans = msg["content"]
+                        break
                 
-                bullet_lines = []
-                for l in raw_lines:
-                    if l.lower() in ["skills", "projects", "certifications"]:
-                        bullet_lines.append(l)
-                    elif l.startswith("•") or re.match(r'^\d+\.', l):
-                        bullet_lines.append(l)
+                if last_ans:
+                    raw_lines = [l.strip() for l in last_ans.split('\n') if l.strip()]
+                    if len(raw_lines) == 1 and "," in raw_lines[0]:
+                        raw_lines = [item.strip() for item in raw_lines[0].split(",") if item.strip()]
+                    
+                    bullet_lines = []
+                    for l in raw_lines:
+                        if l.lower() in ["skills", "projects", "certifications"]:
+                            bullet_lines.append(l)
+                        elif l.startswith("•") or re.match(r'^\d+\.', l):
+                            bullet_lines.append(l)
+                        else:
+                            bullet_lines.append(f"• {l}")
+                    formatted_ans = "\n".join(bullet_lines)
+                    logger.info("Intercepted formatting instruction query. Re-formatting previous response.")
+                    return formatted_ans, 99.0, True
+    
+            # 1. Pronoun and Reference Resolution (EntityRelationshipResolver)
+            resolved_question = question
+            if session_id:
+                resolved_question = self.relationship_resolver.resolve(question, session_id, doc_id)
+    
+            # 2. Ingest or Load Knowledge Store Object
+            from backend.app.services.knowledge_service import knowledge_store, knowledge_builder
+            knowledge = None
+            if doc_id:
+                knowledge = knowledge_store.get_knowledge(doc_id)
+            elif retrieved_chunks:
+                candidate_doc_id = retrieved_chunks[0].get("doc_id")
+                if candidate_doc_id:
+                    knowledge = knowledge_store.get_knowledge(candidate_doc_id)
+    
+            if not knowledge and context:
+                knowledge = knowledge_builder.build_knowledge(context, ".txt")
+    
+            doc_type = knowledge.get("document_type", "Generic") if knowledge else "Generic"
+    
+            # 3. Intent Classification (IntentClassifier)
+            detected_intents = self.intent_classifier.classify_multi(resolved_question)
+            logger.info(f"Classified Intents: {detected_intents}")
+    
+            # 4. Entity Extraction (EntityExtractor)
+            entities = self.entity_extractor.extract(context, knowledge)
+    
+            # 5. Document Specialist Routing Setup
+            specialist = None
+            for key, spec in self.specialists.items():
+                if key.lower() == doc_type.lower():
+                    specialist = spec
+                    break
+    
+            if len(detected_intents) > 1:
+                # Composite query pipeline
+                resolved_parts = []
+                for intent in detected_intents:
+                    logger.info(f"Resolving composite part: {intent}")
+                    intent_questions = {
+                        "CANDIDATE_NAME": "What is the candidate name?",
+                        "EMAIL": "What is the email address?",
+                        "PHONE": "What is the phone number?",
+                        "ADDRESS": "What is the candidate address?",
+                        "DESIGNATION": "What is the designation?",
+                        "EXPERIENCE": "What is the experience?",
+                        "EDUCATION": "What is the education?",
+                        "SKILLS": "What skills do they have?",
+                        "PROJECTS": "What projects have they done?",
+                        "CERTIFICATIONS": "What certifications do they have?",
+                        "SUMMARY": "Summarize the profile",
+                        "HUMAN_LANGUAGES": "What languages do they speak?",
+                        "PROGRAMMING_LANGUAGES": "What programming languages do they know?",
+                        "GENDER": "What is their gender?",
+                        "FATHER_NAME": "What is the father's name?",
+                        "MOTHER_NAME": "What is the mother's name?"
+                    }
+                    part_question = intent_questions.get(intent, resolved_question)
+    
+                    # Ingest facts
+                    part_facts = self.fact_extractor.extract(retrieved_chunks, intent, part_question)
+                    part_syn_facts = self.context_reasoner.reason(part_facts, intent)
+                    
+                    # specialist routing
+                    if specialist:
+                        import inspect
+                        sig = inspect.signature(specialist.reason)
+                        if "question" in sig.parameters:
+                            part_raw_ans = specialist.reason(entities, part_syn_facts, intent, question=part_question)
+                        else:
+                            part_raw_ans = specialist.reason(entities, part_syn_facts, intent)
                     else:
-                        bullet_lines.append(f"• {l}")
-                formatted_ans = "\n".join(bullet_lines)
-                logger.info("Intercepted formatting instruction query. Re-formatting previous response.")
-                return formatted_ans, 99.0, True
+                        part_raw_ans = part_syn_facts[0] if part_syn_facts else None
+                        
+                    # Format block
+                    part_formatted_ans = self.answer_builder.build(part_raw_ans, intent, doc_type)
+                    part_cleaned_ans = self.formatter.clean(part_formatted_ans)
+                    
+                    # Validate independently
+                    is_valid = True
+                    if "does not mention" not in part_cleaned_ans and "No certifications were found" not in part_cleaned_ans:
+                        is_valid = self.validator.validate(part_cleaned_ans, intent)
+                        
+                    if not is_valid:
+                        logger.warning(f"Composite part {intent} failed validation. Falling back.")
+                        if doc_type.lower() == "resume":
+                            part_cleaned_ans = "The uploaded resume does not mention this information."
+                        else:
+                            part_cleaned_ans = "I couldn't find that information in the uploaded document."
+                            
+                    intent_headers = {
+                        "BASIC_PROFILE": "Basic Details",
+                        "CANDIDATE_NAME": "Candidate Name",
+                        "EMAIL": "Email",
+                        "PHONE": "Phone",
+                        "ADDRESS": "Address",
+                        "DESIGNATION": "Designation",
+                        "EXPERIENCE": "Experience",
+                        "EDUCATION": "Education",
+                        "SKILLS": "Skills",
+                        "PROJECTS": f"Key Projects ({len(entities.get('projects') or [])})",
+                        "CERTIFICATIONS": "Certifications",
+                        "SUMMARY": "Summary",
+                        "HUMAN_LANGUAGES": "Languages",
+                        "PROGRAMMING_LANGUAGES": "Programming Languages",
+                        "GENDER": "Gender",
+                        "FATHER_NAME": "Father's Name",
+                        "MOTHER_NAME": "Mother's Name",
+                        "SALARY": "Salary",
+                        "NOTICE_PERIOD": "Notice Period",
+                        "RELOCATION": "Relocation",
+                        "MARITAL_STATUS": "Marital Status"
+                    }
+                    header = intent_headers.get(intent, intent.title())
+                    resolved_parts.append(f"{header}\n{part_cleaned_ans}")
+                    
+                combined_ans = "\n\n".join(resolved_parts)
+                confidence = self._calculate_derived_confidence(combined_ans, entities, retrieved_chunks, is_composite=True, detected_intents=detected_intents)
+                
+                # Print composite debug logs
+                execution_time_ms = (time.time() - t_start) * 1000
+                print("\n" + "="*80)
+                print("MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 COMPOSITE PIPELINE)")
+                print("="*80)
+                print(f"Document Type:      {doc_type}")
+                print(f"Resolved Question:  {resolved_question}")
+                print(f"Detected Intents:   {detected_intents}")
+                print(f"Formatted Answer:   {combined_ans}")
+                print(f"Confidence:         {confidence}%")
+                print(f"Execution Time:     {execution_time_ms:.2f} ms")
+                print("="*80 + "\n")
+                
+                return combined_ans, confidence, True
+    
+            else:
+                # Single intent pipeline (original code)
+                classified_intent = detected_intents[0] if detected_intents else "GENERAL"
 
-        # 1. Pronoun and Reference Resolution (EntityRelationshipResolver)
-        resolved_question = question
-        if session_id:
-            resolved_question = self.relationship_resolver.resolve(question, session_id, doc_id)
+                # UNKNOWN_QUERY: no resume-related intent was detected — return friendly message
+                if classified_intent == "UNKNOWN_QUERY":
+                    logger.info("Query did not match any resume-related intent. Returning unknown-query fallback.")
+                    fallback_msg = (
+                        "I couldn't identify a resume-related question. "
+                        "Please ask about the candidate's skills, education, experience, "
+                        "projects, certifications, or contact details."
+                    )
+                    return fallback_msg, 0.0, False
 
-        # 2. Ingest or Load Knowledge Store Object
-        from backend.app.services.knowledge_service import knowledge_store, knowledge_builder
-        knowledge = None
-        if doc_id:
-            knowledge = knowledge_store.get_knowledge(doc_id)
-        elif retrieved_chunks:
-            candidate_doc_id = retrieved_chunks[0].get("doc_id")
-            if candidate_doc_id:
-                knowledge = knowledge_store.get_knowledge(candidate_doc_id)
-
-        if not knowledge and context:
-            knowledge = knowledge_builder.build_knowledge(context, ".txt")
-
-        doc_type = knowledge.get("document_type", "Generic") if knowledge else "Generic"
-
-        # 3. Intent Classification (IntentClassifier)
-        classified_intent = self.intent_classifier.classify(resolved_question)
-        logger.info(f"Classified Intent: {classified_intent}")
-
-        # 4. Entity Extraction (EntityExtractor)
-        entities = self.entity_extractor.extract(context, knowledge)
-
-        # 5. Fact Extraction (FactExtractor)
-        extracted_facts = self.fact_extractor.extract(retrieved_chunks, classified_intent, resolved_question)
-
-        # 6. Context Reasoning & Fact Synthesis (ContextReasoner)
-        synthesized_facts = self.context_reasoner.reason(extracted_facts, classified_intent)
-
-        # 7. Document Specialist Routing
-        specialist = None
-        for key, spec in self.specialists.items():
-            if key.lower() == doc_type.lower():
-                specialist = spec
-                break
-        reasoning_steps = []
+                # 5. Fact Extraction (FactExtractor)
+                extracted_facts = self.fact_extractor.extract(retrieved_chunks, classified_intent, resolved_question)
         
-        if specialist:
-            reasoning_steps.append(f"Routing to {specialist.__class__.__name__}")
-            import inspect
-            sig = inspect.signature(specialist.reason)
-            if "question" in sig.parameters:
-                raw_ans = specialist.reason(entities, synthesized_facts, classified_intent, question=resolved_question)
-            else:
-                raw_ans = specialist.reason(entities, synthesized_facts, classified_intent)
-            knowledge_used = True
-        else:
-            reasoning_steps.append("Routing to Generic Specialist (facts fallback)")
-            raw_ans = synthesized_facts[0] if synthesized_facts else None
-            knowledge_used = False
+                # 6. Context Reasoning & Fact Synthesis (ContextReasoner)
+                synthesized_facts = self.context_reasoner.reason(extracted_facts, classified_intent)
 
-        # 8. Answer Building (AnswerBuilder)
-        formatted_ans = self.answer_builder.build(raw_ans, classified_intent, doc_type)
-
-        # 9. Formatter Cleanup (Formatter)
-        cleaned_ans = self.formatter.clean(formatted_ans)
-
-        # 10. Validation & Validation-failure Recovery (Validator)
-        is_valid = self.validator.validate(cleaned_ans, classified_intent)
-        if not is_valid:
-            logger.warning(f"Answer failed validation for intent {classified_intent}. Falling back to default fact.")
-            if synthesized_facts:
-                cleaned_ans = self.formatter.clean(synthesized_facts[0])
-            else:
-                cleaned_ans = "I couldn't find that information in the uploaded document."
-
-        # Compute confidence score
-        confidence = 0.0
-        if cleaned_ans != "I couldn't find that information in the uploaded document.":
-            retrieval_factor = 0.9 if retrieved_chunks else 0.5
-            coverage_factor = 0.9 if len(cleaned_ans) > 2 else 0.2
+                
+                reasoning_steps = []
+                if specialist:
+                    reasoning_steps.append(f"Routing to {specialist.__class__.__name__}")
+                    import inspect
+                    sig = inspect.signature(specialist.reason)
+                    if "question" in sig.parameters:
+                        raw_ans = specialist.reason(entities, synthesized_facts, classified_intent, question=resolved_question)
+                    else:
+                        raw_ans = specialist.reason(entities, synthesized_facts, classified_intent)
+                    knowledge_used = True
+                else:
+                    reasoning_steps.append("Routing to Generic Specialist (facts fallback)")
+                    raw_ans = synthesized_facts[0] if synthesized_facts else None
+                    knowledge_used = False
+        
+                # 8. Answer Building (AnswerBuilder)
+                formatted_ans = self.answer_builder.build(raw_ans, classified_intent, doc_type)
+        
+                # 9. Formatter Cleanup (Formatter)
+                cleaned_ans = self.formatter.clean(formatted_ans)
+        
+                # 10. Validation & Validation-failure Recovery (Validator)
+                is_yes_no = False
+                if question:
+                    q_lower = question.lower().strip()
+                    first_word = q_lower.split()[0] if q_lower.split() else ""
+                    if first_word in ["did", "does", "is", "has", "was", "can", "are", "should", "would", "do"]:
+                        is_yes_no = True
+        
+                is_valid = True
+                if not is_yes_no and "does not mention" not in cleaned_ans and "No certifications were found" not in cleaned_ans:
+                    is_valid = self.validator.validate(cleaned_ans, classified_intent)
+                if not is_valid:
+                    logger.warning(f"Answer failed validation for intent {classified_intent}. Falling back to default fact.")
+                    if synthesized_facts:
+                        cleaned_ans = self.formatter.clean(synthesized_facts[0])
+                    else:
+                        cleaned_ans = "I couldn't find that information in the uploaded document."
+        
+                # Compute confidence score
+                confidence = self._calculate_derived_confidence(
+                    cleaned_ans,
+                    entities,
+                    retrieved_chunks,
+                    is_composite=False,
+                    single_intent=classified_intent,
+                    single_valid=is_valid,
+                    single_yes_no=is_yes_no
+                )
+                
+                if not is_yes_no:
+                    if classified_intent in ["PHONE", "PHONE_NUMBERS"] and not re.search(r'\d{3,}', cleaned_ans):
+                        cleaned_ans = "I couldn't find that information in the uploaded document."
+                        confidence = 0.0
+                    elif classified_intent == "EMAIL" and "@" not in cleaned_ans:
+                        cleaned_ans = "I couldn't find that information in the uploaded document."
+                        confidence = 0.0
+    
+            # Debug Logging
+            execution_time_ms = (time.time() - t_start) * 1000
+            print("\n" + "="*80)
+            print("MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)")
+            print("="*80)
+            print(f"Document Type:      {doc_type}")
+            print(f"Resolved Question:  {resolved_question}")
+            print(f"Detected Intent:    {classified_intent}")
+            print(f"Retrieved Chunks:   {len(retrieved_chunks) if retrieved_chunks else 0} chunks")
+            print(f"Extracted Facts:    {len(synthesized_facts)} facts")
+            print(f"Reasoning Steps:    {'; '.join(reasoning_steps)}")
+            print(f"Formatted Answer:   {cleaned_ans}")
+            print(f"Confidence:         {confidence:.1f}%")
+            print(f"Execution Time:     {execution_time_ms:.2f} ms")
+            print("="*80 + "\n")
+    
+            return cleaned_ans, confidence, knowledge_used
+        except Exception as e:
+            import sys
+            import traceback
+            tb = traceback.extract_tb(sys.exc_info()[2])
+            failing_module = "unknown"
+            if tb:
+                for frame in reversed(tb):
+                    if "backend" in frame.filename or "app" in frame.filename:
+                        failing_module = f"{frame.filename}:{frame.lineno} ({frame.name})"
+                        break
+                if failing_module == "unknown":
+                    failing_module = f"{tb[-1].filename}:{tb[-1].lineno} ({tb[-1].name})"
             
-            validation_factor = 1.0
-            if classified_intent in ["PHONE", "PHONE_NUMBERS"]:
-                if not re.search(r'\d{3,}', cleaned_ans):
-                    validation_factor = 0.1
-            elif classified_intent == "EMAIL":
-                if "@" not in cleaned_ans:
-                    validation_factor = 0.1
-            
-            raw_confidence = (0.4 * retrieval_factor + 0.3 * coverage_factor + 0.3 * validation_factor) * 100.0
-            confidence = min(99.0, max(25.0, raw_confidence))
-            
-            if validation_factor <= 0.1:
-                cleaned_ans = "I couldn't find that information in the uploaded document."
-                confidence = 0.0
-
-        # Debug Logging
-        execution_time_ms = (time.time() - t_start) * 1000
-        print("\n" + "="*80)
-        print("MYGPT DOCUMENT INTELLIGENCE DEBUG LOGS (V2 PIPELINE)")
-        print("="*80)
-        print(f"Document Type:      {doc_type}")
-        print(f"Resolved Question:  {resolved_question}")
-        print(f"Detected Intent:    {classified_intent}")
-        print(f"Retrieved Chunks:   {len(retrieved_chunks) if retrieved_chunks else 0} chunks")
-        print(f"Extracted Facts:    {len(synthesized_facts)} facts")
-        print(f"Reasoning Steps:    {'; '.join(reasoning_steps)}")
-        print(f"Formatted Answer:   {cleaned_ans}")
-        print(f"Confidence:         {confidence:.1f}%")
-        print(f"Execution Time:     {execution_time_ms:.2f} ms")
-        print("="*80 + "\n")
-
-        return cleaned_ans, confidence, knowledge_used
+            logger.error("=" * 60)
+            logger.error("MYGPT REASONING PIPELINE FAILURE TRACE")
+            logger.error("=" * 60)
+            logger.error(f"Failing Module:    {failing_module}")
+            logger.error(f"Detected Intent(s): {detected_intents if 'detected_intents' in locals() else 'Not Classified'}")
+            logger.error(f"Selected Entities:  {entities if 'entities' in locals() else 'Not Extracted'}")
+            logger.error(f"Answer Type:       {doc_type if 'doc_type' in locals() else 'Not Determined'}")
+            logger.error(f"Confidence:        N/A (Reasoning failed)")
+            logger.error(f"Error Message:     {e}")
+            logger.error("=" * 60)
+            raise e
 
 
 reasoning_service = ReasoningService()

@@ -35,7 +35,8 @@ class EntityRelationshipResolver:
 
         # 1. Resolve Candidate Names (he/she/his/her)
         if re.search(pronoun_patterns["candidate"], q_lower):
-            name = facts.get("name") or (entities.get("people", [None])[0])
+            people_list = entities.get("people")
+            name = facts.get("name") or (people_list[0] if isinstance(people_list, list) and people_list else None)
             if not name and history:
                 # Fallback: scan history user queries for a name
                 for msg in reversed(history):

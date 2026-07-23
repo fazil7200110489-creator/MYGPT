@@ -477,7 +477,7 @@ class KnowledgeBuilder:
                     line_lower = line.lower()
                     is_start = False
                     for kw in keywords:
-                        if re.search(r'\b' + re.escape(kw) + r'\b[^:\n]*:', line_lower):
+                        if re.search(r'\b' + re.escape(kw) + r's?\b[^:\n]*:', line_lower):
                             is_start = True
                             break
                     if is_start:
@@ -487,7 +487,7 @@ class KnowledgeBuilder:
                             captured.append(parts[1].strip())
                         continue
                     if capturing:
-                        other_headers = ["education", "experience", "work", "project", "certification", "email", "phone", "address", "about"]
+                        other_headers = ["education", "experience", "work", "project", "certification", "email", "phone", "address", "about", "language", "languages"]
                         if ":" in line_lower and any(oh in line_lower for oh in other_headers if oh not in keywords):
                             capturing = False
                         else:
@@ -587,6 +587,14 @@ class KnowledgeBuilder:
                         curr_proj.append(line)
                 if curr_proj:
                     projects_list.append(" ".join(curr_proj))
+
+                # If parsing produced a single item that is a comma-separated
+                # inline list (e.g. "ATS Resume Engine, LangMaster"), split it
+                # into individual entries so the count is accurate.
+                if len(projects_list) == 1 and ',' in projects_list[0]:
+                    split_items = [p.strip() for p in projects_list[0].split(',') if p.strip()]
+                    if len(split_items) > 1:
+                        projects_list = split_items
 
             # Programmatic Resume Summary from facts
             summary_clauses = []

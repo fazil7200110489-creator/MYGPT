@@ -112,6 +112,12 @@ class AnswerFormatter:
                 processed_lines.append(line)
                 continue
 
+            # Don't deduplicate standard fallback messages
+            lower_line = line.strip().lower()
+            if any(msg in lower_line for msg in ["does not mention this information", "couldn't find that information", "no certifications were found"]):
+                processed_lines.append(line)
+                continue
+
             # Split prose lines into sentences
             sentence_parts = re.split(r'(?<=[.!?])\s+', line)
             unique_parts = []
@@ -244,6 +250,8 @@ class AnswerFormatter:
         logger.info("ANSWER GENERATED")
 
         # Normalize confidence to percentage scale
+        if confidence is None:
+            confidence = 0.0
         if confidence <= 1.0:
             confidence_pct = round(confidence * 100, 1)
         else:

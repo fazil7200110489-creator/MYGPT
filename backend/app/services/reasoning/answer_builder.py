@@ -6,15 +6,18 @@ class AnswerBuilder:
 
     def build(self, value: Any, intent: str, doc_type: str) -> str:
         """Constructs response output strings based on intent formatting rules."""
-        if not value:
-            return "I couldn't find that information in the uploaded document."
-
         intent_upper = intent.upper()
+
+        if not value or value == "Not Found" or (isinstance(value, list) and len(value) == 0):
+            if intent_upper == "CERTIFICATIONS":
+                return "No certifications were found in the resume."
+            if doc_type.lower() == "resume":
+                return "The uploaded resume does not mention this information."
+            return "I couldn't find that information in the uploaded document."
 
         # 1. PHONE / EMAIL: raw single value strings
         if intent_upper in ["PHONE", "PHONE_NUMBERS"]:
             val_str = str(value).strip()
-            # Extract only digits and symbols
             digits = re.sub(r'[^\d+()-]', '', val_str)
             if digits:
                 return digits
@@ -22,21 +25,32 @@ class AnswerBuilder:
 
         elif intent_upper == "EMAIL":
             val_str = str(value).strip()
-            # Extract email
             email_match = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', val_str)
             if email_match:
                 return email_match.group(0)
             return val_str
 
-        # 2. SKILLS: Bullet points list
-        elif intent_upper == "SKILLS":
+        # 2. NAME / ADDRESS / DESIGNATION: raw single value strings (Problem 5)
+        elif intent_upper in ["CANDIDATE_NAME", "NAME", "NAMES"]:
+            return str(value).strip()
+
+        elif intent_upper == "ADDRESS":
+            val_str = str(value).strip()
+            val_str = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', val_str).strip()
+            return val_str
+
+        elif intent_upper == "DESIGNATION":
+            return str(value).strip()
+
+        # 3. SKILLS / PROGRAMMING_LANGUAGES / HUMAN_LANGUAGES: Bullet points list
+        elif intent_upper in ["SKILLS", "PROGRAMMING_LANGUAGES", "HUMAN_LANGUAGES"]:
             items = self._to_list(value)
             if items:
                 items = [item for item in items if item.lower() not in ["skills", "technical skills", "education", "experience"]]
                 return "\n".join([f"• {item}" for item in items])
             return str(value)
 
-        # 3. PROJECTS: Numbered list
+        # 4. PROJECTS: Numbered list
         elif intent_upper == "PROJECTS":
             items = self._to_list(value)
             if items:
@@ -51,7 +65,7 @@ class AnswerBuilder:
                 return "\n".join(formatted_items)
             return str(value)
 
-        # 4. CERTIFICATIONS: Bullet points list
+        # 5. CERTIFICATIONS: Bullet points list
         elif intent_upper == "CERTIFICATIONS":
             if value == "No certifications were found in the resume.":
                 return value
@@ -61,7 +75,7 @@ class AnswerBuilder:
                 return "\n".join([f"• {item}" for item in items])
             return "No certifications were found in the resume."
 
-        # 5. EDUCATION: Bullet list of blocks
+        # 6. EDUCATION: Bullet list of blocks
         elif intent_upper == "EDUCATION":
             items = self._to_list(value)
             if items:
@@ -76,7 +90,7 @@ class AnswerBuilder:
                 return "\n".join(formatted_items)
             return str(value)
 
-        # 5.5 EXPERIENCE / WORK_EXPERIENCE: Bullet list of blocks
+        # 7. EXPERIENCE / WORK_EXPERIENCE: Bullet list of blocks
         elif intent_upper in ["EXPERIENCE", "WORK_EXPERIENCE"]:
             items = self._to_list(value)
             if items:
@@ -91,15 +105,15 @@ class AnswerBuilder:
                 return "\n".join(formatted_items)
             return str(value)
 
-        # 5.6 COUNT: return only the number
+        # 8. COUNT: return only the number
         elif intent_upper in ["COUNT", "COUNT_YEARS", "YEARS_COUNT"]:
             match = re.search(r'\b\d+\b', str(value))
             if match:
                 return match.group(0)
             return str(value).strip()
 
-        # 5.7 SUMMARY: Single clean paragraph
-        elif intent_upper == "SUMMARY":
+        # 9. SUMMARY / PROFILE_SUMMARY: Single clean paragraph
+        elif intent_upper in ["SUMMARY", "PROFILE_SUMMARY"]:
             sentences = self._to_list(value)
             if not sentences:
                 return str(value)
@@ -112,10 +126,22 @@ class AnswerBuilder:
                     cleaned_sentences.append(s)
             
             paragraph = " ".join(cleaned_sentences)
-            paragraph = re.sub(r'^[•\-*\s\d\.\)]+', '', paragraph).strip()
+            paragraph = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', paragraph).strip()
             return paragraph
 
-        # 6. Fallback or general intent
+        # 10. BASIC_PROFILE
+        elif intent_upper == "BASIC_PROFILE":
+            if isinstance(value, dict):
+                lines = []
+                for k, v in value.items():
+                    if isinstance(v, list):
+                        v_str = "\n".join(f"• {x}" for x in v)
+                    else:
+                        v_str = str(v)
+                    lines.append(f"{k}:\n{v_str}")
+                return "\n\n".join(lines)
+
+        # 11. Fallback or general intent
         if isinstance(value, list):
             return "\n".join(str(v) for v in value)
         return str(value).strip()
@@ -127,18 +153,32 @@ class AnswerBuilder:
         if isinstance(value, list):
             items = value
         elif isinstance(value, str):
-            # Split by newlines or list markers
             items = [line.strip() for line in value.split('\n') if line.strip()]
             if len(items) <= 1 and ',' in value:
-                # Comma separated list fallback
                 items = [item.strip() for item in value.split(',') if item.strip()]
         else:
             items = [str(value)]
 
         cleaned_items = []
         for item in items:
-            # Clean list bullets
-            item = re.sub(r'^[•\-*\d\.\s]+', '', item).strip()
+            if self._is_table_header_or_separator(item):
+                continue
+            item = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', item).strip()
             if item:
                 cleaned_items.append(item)
         return cleaned_items
+
+    def _is_table_header_or_separator(self, text: str) -> bool:
+        text_clean = text.strip().lower()
+        if not text_clean:
+            return False
+        # Match horizontal line separators (e.g. ---, |---|)
+        if re.match(r'^[|\s\-+=:_]*$', text_clean):
+            return True
+        headers = {"s", "no", "sno", "qualification", "year", "per", "percentage", "university", "cgpa", "marks", "board", "passing", "major", "grade", "institute", "school", "college"}
+        if text_clean in headers:
+            return True
+        words = re.findall(r'\b\w+\b', text_clean)
+        if words and all(w in headers for w in words):
+            return True
+        return False

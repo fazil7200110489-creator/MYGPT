@@ -21,12 +21,24 @@ class Validator:
             return "@" in answer and "." in answer.split("@")[-1]
 
         elif intent_upper == "SKILLS":
-            # Skills must be in bullet points if they are lists
+            # Skills must contain technologies rather than sentences or unrelated personal information
             lines = [l.strip() for l in answer.split('\n') if l.strip()]
             if lines and lines[0].lower() == "skills":
                 lines = lines[1:]
             if len(lines) > 1:
-                return all(l.startswith('•') for l in lines)
+                if not all(l.startswith('•') for l in lines):
+                    return False
+            
+            answer_lower = answer.lower()
+            forbidden_kws = ["objective", "address", "father", "mother", "marital", "religion", "nationality", "date of birth", "dob"]
+            if any(k in answer_lower for k in forbidden_kws):
+                return False
+
+            for line in lines:
+                line_clean = re.sub(r'^[•\-*]|\d+[\.\)]', '', line).strip()
+                if len(line_clean.split()) > 5:
+                    if line_clean.endswith('.') or any(verb in line_clean.lower() for verb in ["was", "did", "worked", "completed", "have", "with", "know", "study"]):
+                        return False
             return True
 
         elif intent_upper == "PROJECTS":
@@ -35,7 +47,20 @@ class Validator:
             if lines and lines[0].lower() == "projects":
                 lines = lines[1:]
             if len(lines) > 1:
-                return all(re.match(r'^\d+\.', l) for l in lines)
+                if not all(re.match(r'^\d+\.', l) for l in lines):
+                    return False
+            
+            # Projects must never contain personal info (Father's Name, DOB, Address, Phone, Email, Nationality, Religion, Marital Status)
+            answer_lower = answer.lower()
+            forbidden_keywords = [
+                "father", "mother", "dob", "date of birth", "d.o.b", "address", "street", "road", 
+                "pincode", "pin code", "nationality", "religion", "marital", "married", "single",
+                "indian", "christian", "hindu", "muslim", "spouse"
+            ]
+            if any(k in answer_lower for k in forbidden_keywords):
+                return False
+            if "@" in answer_lower or re.search(r'\d{6,}', answer_lower):
+                return False
             return True
 
         return True
