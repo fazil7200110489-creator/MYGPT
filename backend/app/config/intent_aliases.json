@@ -1,0 +1,32 @@
+{
+  "intents": {
+    "CANDIDATE_NAME": ["name", "candidate name", "who is", "who's", "applicant name", "full name"],
+    "BASIC_PROFILE": ["basic details", "basic profile", "basic info", "candidate details", "who is the candidate"],
+    "SUMMARY": ["summary", "summarize", "overview", "brief", "synopsis", "profile summary", "tell me about"],
+    "DESIGNATION": ["designation", "current designation", "job title", "position", "current role", "current position", "role", "what is her role", "what is his role", "what does she do", "what does he do"],
+    "CURRENT_COMPANY": ["current company", "current employer", "working at", "company name", "employer", "where is she working", "where is he working", "present company", "which company"],
+    "DOMAIN": ["domain", "industry", "field of work", "profession", "sector"],
+    "EXPERIENCE": ["experience", "work experience", "give me experience", "give me the experience", "experience only", "work history", "employment", "career", "total experience", "years of experience", "how many years"],
+    "DOMAIN_EXPERIENCE": ["hr experience", "healthcare experience", "finance experience", "current domain experience", "previous domain", "how many years in hr", "how many years in", "domain experience", "experience in hr", "experience in healthcare", "years in current domain"],
+    "CAREER_TRANSITION": ["career transition", "career change", "previous career", "career history", "changed career", "career path", "transition from", "transitioned from"],
+    "TIMELINE": ["career timeline", "experience timeline", "employment history", "work timeline", "chronological", "career journey"],
+    "SKILLS": ["skills", "technical skills", "technologies", "frameworks", "tools", "libraries", "tech stack", "software", "expertise", "competencies", "core skills", "hr skills"],
+    "SKILL_VERIFY": ["does she know", "does he know", "does the candidate know", "is she proficient in", "is he proficient in", "can she use", "can he use", "does she have experience with", "knowledge of"],
+    "ERP_PLATFORMS": ["erp", "erp platforms", "erp systems", "erp software", "sap", "oracle", "tally", "workday", "epicor", "dynamics 365", "peoplesoft"],
+    "EDUCATION": ["education", "degree", "college", "university", "school", "academic", "graduation", "qualification", "qualifications", "studied", "where did she study", "where did he study"],
+    "GRADUATION_YEAR": ["passed out year", "graduation year", "passing year", "year of passing", "completed degree", "when did she graduate", "when did he graduate", "year of graduation", "passing out year", "passed out"],
+    "CGPA": ["cgpa", "percentage", "marks", "gpa", "grades", "what is cgpa", "what is the cgpa", "what percentage", "academic score", "score"],
+    "PROJECTS": ["projects", "project", "portfolio", "developed", "built", "application", "applications", "key projects"],
+    "CERTIFICATIONS": ["certifications", "certification", "certificate", "courses", "training", "professional certification", "technical certification"],
+    "AWARDS": ["awards", "award", "award received", "honors", "recognitions", "award name", "what awards", "prizes", "accolades", "recognition", "employee of the month", "achievement award"],
+    "CONTACT": ["contact details", "contact info", "contact information", "contact"],
+    "PHONE": ["phone", "mobile", "cell", "telephone", "contact number", "phone number"],
+    "EMAIL": ["email", "gmail", "e-mail", "mail", "email address"],
+    "ADDRESS": ["address", "location", "city", "residence", "place", "is she from", "is he from", "based in", "current location", "permanent address", "work location", "home town", "native place", "where is she from", "where is he from", "from chennai", "from kerala", "from mumbai"],
+    "LINKEDIN": ["linkedin", "linkedin profile", "linkedin url"],
+    "GITHUB": ["github", "github profile", "github url"],
+    "PORTFOLIO": ["portfolio", "website", "personal site"],
+    "ROLE_INFERENCE": ["role recommendation", "suitable roles", "role match", "suitable for", "fit for", "good for", "can work as", "recommended roles", "which roles"],
+    "ROLE_COMPARE": ["vs", "versus", "compare", "better suited for", "hr manager vs", "more suitable", "between"]
+  }
+}

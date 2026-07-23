@@ -1,454 +1,570 @@
+"""Intent Classifier — Phase 3 of the Resume Intelligence Pipeline.
+
+Classifies a *normalized* question into one or more canonical intent
+strings.  This version is entirely data-driven: intent definitions live
+in the ``INTENT_DEFINITIONS`` configuration table at the top of this
+module.  To add a new intent, add one entry to that table — no control-
+flow code changes are required.
+
+Pipeline position:
+    QuestionNormalizer
+        ↓
+    EntityDetector
+        ↓
+    IntentClassifier    ← THIS MODULE
+        ↓
+    KnowledgeRetriever
+        ↓
+    ...
+
+Design principles:
+- Single source of truth: ``INTENT_DEFINITIONS`` drives everything.
+- No long if/else chains for keyword matching.
+- EntityDetector findings are the primary signal; keyword fallback is
+  secondary.
+- Semantic embedding similarity is used as a last resort.
+- For resume documents: *never* returns ``UNKNOWN_QUERY``.
+"""
+
+import os
+import json
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
+
 from loguru import logger
-from backend.app.services.embedding_service import embedding_service
+
+from backend.app.services.reasoning.entity_detector import EntityDetector, QuestionEntity
+from backend.app.services.reasoning.question_normalizer import QuestionNormalizer
+
+RESUME_TOKENS = {
+    "resume", "cv", "candidate", "applicant", "profile", "summary",
+    "experience", "education", "skills", "projects", "certifications",
+    "contact", "details", "overview", "qualification", "qualifications"
+}
+
+def _load_intent_aliases_from_json() -> Dict[str, List[str]]:
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    config_path = os.path.join(base_dir, "config", "intent_aliases.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                intents = data.get("intents", {})
+                if intents:
+                    logger.info("Loaded intent aliases dynamically from intent_aliases.json")
+                    return intents
+        except Exception as e:
+            logger.warning(f"Failed to load intent_aliases.json: {e}")
+    return {}
+
+
+# ---------------------------------------------------------------------------
+# Intent Definitions — add new intents here only
+# ---------------------------------------------------------------------------
+# Structure:
+#   intent_name (str) → {
+#       "entities": [QuestionEntity, ...]  – entity types that map to this intent
+#       "keywords": [str, ...]             – normalized keyword triggers (fallback)
+#   }
+# ---------------------------------------------------------------------------
+
+INTENT_DEFINITIONS: Dict[str, Dict] = {
+    "CANDIDATE_NAME": {
+        "entities": [QuestionEntity.NAME],
+        "keywords": ["name"],
+    },
+    "FATHER_NAME": {
+        "entities": [QuestionEntity.FATHER_NAME],
+        "keywords": ["father name", "father"],
+    },
+    "MOTHER_NAME": {
+        "entities": [QuestionEntity.MOTHER_NAME],
+        "keywords": ["mother name", "mother"],
+    },
+    "PHONE": {
+        "entities": [QuestionEntity.PHONE],
+        "keywords": ["phone", "mobile", "cell", "telephone"],
+    },
+    "EMAIL": {
+        "entities": [QuestionEntity.EMAIL],
+        "keywords": ["email", "gmail", "e-mail", "mail"],
+    },
+    "CONTACT": {
+        "entities": [QuestionEntity.CONTACT],
+        "keywords": ["contact details", "contact info", "contact information"],
+    },
+    "ADDRESS": {
+        "entities": [QuestionEntity.ADDRESS],
+        "keywords": ["address", "location", "city", "residence", "place"],
+    },
+    "LINKEDIN": {
+        "entities": [QuestionEntity.LINKEDIN],
+        "keywords": ["linkedin"],
+    },
+    "GITHUB": {
+        "entities": [QuestionEntity.GITHUB],
+        "keywords": ["github"],
+    },
+    "DOMAIN": {
+        "entities": [QuestionEntity.DOMAIN],
+        "keywords": ["domain", "industry", "field of work", "profession", "sector"],
+    },
+    "DESIGNATION": {
+        "entities": [QuestionEntity.DESIGNATION],
+        "keywords": ["designation", "job title", "position"],
+    },
+    "EXPERIENCE": {
+        "entities": [QuestionEntity.WORK_EXPERIENCE],
+        "keywords": [
+            "experience", "work history", "employment",
+            "career", "company", "worked",
+        ],
+    },
+    "SKILLS": {
+        "entities": [QuestionEntity.SKILLS, QuestionEntity.PROGRAMMING_LANGS],
+        "keywords": [
+            "skills", "technical skills", "technologies", "frameworks", "tools",
+            "libraries", "tech stack", "software", "expertise",
+            "programming language", "programming languages",
+        ],
+    },
+    "ERP_PLATFORMS": {
+        "entities": [QuestionEntity.SKILLS],
+        "keywords": [
+            "erp", "erp platforms", "erp systems", "erp software",
+            "sap", "oracle", "tally", "workday", "epicor", "peoplesoft", "dynamics 365",
+        ],
+    },
+    "AWARDS": {
+        "entities": [QuestionEntity.CERTIFICATIONS],
+        "keywords": ["awards", "achievements", "honors", "recognitions"],
+    },
+    "PROGRAMMING_LANGUAGES": {
+        "entities": [QuestionEntity.PROGRAMMING_LANGS],
+        "keywords": ["programming language", "programming languages", "coding language"],
+    },
+    "PROJECTS": {
+        "entities": [QuestionEntity.PROJECTS],
+        "keywords": ["projects", "project", "portfolio", "developed", "application"],
+    },
+    "CERTIFICATIONS": {
+        "entities": [QuestionEntity.CERTIFICATIONS],
+        "keywords": ["certifications", "certification", "certificate", "courses", "training"],
+    },
+    "EDUCATION": {
+        "entities": [QuestionEntity.EDUCATION],
+        "keywords": [
+            "education", "degree", "college", "university",
+            "school", "academic", "graduation", "qualification",
+        ],
+    },
+    "HUMAN_LANGUAGES": {
+        "entities": [QuestionEntity.LANGUAGES],
+        "keywords": ["language", "languages", "speak", "spoken"],
+    },
+    "SUMMARY": {
+        "entities": [QuestionEntity.SUMMARY, QuestionEntity.BASIC_PROFILE],
+        "keywords": ["summary", "summarize", "overview", "brief", "synopsis", "profile"],
+    },
+    "BASIC_PROFILE": {
+        "entities": [QuestionEntity.BASIC_PROFILE],
+        "keywords": ["basic details", "basic profile", "basic info"],
+    },
+    "PROFILE_SUMMARY": {
+        "entities": [QuestionEntity.SUMMARY],
+        "keywords": ["profile summary", "tell me about this candidate"],
+    },
+    "CONTACT": {
+        "entities": [QuestionEntity.CONTACT],
+        "keywords": ["contact details", "contact info", "contact information"],
+    },
+    "GENDER": {
+        "entities": [QuestionEntity.GENDER],
+        "keywords": ["gender", "sex"],
+    },
+    "AGE": {
+        "entities": [QuestionEntity.AGE],
+        "keywords": ["age"],
+    },
+    "DATE_OF_BIRTH": {
+        "entities": [QuestionEntity.DATE_OF_BIRTH],
+        "keywords": ["date of birth", "dob", "birthday"],
+    },
+    "OBJECTIVE": {
+        "entities": [QuestionEntity.OBJECTIVE],
+        "keywords": ["objective", "career objective", "goal"],
+    },
+    "ACHIEVEMENTS": {
+        "entities": [QuestionEntity.ACHIEVEMENTS],
+        "keywords": ["achievement", "achievements", "award", "awards"],
+    },
+    "SALARY": {
+        "entities": [QuestionEntity.SALARY],
+        "keywords": ["salary", "ctc", "compensation"],
+    },
+    "NOTICE_PERIOD": {
+        "entities": [QuestionEntity.NOTICE_PERIOD],
+        "keywords": ["notice period", "notice"],
+    },
+    "MARITAL_STATUS": {
+        "entities": [QuestionEntity.MARITAL_STATUS],
+        "keywords": ["marital", "married"],
+    },
+    "ROLE_INFERENCE": {
+        "entities": [QuestionEntity.ROLE, QuestionEntity.SUITABILITY],
+        "keywords": [
+            "suitable for", "fit for", "can he", "can she",
+            "app developer", "backend developer", "frontend developer",
+            "can work as", "suitable", "role match", "role recommendation",
+        ],
+    },
+    "ROLE_COMPARE": {
+        "entities": [],
+        "keywords": ["vs", "versus", "compare", "better suited for", "more suitable", "between"],
+    },
+    "CAREER_TRANSITION": {
+        "entities": [],
+        "keywords": ["career transition", "career change", "previous career", "changed career", "career path", "transition from"],
+    },
+    "DOMAIN_EXPERIENCE": {
+        "entities": [],
+        "keywords": ["hr experience", "healthcare experience", "finance experience", "current domain experience",
+                     "previous domain", "how many years in hr", "how many years in", "domain experience",
+                     "years in current domain", "experience in hr"],
+    },
+    "TIMELINE": {
+        "entities": [],
+        "keywords": ["career timeline", "experience timeline", "employment history", "work timeline", "career journey", "chronological"],
+    },
+    "GRADUATION_YEAR": {
+        "entities": [],
+        "keywords": ["passed out year", "graduation year", "passing year", "year of passing",
+                     "completed degree", "when did she graduate", "when did he graduate", "passed out", "passing out year"],
+    },
+    "CGPA": {
+        "entities": [],
+        "keywords": ["cgpa", "percentage", "marks", "gpa", "grades", "academic score", "what is cgpa", "what percentage"],
+    },
+    "CURRENT_COMPANY": {
+        "entities": [],
+        "keywords": ["current company", "current employer", "working at", "company name", "present company",
+                     "where is she working", "where is he working", "which company"],
+    },
+    "SKILL_VERIFY": {
+        "entities": [],
+        "keywords": ["does she know", "does he know", "does the candidate know", "is she proficient in",
+                     "is he proficient in", "can she use", "can he use", "knowledge of",
+                     "does she have experience with"],
+    },
+    "AWARDS": {
+        "entities": [],
+        "keywords": ["awards", "award", "award received", "honors", "recognitions", "award name",
+                     "prizes", "accolades", "recognition", "employee of the month", "achievement award"],
+    },
+    # Non-resume intents
+    "INVOICE_TOTAL": {
+        "entities": [],
+        "keywords": ["total amount", "grand total", "invoice total", "amount to pay"],
+    },
+    "COUNT": {
+        "entities": [],
+        "keywords": ["count", "how many", "number of"],
+    },
+    "AVERAGE": {
+        "entities": [],
+        "keywords": ["average", "mean", "avg"],
+    },
+    "HIGHEST": {
+        "entities": [],
+        "keywords": ["highest", "maximum", "max"],
+    },
+    "LOWEST": {
+        "entities": [],
+        "keywords": ["lowest", "minimum", "min"],
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Intent group expansions: a single trigger → multiple intents
+# ---------------------------------------------------------------------------
+INTENT_GROUPS: Dict[str, List[str]] = {
+    "contact details":      ["CONTACT"],
+    "contact info":         ["CONTACT"],
+    "contact":              ["CONTACT"],
+    "basic details":        ["BASIC_PROFILE"],
+    "basic profile":        ["BASIC_PROFILE"],
+    "academic details":     ["EDUCATION", "CERTIFICATIONS"],
+    "technical profile":    ["SKILLS", "PROGRAMMING_LANGUAGES", "PROJECTS"],
+    "career summary":       ["CAREER_TRANSITION", "DOMAIN_EXPERIENCE", "TIMELINE"],
+    "full summary":         ["SUMMARY"],
+}
+
+# Resume-domain tokens (used to confirm a query is resume-related before
+# falling back to GENERAL instead of UNKNOWN_QUERY)
+RESUME_TOKENS: Set[str] = {
+    "skill", "skills", "experience", "education", "project", "projects",
+    "certification", "certifications", "certificate", "name", "phone",
+    "mobile", "email", "address", "language", "languages", "designation",
+    "summary", "summarize", "summarise", "overview", "brief", "profile",
+    "objective", "degree", "college", "university", "work", "employment",
+    "company", "linkedin", "github", "contact", "location", "role", "career",
+    "qualification", "qualifications", "academic", "employer", "training",
+    "course", "resume", "cv", "candidate", "applicant", "technologies",
+    "technology", "frameworks", "tools", "developer", "engineer", "python",
+    "java", "react", "angular", "docker", "aws", "age", "gender", "salary",
+    "notice", "achievement", "achievements", "exp",
+}
+
 
 class IntentClassifier:
-    """Classifies user queries semantically into canonical intents using embedding similarity."""
+    """Classifies normalized questions into canonical intent strings.
 
-    # ── Centralized group expansions ──────────────────────────────────────────
-    INTENT_GROUPS: Dict[str, List[str]] = {
-        "contact details": ["CANDIDATE_NAME", "PHONE", "EMAIL", "ADDRESS"],
-        "contact info": ["CANDIDATE_NAME", "PHONE", "EMAIL", "ADDRESS"],
-        "basic details": ["BASIC_PROFILE", "DESIGNATION", "ADDRESS", "EXPERIENCE", "EDUCATION"],
-        "basic profile": ["BASIC_PROFILE", "DESIGNATION", "ADDRESS", "EXPERIENCE", "EDUCATION"],
-        "academic details": ["EDUCATION", "CERTIFICATIONS"],
-        "technical profile": ["SKILLS", "PROGRAMMING_LANGUAGES", "PROJECTS"]
-    }
+    All classification logic is driven by ``INTENT_DEFINITIONS``.
+    The classifier uses a three-tier strategy:
+        1. Group intent expansion (multi-intent triggers).
+        2. EntityDetector findings → intent mapping.
+        3. Keyword substring fallback.
+        4. Semantic embedding similarity (last resort).
 
-    # ── Centralized phrase-level normalizations ───────────────────────────────
-    QUERY_NORMALIZATIONS: Dict[str, str] = {
-        "phone no": "phone number",
-        "phone nos": "phone number",
-        "mobile no": "phone number",
-        "mobile number": "phone number",
-        "cell number": "phone number",
-        "contact number": "phone number",
-        "mail id": "email",
-        "email id": "email",
-        "e mail": "email",
-        "linked inn": "linkedin",
-        "linked in": "linkedin",
-        "linkedinn": "linkedin",
-        "qualification": "education",
-        "qualifications": "education",
-        "academic background": "education",
-        "projects done": "projects",
-        "work done": "projects",
-        "employer": "experience",
-        "previous employer": "experience",
-        "company worked": "experience",
-        "languages known": "languages",
-        "languages she speaks": "languages",
-        "languages he speaks": "languages",
-    }
+    For resume documents it never returns ``UNKNOWN_QUERY`` — it falls
+    back to ``GENERAL`` which the reasoning service routes to the
+    ResumeReasoner with a role-inference pass.
+    """
 
-    # ── Conservative resume-vocabulary spell corrections ─────────────────────
-    SPELL_CORRECTIONS: Dict[str, str] = {
-        "ksills": "skills",
-        "skils": "skills",
-        "skilles": "skills",
-        "exprience": "experience",
-        "expereince": "experience",
-        "experiance": "experience",
-        "certfication": "certification",
-        "cerification": "certification",
-        "certifcation": "certification",
-        "certificaton": "certification",
-        "pthon": "python",
-        "phyton": "python",
-        "eductaion": "education",
-        "educaton": "education",
-        "adress": "address",
-        "addresss": "address",
-        "desgnation": "designation",
-        "deisgnation": "designation",
-        "proects": "projects",
-        "porjects": "projects",
-    }
-
-    # ── Fallback intent for unrecognised queries ──────────────────────────────
+    # Sentinel values
     UNKNOWN_QUERY_INTENT: str = "UNKNOWN_QUERY"
-
-    def _preprocess_query(self, query: str) -> str:
-        """Applies conservative spell correction then phrase-level normalization."""
-        q = query.strip()
-
-        # 1. Word-level spell correction (only when exact keyword matching will
-        #    otherwise fail — applied conservatively to known resume vocab).
-        words = q.split()
-        corrected_words = []
-        for word in words:
-            lower_w = word.lower()
-            if lower_w in self.SPELL_CORRECTIONS:
-                # Preserve original capitalisation style if word was capitalised
-                replacement = self.SPELL_CORRECTIONS[lower_w]
-                if word[0].isupper():
-                    replacement = replacement.capitalize()
-                corrected_words.append(replacement)
-            else:
-                corrected_words.append(word)
-        q = " ".join(corrected_words)
-
-        # 2. Phrase-level normalization (longest match first to avoid partial
-        #    replacement conflicts).
-        q_lower = q.lower()
-        sorted_norms = sorted(self.QUERY_NORMALIZATIONS.keys(), key=len, reverse=True)
-        for phrase in sorted_norms:
-            replacement = self.QUERY_NORMALIZATIONS[phrase]
-            if phrase in q_lower:
-                q_lower = q_lower.replace(phrase, replacement)
-        # Re-attach normalised lower-case version (intent matching uses lower)
-        return q_lower
+    GENERAL_INTENT: str = "GENERAL"
 
     def __init__(self) -> None:
-        self.intents: Dict[str, List[str]] = {
-            "PHONE": [
-                "phone number", "mobile number", "contact details", "phone", 
-                "mobile", "cell", "how to call", "contact info", "telephone",
-                "reach out to them", "reach them", "contact number"
-            ],
-            "EMAIL": [
-                "email address", "gmail", "send email", "contact email", "e-mail", 
-                "mail", "electronic mail address"
-            ],
-            "SKILLS": [
-                "what are their skills", "technologies used", "technical expertise", 
-                "programming languages", "frameworks", "tools", "skills", "tech stack",
-                "what can they program in"
-            ],
-            "PROJECTS": [
-                "projects built", "what did they build", "portfolio applications", 
-                "work portfolio", "projects", "applications", "systems built"
-            ],
-            "EDUCATION": [
-                "education", "qualifications", "degree", "university", "college", 
-                "where did they study", "academic background", "schooling"
-            ],
-            "CERTIFICATIONS": [
-                "certifications", "certificates", "awards received", "courses done", 
-                "training", "credentials"
-            ],
-            "SUMMARY": [
-                "summary", "summarize the profile", "overview", "synopsis", "brief", 
-                "abstract", "key points", "profile summary", "summarize the document"
-            ],
-            "EXPERIENCE": [
-                "work experience", "employment history", "career details", 
-                "where did they work", "previous jobs", "experience", "work history"
-            ],
-            "INVOICE_TOTAL": [
-                "total amount due", "grand total", "invoice total", "how much is the total", 
-                "billing total", "total cost", "amount to pay"
-            ],
-            "COUNT": [
-                "count of entries", "how many items", "number of rows", "total count", 
-                "count transactions", "how many rows", "number of records"
-            ],
-            "AVERAGE": [
-                "average value", "mean value", "avg", "average amount", "average price"
-            ],
-            "HIGHEST": [
-                "highest", "maximum value", "max", "largest amount", "most expensive",
-                "maximum price"
-            ],
-            "LOWEST": [
-                "lowest", "minimum value", "min", "smallest amount", "cheapest",
-                "minimum price"
-            ]
-        }
+        self._normalizer = QuestionNormalizer()
+        self._detector = EntityDetector()
+        aliases = _load_intent_aliases_from_json()
+        for intent_name, keywords in aliases.items():
+            if intent_name in INTENT_DEFINITIONS:
+                existing_kw = set(INTENT_DEFINITIONS[intent_name].get("keywords", []))
+                for kw in keywords:
+                    if kw not in existing_kw:
+                        INTENT_DEFINITIONS[intent_name]["keywords"].append(kw)
         self.intent_embeddings: Dict[str, List[List[float]]] = {}
         self._precompute_embeddings()
 
-    def _precompute_embeddings(self) -> None:
-        """Pre-computes and caches embeddings for the intent cluster seeds."""
-        all_phrases = []
-        phrase_to_intent = {}
-        for intent, phrases in self.intents.items():
-            for p in phrases:
-                all_phrases.append(p)
-                phrase_to_intent[p] = intent
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
 
+    def classify_multi(self, question: str, doc_type: str = "Generic") -> List[str]:
+        """Classify a question into one or more ordered canonical intents.
+
+        Args:
+            question: Raw user question (will be normalized internally).
+            doc_type: Document type from knowledge store (e.g. "Resume").
+
+        Returns:
+            Ordered list of unique intent strings.  Never empty.
+        """
+        normalized = self._normalizer.normalize(question)
+        logger.debug(f"IntentClassifier normalized: '{question}' → '{normalized}'")
+
+        # --- Tier 1: Group intent expansion ---
+        group_intents = self._match_group_intents(normalized)
+        if group_intents:
+            return group_intents
+
+        # --- Tier 2: EntityDetector → intent mapping ---
+        entity_intents = self._entities_to_intents(normalized)
+
+        # --- Tier 3: Keyword fallback ---
+        kw_intents = self._keyword_intents(normalized)
+
+        # Merge, preserving order
+        merged = self._merge_unique(entity_intents, kw_intents)
+
+        # Disambiguate overlapping intents
+        if "CONTACT" in merged and any(i in merged for i in ["PHONE", "EMAIL", "ADDRESS"]):
+            merged = [i for i in merged if i != "CONTACT"]
+
+        if "PROGRAMMING_LANGUAGES" in merged and ("programming" in normalized or "coding" in normalized):
+            merged = [i for i in merged if i != "HUMAN_LANGUAGES"]
+
+        if "HUMAN_LANGUAGES" in merged and any(w in normalized for w in ["speak", "spoken", "mother tongue"]):
+            merged = [i for i in merged if i not in ("PROGRAMMING_LANGUAGES", "SKILLS")]
+
+        if "CERTIFICATIONS" in merged and any(w in normalized for w in ["certification", "certifications", "certificate"]):
+            merged = [i for i in merged if i != "AWARDS"]
+
+        # If explicit skill-category keywords present (frameworks/libraries), strip SKILL_VERIFY
+        if "SKILLS" in merged and "SKILL_VERIFY" in merged:
+            if any(w in normalized for w in ["framework", "library", "libraries", "tech stack", "tools", "technologies"]):
+                merged = [i for i in merged if i != "SKILL_VERIFY"]
+            else:
+                # Otherwise SKILL_VERIFY takes priority for "does she know X" type queries
+                merged = [i for i in merged if i != "SKILLS"]
+
+        if merged:
+            return merged
+
+        # --- Tier 4: Semantic embedding similarity ---
+        semantic = self._semantic_classify(question)
+        if semantic and semantic not in (self.GENERAL_INTENT, ""):
+            return [semantic]
+
+        # --- Fallback ---
+        return self._fallback(normalized, doc_type)
+
+    def classify(self, question: str) -> str:
+        """Single-intent convenience wrapper (backward compatible).
+
+        Args:
+            question: Raw question string.
+
+        Returns:
+            Single intent string.
+        """
+        intents = self.classify_multi(question)
+        return intents[0] if intents else self.GENERAL_INTENT
+
+    def _preprocess_query(self, question: str) -> str:
+        """Backward-compatible helper method delegating to QuestionNormalizer."""
+        return self._normalizer.normalize(question)
+
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
+
+    def _match_group_intents(self, normalized: str) -> List[str]:
+        """Checks if the normalized query matches any group trigger phrase."""
+        results: List[str] = []
+        for phrase, intent_list in sorted(INTENT_GROUPS.items(), key=lambda x: len(x[0]), reverse=True):
+            if phrase in ["contact", "contact details", "contact info", "contact information"]:
+                if any(re.search(r"\b" + t + r"\b", normalized) for t in ["phone", "email", "address"]):
+                    continue
+            if phrase in normalized:
+                for intent in intent_list:
+                    if intent not in results:
+                        results.append(intent)
+        return results
+
+    def _entities_to_intents(self, normalized: str) -> List[str]:
+        """Maps EntityDetector findings to canonical intents."""
+        detected_entities = self._detector.detect(normalized)
+        if not detected_entities:
+            return []
+
+        result: List[str] = []
+        seen: Set[str] = set()
+
+        for entity in detected_entities:
+            for intent_name, defn in INTENT_DEFINITIONS.items():
+                if entity in defn["entities"] and intent_name not in seen:
+                    result.append(intent_name)
+                    seen.add(intent_name)
+                    break
+
+        return result
+
+    def _keyword_intents(self, normalized: str) -> List[str]:
+        """Keyword substring fallback classifier."""
+        result: List[str] = []
+        seen: Set[str] = set()
+
+        for intent_name, defn in INTENT_DEFINITIONS.items():
+            if intent_name in seen:
+                continue
+            for kw in sorted(defn["keywords"], key=len, reverse=True):
+                if " " in kw:
+                    if kw in normalized:
+                        result.append(intent_name)
+                        seen.add(intent_name)
+                        break
+                else:
+                    if re.search(r"\b" + re.escape(kw) + r"\b", normalized):
+                        result.append(intent_name)
+                        seen.add(intent_name)
+                        break
+
+        return result
+
+    @staticmethod
+    def _merge_unique(*lists: List[str]) -> List[str]:
+        """Merge multiple ordered lists, preserving first-occurrence order."""
+        seen: Set[str] = set()
+        result: List[str] = []
+        for lst in lists:
+            for item in lst:
+                if item not in seen:
+                    seen.add(item)
+                    result.append(item)
+        return result
+
+    def _fallback(self, normalized: str, doc_type: str) -> List[str]:
+        """Final fallback: returns UNKNOWN_QUERY_INTENT if question lacks domain tokens."""
+        tokens = set(re.findall(r"\b\w+\b", normalized.lower()))
+        has_resume_token = bool(tokens & RESUME_TOKENS)
+
+        if has_resume_token or any(k in normalized.lower() for k in ["summary", "profile", "overview", "resume", "cv", "details"]):
+            return [self.GENERAL_INTENT]
+
+        return [self.UNKNOWN_QUERY_INTENT]
+
+    def _precompute_embeddings(self) -> None:
+        """Pre-computes and caches embeddings for semantic intent classification."""
         try:
-            logger.info("Pre-computing semantic intent classifier seed embeddings...")
-            embs = embedding_service.get_embeddings(all_phrases)
-            for phrase, emb in zip(all_phrases, embs):
+            from backend.app.services.embedding_service import embedding_service
+
+            seed_phrases: List[str] = []
+            phrase_to_intent: Dict[str, str] = {}
+
+            for intent_name, defn in INTENT_DEFINITIONS.items():
+                for kw in defn["keywords"]:
+                    seed_phrases.append(kw)
+                    phrase_to_intent[kw] = intent_name
+
+            if not seed_phrases:
+                return
+
+            logger.info("Pre-computing semantic intent classifier embeddings...")
+            embeddings = embedding_service.get_embeddings(seed_phrases)
+
+            for phrase, emb in zip(seed_phrases, embeddings):
                 intent = phrase_to_intent[phrase]
                 if intent not in self.intent_embeddings:
                     self.intent_embeddings[intent] = []
                 self.intent_embeddings[intent].append(emb)
-            logger.info("Successfully loaded semantic intent clusters.")
-        except Exception as e:
-            logger.warning(f"Failed to pre-compute intent embeddings, using fallback rules: {e}")
 
-    def classify(self, query: str) -> str:
-        """Resolves user query to a canonical intent name."""
-        q_lower = query.lower()
-        q_words = set(re.findall(r"\w+", q_lower))
+            logger.info("Semantic intent embeddings loaded successfully.")
+        except Exception as exc:
+            logger.warning(f"Failed to pre-compute intent embeddings (using keyword fallback): {exc}")
 
-        # Direct override checks for resume fields
-        if "basic details" in q_lower or "basic profile" in q_lower:
-            return "BASIC_PROFILE"
-        if "tell me about this candidate" in q_lower or "profile summary" in q_lower:
-            return "PROFILE_SUMMARY"
-        if "gender" in q_lower or "sex" in q_lower:
-            return "GENDER"
-        if any(w in q_lower for w in ["framework", "frameworks", "libraries", "library", "tech stack", "tools"]):
-            return "SKILLS"
-        if "human language" in q_lower or "languages she speak" in q_lower or "languages he speak" in q_lower or "languages does she speak" in q_lower or "languages does he speak" in q_lower or (("language" in q_lower or "languages" in q_lower) and ("speak" in q_lower or "human" in q_lower or "spoken" in q_lower)):
-            return "HUMAN_LANGUAGES"
-        if "programming language" in q_lower or "programming languages" in q_lower:
-            if "give me a list of" in q_lower:
-                return "SKILLS"  # Existing test case regression protection
-            return "PROGRAMMING_LANGUAGES"
-        if "job role" in q_lower or "designation" in q_lower:
-            return "DESIGNATION"
-            
-        if "father" in q_lower:
-            return "FATHER_NAME"
-        if "mother" in q_lower:
-            return "MOTHER_NAME"
-        if "candidate" in q_lower and "name" in q_lower:
-            return "CANDIDATE_NAME"
-        if "applicant" in q_lower and "name" in q_lower:
-            return "CANDIDATE_NAME"
-        if "name" in q_lower and not any(k in q_lower for k in ["father", "mother", "spouse", "guardian"]):
-            return "CANDIDATE_NAME"
-        if "email" in q_lower or "gmail" in q_lower or "mail" in q_lower:
-            return "EMAIL"
-        if "phone" in q_lower or "mobile" in q_lower or "cell" in q_lower or "telephone" in q_lower or "contact number" in q_lower:
-            return "PHONE"
-        if "address" in q_lower or "live" in q_lower or "reside" in q_lower or "location" in q_lower or "city" in q_lower or "place" in q_lower:
-            return "ADDRESS"
-        if "college" in q_lower or "school" in q_lower or "degree" in q_lower or "qualification" in q_lower or "academic" in q_lower or "graduation" in q_lower:
-            return "EDUCATION"
-        if "company" in q_lower or "employment" in q_lower or "career" in q_lower or "work" in q_lower:
-            return "EXPERIENCE"
-        if "css framework" in q_lower or "skills" in q_lower or "technologies" in q_lower or "framework" in q_lower or "tools" in q_lower or "programming" in q_lower:
-            return "SKILLS"
-        if "project" in q_lower or "developed" in q_lower or "application" in q_lower or "portfolio" in q_lower:
-            return "PROJECTS"
-        if "summary" in q_lower or "summarize" in q_lower or "overview" in q_lower or "brief" in q_lower:
-            return "SUMMARY"
-        if "objective" in q_lower:
-            return "OBJECTIVE"
+    def _semantic_classify(self, question: str) -> Optional[str]:
+        """Cosine-similarity semantic classification over intent seed embeddings."""
+        if not self.intent_embeddings:
+            return None
 
-        # 1. Exact Keyword Override / Fallback Checks
-        keyword_mappings = {
-            "PHONE": ["phone", "mobile", "cell", "telephone", "contact number", "contact"],
-            "EMAIL": ["mail", "gmail", "email address", "email", "e-mail"],
-            "NAME": ["candidate", "applicant", "person", "name"],
-            "EDUCATION": ["degree", "college", "school", "qualification", "academic", "graduation", "education"],
-            "EXPERIENCE": ["experience", "career", "employment", "work", "job role", "designation", "company", "role"],
-            "PROJECTS": ["project", "developed", "application", "system", "projects"],
-            "SKILLS": ["skills", "technologies", "frameworks", "technical skills", "tools", "software", "programming languages", "programming", "languages", "expertise", "framework"],
-            "CERTIFICATIONS": ["certificate", "certification", "course", "training", "certifications"],
-            "SUMMARY": ["summary", "summarize", "overview", "brief", "abstract"],
-            "ADDRESS": ["address", "location", "city", "place", "live", "reside"],
-            "LANGUAGES": ["language", "languages known", "speak", "languages"],
-            "INVOICE_TOTAL": ["total", "grand total", "total amount"],
-            "COUNT": ["count", "how many", "number of"],
-            "AVERAGE": ["average", "mean", "avg"],
-            "HIGHEST": ["highest", "maximum", "max"],
-            "LOWEST": ["lowest", "minimum", "min"]
-        }
+        # Skip semantic matching for single short words that have zero keyword match
+        q_words = question.strip().split()
+        if len(q_words) == 1 and len(q_words[0]) < 6:
+            return None
 
-        # Highest overlap check
-        best_kw_intent = "GENERAL"
-        max_overlap = 0
-        for intent, kw_list in keyword_mappings.items():
-            overlap = sum(1 for kw in kw_list if kw in q_words or any(kw in w for w in q_words))
-            if overlap > max_overlap:
-                max_overlap = overlap
-                best_kw_intent = intent
+        try:
+            from backend.app.services.embedding_service import embedding_service
 
-        # If keyword overlap is found, prioritize it immediately
-        if best_kw_intent != "GENERAL":
-            return best_kw_intent
+            q_emb = embedding_service.get_embeddings([question])[0]
+            best_intent: Optional[str] = None
+            best_score = -1.0
 
-        # 2. Semantic Embedding Similarity Check
-        if self.intent_embeddings:
-            try:
-                query_emb = embedding_service.get_embeddings([query])[0]
-                best_intent = "GENERAL"
-                best_score = -1.0
+            for intent, embeddings in self.intent_embeddings.items():
+                for emb in embeddings:
+                    dot = sum(a * b for a, b in zip(q_emb, emb))
+                    q_norm = sum(a * a for a in q_emb) ** 0.5
+                    e_norm = sum(b * b for b in emb) ** 0.5
+                    score = dot / (q_norm * e_norm + 1e-9)
+                    if score > best_score:
+                        best_score = score
+                        best_intent = intent
 
-                for intent, embs in self.intent_embeddings.items():
-                    for emb in embs:
-                        # Cosine similarity
-                        dot_product = sum(q * r for q, r in zip(query_emb, emb))
-                        q_norm = sum(q * q for q in query_emb) ** 0.5
-                        r_norm = sum(r * r for r in emb) ** 0.5
-                        similarity = dot_product / (q_norm * r_norm + 1e-9)
-                        if similarity > best_score:
-                            best_score = similarity
-                            best_intent = intent
+            if best_score > 0.90:
+                return best_intent
+        except Exception as exc:
+            logger.warning(f"Semantic similarity classification failed: {exc}")
 
-                # Accept classification if above threshold
-                if best_score > 0.60:
-                    return best_intent
-            except Exception as e:
-                logger.warning(f"Semantic similarity check failed: {e}")
-
-        return "GENERAL"
-
-    def classify_multi(self, query: str) -> List[str]:
-        """Resolves user query to one or more canonical intent names.
-
-        Processing order (per spec):
-          1. Exact intent matching via keywords
-          2. Group intent expansion (INTENT_GROUPS)
-          3. Query normalization + spell correction (_preprocess_query)
-          4. Technology reasoning happens in ResumeReasoner, not here
-          5. Semantic similarity fallback (classify)
-          6. UNKNOWN_QUERY as final fallback
-        """
-        # Step 3: normalise before any matching
-        q_lower = self._preprocess_query(query)
-        
-        # 1. Match Group Terms in the query
-        matched_spans = []
-        matches_found = []  # List of tuples: (start_pos, list_of_intents)
-        
-        for group_term, group_intents in self.INTENT_GROUPS.items():
-            pattern = r'\b' + re.escape(group_term) + r'\b'
-            for match in re.finditer(pattern, q_lower):
-                matched_spans.append((match.start(), match.end()))
-                matches_found.append((match.start(), group_intents))
-                break  # Match each group term once per query
-                
-        # 2. Define keyword matching mapping
-        mappings = [
-            ("FATHER_NAME", ["father name", "father's name", "father"]),
-            ("MOTHER_NAME", ["mother name", "mother's name", "mother"]),
-            ("CANDIDATE_NAME", ["candidate name", "candidate's name", "applicant name", "applicant's name", "name"]),
-            ("EMAIL", ["email", "gmail", "e-mail", "email address"]),
-            ("PHONE", ["phone", "mobile", "cell", "telephone", "contact number", "contact details", "contact info"]),
-            ("ADDRESS", ["address", "location", "reside", "live", "city", "place"]),
-            ("DESIGNATION", ["designation", "job role", "job designation", "role"]),
-            ("EXPERIENCE", ["experience", "work history", "employment", "career", "work experience"]),
-            ("EDUCATION", ["education", "degree", "college", "school", "qualification", "academic", "graduation"]),
-            ("SKILLS", ["skills", "technologies", "frameworks", "tools", "libraries", "tech stack"]),
-            ("PROJECTS", ["projects", "project", "developed", "portfolio"]),
-            ("CERTIFICATIONS", ["certifications", "certification", "certificate", "courses", "course"]),
-            ("GENDER", ["gender", "sex", "male", "female"]),
-            ("PROGRAMMING_LANGUAGES", ["programming language", "programming languages", "coding language", "coding languages"]),
-            ("HUMAN_LANGUAGES", ["human language", "human languages", "spoken languages", "languages she speak", "languages he speak", "languages does she speak", "languages does he speak", "languages known", "languages", "language"]),
-            ("SALARY", ["salary"]),
-            ("NOTICE_PERIOD", ["notice period", "notice"]),
-            ("RELOCATION", ["relocate", "relocation"]),
-            ("MARITAL_STATUS", ["marital", "married"])
-        ]
-        
-        # 3. Match Individual Keywords
-        for intent, kws in mappings:
-            for kw in kws:
-                pattern = r'\b' + re.escape(kw) + r'\b'
-                if "'" in kw or "-" in kw:
-                    pattern = re.escape(kw)
-                
-                for match in re.finditer(pattern, q_lower):
-                    start = match.start()
-                    # Skip if this keyword start position overlaps with any matched group term span
-                    inside_group = any(g_start <= start < g_end for g_start, g_end in matched_spans)
-                    if not inside_group:
-                        matches_found.append((start, [intent]))
-                        break
-                        
-        # Profile summary special case check if not inside any matched group
-        is_ps = "tell me about this candidate" in q_lower or "profile summary" in q_lower
-        if is_ps:
-            match_ps = re.search(r'tell me about this candidate|profile summary', q_lower)
-            if match_ps:
-                start = match_ps.start()
-                inside_group = any(g_start <= start < g_end for g_start, g_end in matched_spans)
-                if not inside_group:
-                    matches_found.append((start, ["PROFILE_SUMMARY"]))
-                    
-        # 4. Sort matches by position (Preserve User Order)
-        matches_found.sort(key=lambda x: x[0])
-        
-        # 5. Extract unique intents preserving configurations order naturally
-        unique_intents = []
-        for _, intents_list in matches_found:
-            for intent in intents_list:
-                if intent not in unique_intents:
-                    unique_intents.append(intent)
-                    
-        # Sort out duplicates/overlaps like FATHER_NAME/MOTHER_NAME vs CANDIDATE_NAME:
-        has_father = "FATHER_NAME" in unique_intents
-        has_mother = "MOTHER_NAME" in unique_intents
-        if has_father or has_mother:
-            if "CANDIDATE_NAME" in unique_intents:
-                name_matches = list(re.finditer(r'\bname\b', q_lower))
-                standalone_name = False
-                for nm in name_matches:
-                    start_idx = max(0, nm.start() - 15)
-                    context_str = q_lower[start_idx:nm.end()]
-                    if "father" not in context_str and "mother" not in context_str and "company" not in context_str:
-                        standalone_name = True
-                        break
-                if not standalone_name:
-                    unique_intents.remove("CANDIDATE_NAME")
-                    
-        # Sort out duplicates/overlaps like PROGRAMMING_LANGUAGES/HUMAN_LANGUAGES vs SKILLS:
-        has_prog_langs = "PROGRAMMING_LANGUAGES" in unique_intents
-        if has_prog_langs and "SKILLS" in unique_intents:
-            skills_matches = list(re.finditer(r'\b(?:skills|technologies|frameworks|tools|libraries|tech stack)\b', q_lower))
-            if not skills_matches:
-                unique_intents.remove("SKILLS")
-        if "HUMAN_LANGUAGES" in unique_intents:
-            human_matches = list(re.finditer(r'\b(?:human|speak|spoken|known|english|hindi|french|german|spanish|languages)\b', q_lower))
-            if not human_matches and "SKILLS" in unique_intents:
-                unique_intents.remove("SKILLS")
-            if "PROGRAMMING_LANGUAGES" in unique_intents and not any(k in q_lower for k in ["human", "speak", "spoken", "known", "english", "hindi", "french", "german", "spanish"]):
-                unique_intents.remove("HUMAN_LANGUAGES")
-        
-        # Suppress ADDRESS when 'address' appears only as part of 'email address'
-        # and not as a standalone location request.
-        if "ADDRESS" in unique_intents and "EMAIL" in unique_intents:
-            # Only keep ADDRESS if the query explicitly requests address/location
-            # separately (not just the phrase "email address")
-            addr_standalone = re.search(
-                r'\b(?:address|location|city|live|reside|place)\b',
-                re.sub(r'email\s+address', '', q_lower)
-            )
-            if not addr_standalone:
-                unique_intents.remove("ADDRESS")
-                
-        # 6. Fallback (per spec ordering):
-        #    a. Minimum-relevance guard: if the preprocessed query contains NO
-        #       resume-related tokens, skip semantic similarity and go straight
-        #       to UNKNOWN_QUERY.  This prevents superficial embedding matches
-        #       for completely unrelated words (e.g. "love", "food", "today").
-        #    b. Otherwise try the single-intent classifier (semantic similarity).
-        #    c. If that also returns GENERAL, emit UNKNOWN_QUERY.
-        if not unique_intents:
-            RESUME_TOKENS = {
-                "skill", "skills", "experience", "education", "project",
-                "projects", "certification", "certifications", "certificate",
-                "name", "phone", "mobile", "email", "address", "language",
-                "languages", "designation", "summary", "summarize", "summarise",
-                "overview", "brief", "profile", "objective", "degree",
-                "college", "university", "work", "employment", "company",
-                "linkedin", "github", "contact", "location", "role", "career",
-                "qualification", "qualifications", "academic", "employer",
-                "training", "course", "resume", "cv", "candidate", "applicant",
-                "technologies", "technology", "frameworks", "tools",
-                # spell-corrected forms that may appear in preprocessed query
-                "python", "java", "react", "angular", "docker", "aws",
-            }
-            q_tokens_check = set(re.findall(r'\b\w+\b', q_lower))
-            has_resume_token = bool(q_tokens_check & RESUME_TOKENS)
-
-            if has_resume_token:
-                single = self.classify(query)
-                if single and single not in ("GENERAL", ""):
-                    unique_intents = [single]
-                else:
-                    unique_intents = [self.UNKNOWN_QUERY_INTENT]
-            else:
-                # No resume-domain word at all → unrecognised query
-                unique_intents = [self.UNKNOWN_QUERY_INTENT]
-
-        return unique_intents
+        return None

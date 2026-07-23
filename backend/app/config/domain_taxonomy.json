@@ -1,0 +1,158 @@
+{
+  "domain_keywords": {
+    "Software Engineering": [
+      "software engineer", "software developer", "full stack developer", "backend developer",
+      "frontend developer", "web developer", "app developer", "mobile developer",
+      "react developer", "node developer", "devops engineer", "cloud engineer",
+      "react", "node", "django", "flask", "spring boot", "express", "angular", "vue",
+      "flutter", "dart", "aws", "docker", "kubernetes", "microservices", "git",
+      "rest api", ".net developer", "php developer", "java developer", "golang",
+      "c# developer", "ruby on rails"
+    ],
+    "Finance & Accounting": [
+      "accountant", "accounts executive", "accounts officer", "finance executive",
+      "financial analyst", "taxation", "tally", "gst", "auditing", "balance sheet",
+      "accounts payable", "accounts receivable", "sap fico", "budgeting",
+      "reconciliation", "general ledger", "income tax", "tds", "statutory audit",
+      "chartered accountant", "tax auditor", "financial reporting", "bookkeeping",
+      "trial balance", "cost accountant", "management accountant"
+    ],
+    "Human Resources (HR)": [
+      "hr executive", "hr manager", "hr officer", "hr generalist", "hr business partner",
+      "talent acquisition", "recruitment manager", "recruiter", "hr director",
+      "payroll executive", "hr operations", "human resources", "hr analytics",
+      "recruitment", "payroll", "hrms", "onboarding", "sourcing", "screening",
+      "employee relations", "performance management", "compensation", "hr compliance",
+      "workforce planning", "exit interview", "labor laws", "attendance management",
+      "manpower planning", "hr consultant"
+    ],
+    "Healthcare & Medical": [
+      "registered nurse", "staff nurse", "clinical nurse", "nursing", "nurse",
+      "icu nurse", "ot nurse", "patient care", "clinical", "hospital",
+      "medical officer", "doctor", "physician", "pharmacist", "healthcare administrator",
+      "triage", "vitals", "pharmacology", "medical records", "patient assessment",
+      "ward management", "gnm", "bsc nursing", "anm"
+    ],
+    "Operations & Supply Chain": [
+      "operations manager", "supply chain manager", "logistics manager",
+      "procurement manager", "warehouse manager", "materials manager",
+      "supply chain", "logistics", "procurement", "inventory management",
+      "vendor management", "warehouse", "freight", "dispatch", "purchase officer",
+      "supply chain analyst", "import export", "demand planning", "lean manufacturing"
+    ],
+    "Civil Engineering": [
+      "civil engineer", "site engineer", "structural engineer", "construction manager",
+      "quantity surveyor", "project engineer", "planning engineer",
+      "autocad", "boq", "primavera", "construction", "concrete", "structural",
+      "staad pro", "surveying", "building design", "mep", "revit", "rcc",
+      "reinforcement", "site supervision", "bill of quantities"
+    ],
+    "Electrical Engineering": [
+      "electrical engineer", "electrical supervisor", "maintenance engineer",
+      "control systems engineer", "instrumentation engineer", "scada engineer",
+      "transformer", "switchgear", "plc", "scada", "mv panel", "lv panel",
+      "power distribution", "high voltage", "low voltage", "vfd",
+      "circuit design", "single line diagram", "earthing", "substation"
+    ],
+    "Mechanical Engineering": [
+      "mechanical engineer", "design engineer", "maintenance engineer",
+      "hvac engineer", "production engineer", "manufacturing engineer",
+      "solidworks", "catia", "hvac", "piping", "cad/cam", "chillers",
+      "duct", "thermodynamics", "machining", "ansys", "compressor", "pump",
+      "autodesk inventor", "hydraulics", "pneumatics", "cnc", "fabrication"
+    ],
+    "Data Analytics": [
+      "data analyst", "business intelligence analyst", "bi analyst", "sql analyst",
+      "data scientist", "data engineer", "analytics consultant", "bi developer",
+      "power bi", "tableau", "data visualization", "etl", "data warehouse",
+      "pandas", "looker", "business intelligence", "bigquery", "data modeling",
+      "statistics", "dbt", "dashboards", "sql", "data analysis"
+    ],
+    "Hospitality & Hotel Management": [
+      "hospitality", "hotel management", "front desk", "housekeeping",
+      "food and beverage", "guest relations", "banquet", "concierge",
+      "hotel operations", "resort management", "f&b", "food service"
+    ],
+    "Defence & Military": [
+      "defence", "military", "army", "navy", "air force", "soldier",
+      "officer", "commanding officer", "regiment", "colonel", "major",
+      "captain", "lieutenant", "armed forces", "combat", "tactical",
+      "ncc", "defence personnel"
+    ],
+    "Manufacturing & Production": [
+      "production engineer", "manufacturing engineer", "quality engineer",
+      "plant manager", "quality control", "production planning", "six sigma",
+      "lean manufacturing", "kaizen", "iso", "5s", "assembly line",
+      "product design", "die casting", "injection molding"
+    ],
+    "Sales & Marketing": [
+      "sales executive", "sales manager", "business development", "marketing executive",
+      "brand manager", "digital marketing", "seo", "sem", "social media",
+      "content marketing", "sales target", "client acquisition", "crm",
+      "lead generation", "account management"
+    ],
+    "Education & Academia": [
+      "teacher", "professor", "lecturer", "trainer", "academic",
+      "curriculum", "e-learning", "instructional design", "faculty",
+      "teaching", "coaching", "tutor", "school", "institute"
+    ]
+  },
+  "domain_recommendations": {
+    "Software Engineering": [
+      "Frontend Developer", "Backend Developer", "Full Stack Developer",
+      "DevOps Engineer", "Mobile App Developer", "Cloud Solutions Architect"
+    ],
+    "Finance & Accounting": [
+      "Senior Accountant", "Accounts Payable Analyst", "Financial Analyst",
+      "Tax Executive", "SAP FICO Consultant", "Management Accountant"
+    ],
+    "Human Resources (HR)": [
+      "HR Manager", "Talent Acquisition Manager", "HR Business Partner",
+      "Payroll Executive", "Recruitment Consultant", "HR Operations Manager"
+    ],
+    "Healthcare & Medical": [
+      "Clinical Staff Nurse", "Healthcare Administrator", "Medical Officer",
+      "Clinical Research Associate", "ICU Charge Nurse", "Nursing Supervisor"
+    ],
+    "Operations & Supply Chain": [
+      "Operations Manager", "Supply Chain Analyst", "Logistics Coordinator",
+      "Procurement Specialist", "Inventory Executive", "Materials Manager"
+    ],
+    "Civil Engineering": [
+      "Civil Site Engineer", "Structural Planning Engineer", "Construction Manager",
+      "Quantity Surveyor", "STAAD Pro Designer", "Project Planning Engineer"
+    ],
+    "Electrical Engineering": [
+      "Electrical Engineer", "SCADA Automation Engineer",
+      "Power Distribution Specialist", "Control Systems Engineer", "PLC Programmer"
+    ],
+    "Mechanical Engineering": [
+      "Mechanical Design Engineer", "HVAC Systems Engineer",
+      "CAD/CAM Engineer", "Maintenance Specialist", "Production Engineer"
+    ],
+    "Data Analytics": [
+      "Data Analyst", "Business Intelligence Analyst",
+      "Power BI Specialist", "SQL Analytics Engineer", "Data Science Associate"
+    ],
+    "Hospitality & Hotel Management": [
+      "Hotel Operations Manager", "Guest Relations Manager",
+      "Front Office Manager", "Banquet Manager"
+    ],
+    "Defence & Military": [
+      "Defence Personnel Manager", "Security Operations Manager",
+      "Training Officer", "Logistics Coordinator"
+    ],
+    "Manufacturing & Production": [
+      "Production Manager", "Quality Assurance Manager",
+      "Plant Operations Manager", "Lean Manufacturing Specialist"
+    ],
+    "Sales & Marketing": [
+      "Regional Sales Manager", "Business Development Manager",
+      "Digital Marketing Manager", "Brand Manager"
+    ],
+    "Education & Academia": [
+      "Senior Faculty", "Academic Coordinator",
+      "Training Manager", "Curriculum Developer"
+    ]
+  }
+}

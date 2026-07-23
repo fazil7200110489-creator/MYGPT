@@ -475,6 +475,20 @@ class ReasoningService:
         self.validator = Validator()
         self.formatter = Formatter()
 
+        # New pipeline modules (Phases 1–8)
+        from backend.app.services.reasoning.question_normalizer import QuestionNormalizer
+        from backend.app.services.reasoning.entity_detector import EntityDetector
+        from backend.app.services.reasoning.knowledge_retriever import KnowledgeRetriever
+        from backend.app.services.reasoning.confidence_calculator import ConfidenceCalculator
+        from backend.app.services.reasoning.domain_detector import DomainDetector
+        from backend.app.services.reasoning.role_inference_engine import RoleInferenceEngine
+        self.question_normalizer = QuestionNormalizer()
+        self.entity_detector = EntityDetector()
+        self.knowledge_retriever = KnowledgeRetriever()
+        self.confidence_calculator = ConfidenceCalculator()
+        self.domain_detector = DomainDetector()
+        self.role_inference_engine = RoleInferenceEngine()
+
         self.specialists = {
             "Resume": ResumeReasoner(),
             "Invoice": InvoiceReasoner(),
@@ -894,8 +908,8 @@ class ReasoningService:
     
             doc_type = knowledge.get("document_type", "Generic") if knowledge else "Generic"
     
-            # 3. Intent Classification (IntentClassifier)
-            detected_intents = self.intent_classifier.classify_multi(resolved_question)
+            # 3. Intent Classification — now receives doc_type for smarter fallback
+            detected_intents = self.intent_classifier.classify_multi(resolved_question, doc_type=doc_type)
             logger.info(f"Classified Intents: {detected_intents}")
     
             # 4. Entity Extraction (EntityExtractor)
@@ -1009,18 +1023,22 @@ class ReasoningService:
                 return combined_ans, confidence, True
     
             else:
-                # Single intent pipeline (original code)
+                # Single intent pipeline
                 classified_intent = detected_intents[0] if detected_intents else "GENERAL"
 
-                # UNKNOWN_QUERY: no resume-related intent was detected — return friendly message
+                # UNKNOWN_QUERY on resume documents → return graceful missing info fallback
                 if classified_intent == "UNKNOWN_QUERY":
-                    logger.info("Query did not match any resume-related intent. Returning unknown-query fallback.")
-                    fallback_msg = (
-                        "I couldn't identify a resume-related question. "
-                        "Please ask about the candidate's skills, education, experience, "
-                        "projects, certifications, or contact details."
-                    )
-                    return fallback_msg, 0.0, False
+                    if doc_type.lower() == "resume":
+                        logger.info("UNKNOWN_QUERY on resume — returning missing info fallback.")
+                        return "The uploaded resume does not mention this information.", 99.0, False
+                    else:
+                        logger.info("Query did not match any document-related intent. Returning fallback.")
+                        fallback_msg = (
+                            "I couldn't identify a question related to the uploaded document. "
+                            "Please ask about the candidate's skills, education, experience, "
+                            "projects, certifications, or contact details."
+                        )
+                        return fallback_msg, 0.0, False
 
                 # 5. Fact Extraction (FactExtractor)
                 extracted_facts = self.fact_extractor.extract(retrieved_chunks, classified_intent, resolved_question)
@@ -1068,15 +1086,14 @@ class ReasoningService:
                     else:
                         cleaned_ans = "I couldn't find that information in the uploaded document."
         
-                # Compute confidence score
-                confidence = self._calculate_derived_confidence(
-                    cleaned_ans,
-                    entities,
-                    retrieved_chunks,
-                    is_composite=False,
-                    single_intent=classified_intent,
-                    single_valid=is_valid,
-                    single_yes_no=is_yes_no
+                # Compute confidence via dedicated ConfidenceCalculator
+                confidence = self.confidence_calculator.calculate(
+                    answer=cleaned_ans,
+                    intent=classified_intent,
+                    entities=entities,
+                    retrieved_chunks=retrieved_chunks or [],
+                    is_valid=is_valid,
+                    is_yes_no=is_yes_no,
                 )
                 
                 if not is_yes_no:
@@ -1102,7 +1119,7 @@ class ReasoningService:
             print(f"Confidence:         {confidence:.1f}%")
             print(f"Execution Time:     {execution_time_ms:.2f} ms")
             print("="*80 + "\n")
-    
+
             return cleaned_ans, confidence, knowledge_used
         except Exception as e:
             import sys
@@ -1116,7 +1133,7 @@ class ReasoningService:
                         break
                 if failing_module == "unknown":
                     failing_module = f"{tb[-1].filename}:{tb[-1].lineno} ({tb[-1].name})"
-            
+
             logger.error("=" * 60)
             logger.error("MYGPT REASONING PIPELINE FAILURE TRACE")
             logger.error("=" * 60)
@@ -1128,6 +1145,83 @@ class ReasoningService:
             logger.error(f"Error Message:     {e}")
             logger.error("=" * 60)
             raise e
+
+    def generate_suggested_questions(self, entities: Dict[str, Any], domain: str) -> List[str]:
+        """Generates dynamic follow-up question chips based on candidate profile."""
+        suggestions = []
+        if isinstance(entities, dict):
+            if entities.get("skills"):
+                suggestions.append("Show Skills")
+            if entities.get("experience"):
+                suggestions.append("Explain Experience")
+            if entities.get("education"):
+                suggestions.append("Show Education")
+            if entities.get("projects"):
+                suggestions.append("Show Projects")
+            if entities.get("certifications"):
+                suggestions.append("Show Certifications")
+        suggestions.extend(["Recommended Roles", "Strengths", "Suitable Roles", "Contact Details"])
+
+        seen = set()
+        unique_suggestions = []
+        for s in suggestions:
+            if s not in seen:
+                seen.add(s)
+                unique_suggestions.append(s)
+        return unique_suggestions[:8]
+
+    def reason_structured(
+        self,
+        context: str,
+        question: str,
+        retrieved_chunks: Optional[List[Dict[str, Any]]] = None,
+        doc_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Returns rich structured reasoning object containing answer, confidence breakdown,
+        role similarity scoring, entities, and dynamic suggested follow-up questions.
+        """
+        answer_text, confidence, knowledge_used = self.reason(
+            context=context,
+            question=question,
+            retrieved_chunks=retrieved_chunks,
+            doc_id=doc_id
+        )
+
+        entities = {}
+        if doc_id:
+            try:
+                from backend.app.services.knowledge_service import knowledge_store
+                stored = knowledge_store.get_knowledge(doc_id)
+                if stored and hasattr(stored, "entities"):
+                    entities = stored.entities
+            except Exception:
+                pass
+
+        if not entities:
+            from backend.app.services.reasoning.entity_extractor import EntityExtractor
+            entities = EntityExtractor().extract(context)
+
+        domain = self.domain_detector.detect_domain(entities, context)
+        role_match = self.role_inference_engine.calculate_role_similarity(entities, target_role_query=question, domain=domain)
+        conf_breakdown = self.confidence_calculator.calculate_breakdown(
+            answer=answer_text,
+            intent="GENERAL",
+            entities=entities,
+            retrieved_chunks=retrieved_chunks or [],
+            final_conf=confidence
+        )
+        suggested_questions = self.generate_suggested_questions(entities, domain)
+
+        return {
+            "answer": answer_text,
+            "confidence": confidence,
+            "confidence_breakdown": conf_breakdown,
+            "role_match": role_match,
+            "domain": domain,
+            "entities": entities,
+            "suggested_questions": suggested_questions,
+            "knowledge_used": knowledge_used
+        }
 
 
 reasoning_service = ReasoningService()

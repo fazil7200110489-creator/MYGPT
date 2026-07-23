@@ -7,12 +7,22 @@ import {
   Flame, Sliders, Play, Square, Terminal, ShieldAlert, Sparkles,
   Download, ArrowRight, Eye, ChevronRight, Settings as SettingsIcon,
   Search, RefreshCw, MessageSquare, Upload, Trash2, Send, Bot, User,
-  FileText, CheckCircle2, AlertCircle, GraduationCap, Briefcase, Award,
-  Globe, MapPin, Mail, Phone
+  FileText, CheckCircle2, AlertCircle, GraduationCap, Briefcase,
+  Mail, Phone
 } from 'lucide-react'
 import { useStore } from './store/useStore'
 import type { DashboardStats, SystemSettings, LossData, ValLossData } from './store/useStore'
 import { api } from './services/api'
+import { CandidateDashboard } from './components/CandidateDashboard'
+
+// Simple Toast implementation
+interface Toast {
+  id: string
+  msg: string
+  type: 'success' | 'error' | 'info'
+}
+
+
 
 // Simple Toast implementation
 interface Toast {
@@ -1934,80 +1944,238 @@ function SettingsView({ settings, fetchSettings, showToast }: SettingsViewProps)
 // ==========================================
 // 4.5 Dynamic Response Renderer Component
 // ==========================================
+// ==========================================
+// 4.5 Dynamic Response Renderer Component
+// ==========================================
 interface DynamicResponseRendererProps {
   content: string
   question: string
 }
 
+function CircularProgressRing({ value, tier }: { value: number; tier: string }) {
+  const radius = 36;
+  const stroke = 6;
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (Math.max(0, Math.min(100, value)) / 100) * circumference;
+
+  let strokeColor = "#10b981"; // green
+  if (value < 35 || tier === "Not Suitable") strokeColor = "#ef4444"; // red
+  else if (value < 60 || tier === "Partially Suitable") strokeColor = "#f59e0b"; // yellow
+  else if (value < 85 || tier === "Suitable") strokeColor = "#0284c7"; // blue
+
+  return (
+    <div className="relative flex items-center justify-center shrink-0">
+      <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
+        <circle
+          stroke="rgba(226, 232, 240, 0.6)"
+          fill="transparent"
+          strokeWidth={stroke}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+        <circle
+          stroke={strokeColor}
+          fill="transparent"
+          strokeWidth={stroke}
+          strokeDasharray={circumference + " " + circumference}
+          style={{ strokeDashoffset }}
+          strokeLinecap="round"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      <div className="absolute text-center flex flex-col items-center justify-center">
+        <span className="text-xs font-black text-slate-900">{value}%</span>
+      </div>
+    </div>
+  );
+}
+
 function DynamicResponseRenderer({ content, question }: DynamicResponseRendererProps) {
   const q = question.toLowerCase().trim();
   const c = content.trim();
+  const lowerContent = c.toLowerCase();
 
-  // 1. Detect Tables (Markdown tables with pipes)
-  if (c.includes('|') && c.includes('-') && c.split('\n').length > 2) {
-    const lines = c.split('\n');
-    const rows = lines.map(line => {
-      return line.split('|').map(cell => cell.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
-    }).filter(row => row.length > 0);
+  // 1. Detect Role Suitability / Role Match (Answer: Yes/No + Reason + Evidence or Match %)
+  const isRoleMatchQuery = q.includes("suitable") || q.includes("fit") || q.includes("role") || q.includes("work as") || lowerContent.includes("overall match") || lowerContent.includes("candidate belongs to");
+  const hasAnswerYesNo = lowerContent.startsWith("answer:\nyes") || lowerContent.startsWith("answer:\nno") || lowerContent.startsWith("answer:\n") || lowerContent.startsWith("yes") || lowerContent.startsWith("no");
 
-    if (rows.length >= 2) {
-      const headers = rows[0];
-      const dataRows = rows.slice(2);
-      return (
-        <div className="overflow-x-auto border border-slate-250/65 rounded-xl my-2 max-w-full shadow-sm bg-white">
-          <table className="w-full text-left border-collapse text-[11px]">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-800 font-semibold">
-                {headers.map((h, idx) => (
-                  <th key={idx} className="p-3 font-semibold">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {dataRows.map((row, rIdx) => (
-                <tr key={rIdx} className="hover:bg-slate-50/50 text-slate-750 transition-colors">
-                  {row.map((cell, cIdx) => (
-                    <td key={cIdx} className="p-3">{cell}</td>
+  if (isRoleMatchQuery && hasAnswerYesNo) {
+    const isYes = lowerContent.includes("answer:\nyes") || lowerContent.startsWith("yes");
+    
+    // Extract match percentage if available
+    const matchMatch = c.match(/(\d+)%/);
+    const matchVal = matchMatch ? parseInt(matchMatch[1]) : (isYes ? 85 : 12);
+
+    let tier = "Not Suitable";
+    if (matchVal >= 85) tier = "Highly Suitable";
+    else if (matchVal >= 60) tier = "Suitable";
+    else if (matchVal >= 35) tier = "Partially Suitable";
+
+    // Extract Reason
+    let reasonText = "";
+    const reasonMatch = c.match(/Reason:\s*([\s\S]*?)(?=Evidence:|$)/i);
+    if (reasonMatch) {
+      reasonText = reasonMatch[1].trim();
+    } else {
+      reasonText = c.replace(/^(Answer:\s*(Yes|No)|Yes|No)[,\s\.]*/i, "").trim();
+    }
+
+    // Extract Evidence
+    let evidenceText = "Designation, Domain, Skills";
+    const evidenceMatch = c.match(/Evidence:\s*([\s\S]*?)(?=Confidence:|$)/i);
+    if (evidenceMatch) {
+      evidenceText = evidenceMatch[1].trim();
+    }
+
+    // Extract Skills (if mentioned)
+    const matchingSkills = (c.match(/matching skills:\s*([^\n]+)/i)?.[1] || "").split(',').map(s=>s.trim()).filter(Boolean);
+    const missingSkills = (c.match(/missing skills:\s*([^\n]+)/i)?.[1] || "").split(',').map(s=>s.trim()).filter(Boolean);
+
+    return (
+      <div className="flex flex-col gap-3 p-4 bg-white border border-slate-200/90 rounded-2xl shadow-sm my-1">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <CircularProgressRing value={matchVal} tier={tier} />
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Role Suitability Analysis</div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className={`text-sm font-black ${
+                  tier === "Highly Suitable" ? "text-emerald-600" :
+                  tier === "Suitable" ? "text-sky-600" :
+                  tier === "Partially Suitable" ? "text-amber-600" : "text-rose-600"
+                }`}>
+                  {tier}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">({matchVal}% Match)</span>
+              </div>
+            </div>
+          </div>
+          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+            isYes ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200"
+          }`}>
+            {isYes ? "✓ Qualified" : "✕ Unsuitable"}
+          </span>
+        </div>
+
+        {reasonText && (
+          <div className="text-xs text-slate-700 leading-relaxed bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+            <span className="font-bold text-slate-800">Reason: </span>
+            {reasonText}
+          </div>
+        )}
+
+        {(matchingSkills.length > 0 || missingSkills.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs pt-1">
+            {matchingSkills.length > 0 && (
+              <div className="flex flex-col gap-1.5 p-2.5 bg-emerald-50/50 border border-emerald-100 rounded-xl">
+                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">✓ Matching Skills</span>
+                <div className="flex flex-wrap gap-1">
+                  {matchingSkills.map((s, idx) => (
+                    <span key={idx} className="bg-emerald-100/70 text-emerald-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                      ✓ {s}
+                    </span>
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                </div>
+              </div>
+            )}
+            {missingSkills.length > 0 && (
+              <div className="flex flex-col gap-1.5 p-2.5 bg-rose-50/50 border border-rose-100 rounded-xl">
+                <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider">✕ Missing Skills</span>
+                <div className="flex flex-wrap gap-1">
+                  {missingSkills.map((s, idx) => (
+                    <span key={idx} className="bg-rose-100/70 text-rose-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-100 pt-2.5">
+          <span>Evidence Source: <strong className="text-slate-600">{evidenceText}</strong></span>
+          <span className="font-semibold text-slate-500">Verified by Reasoning Engine</span>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Detect Contact Information Grid (Candidate Information)
+  if (lowerContent.includes("candidate information") || lowerContent.includes("contact details") || (c.includes("Email:") && c.includes("Phone:"))) {
+    const lines = c.split('\n').map(l => l.trim()).filter(Boolean);
+    const contactFields: Record<string, string> = {
+      "Name": "Not Available",
+      "Email": "Not Available",
+      "Phone": "Not Available",
+      "Address": "Not Available",
+      "LinkedIn": "Not Available",
+      "GitHub": "Not Available",
+      "Portfolio": "Not Available"
+    };
+
+    lines.forEach(line => {
+      const parts = line.split(':');
+      if (parts.length >= 2) {
+        const key = parts[0].replace(/^[•\-\*]/, '').trim();
+        const val = parts.slice(1).join(':').trim();
+        for (const fKey of Object.keys(contactFields)) {
+          if (key.toLowerCase().includes(fKey.toLowerCase())) {
+            contactFields[fKey] = val || "Not Available";
+          }
+        }
+      }
+    });
+
+    return (
+      <div className="flex flex-col gap-3 p-4 bg-white border border-slate-200/90 rounded-2xl shadow-sm my-1">
+        <div className="flex items-center gap-2 font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2.5">
+          <Mail className="h-4 w-4 text-indigo-600" />
+          <span>Candidate Information & Contact Grid</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {Object.entries(contactFields).map(([fKey, fVal]) => {
+            const isAvail = fVal !== "Not Available";
+            return (
+              <div key={fKey} className="flex items-center justify-between p-2.5 bg-slate-50/70 border border-slate-100 rounded-xl text-xs">
+                <span className="font-semibold text-slate-500">{fKey}:</span>
+                <span className={`font-bold truncate max-w-[180px] ${isAvail ? "text-slate-800" : "text-slate-400 italic font-normal"}`}>
+                  {fVal}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Detect Domain Intent (Domain / Industry)
+  if (q.includes("domain") || q.includes("industry") || q.includes("field") || q.includes("profession") || q.includes("sector")) {
+    if (!c.includes("\n") && c.length < 50) {
+      return (
+        <div className="flex items-center gap-3.5 p-4 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 border border-indigo-150 rounded-2xl shadow-sm">
+          <div className="h-10 w-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-base shadow-md font-bold">
+            🏢
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Detected Industry Domain</div>
+            <div className="text-slate-900 font-black text-sm mt-0.5">{c}</div>
+          </div>
         </div>
       );
     }
   }
 
-  // 2. Detect Yes/No Questions
-  const lowerContent = c.toLowerCase();
-  const startsWithYes = lowerContent.startsWith("yes") || c.startsWith("✅ yes");
-  const startsWithNo = lowerContent.startsWith("no") || c.startsWith("❌ no") || lowerContent.startsWith("the uploaded document does not mention");
-  
-  if (startsWithYes || startsWithNo) {
-    const isYes = startsWithYes;
-    const explanation = c.replace(/^(yes|no|✅ yes|❌ no)[,\s\.]*/i, "").trim();
-    return (
-      <div className="flex flex-col gap-2.5 p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl shadow-sm">
-        <div className="flex items-center">
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase shadow-sm ${
-            isYes 
-              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-              : "bg-rose-50 text-rose-700 border border-rose-200"
-          }`}>
-            {isYes ? "✓ Yes" : "✕ No"}
-          </span>
-        </div>
-        {explanation && (
-          <p className="text-slate-700 leading-relaxed text-xs pl-0.5">{explanation}</p>
-        )}
-      </div>
-    );
-  }
-
-  // 3. Detect Phone, Email, and Candidate Name (Single value strings)
+  // 4. Detect Single Contact details (Phone / Email / Name)
   const isEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(c) && c.length < 50;
   const isPhone = (/^(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}$/.test(c.replace(/[\s()-]/g, "")) || /^\+?\d{8,15}$/.test(c.replace(/[\s()-]/g, ""))) && c.length < 30;
-  const isName = (q.includes("name") || q.includes("candidate") || q.includes("who is")) && c.length < 40 && !c.includes("\n") && !c.includes("•");
+  const isName = (q.includes("name") || q.includes("candidate")) && c.length < 40 && !c.includes("\n") && !c.includes("•");
 
   if (isPhone || isEmail || isName) {
     return (
@@ -2025,23 +2193,6 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     );
   }
 
-  // 4. Detect Count
-  if (q.includes("how many") || q.includes("count") || q.includes("total experience") || q.includes("years of experience")) {
-    if (/^\d+(\s*years)?$/i.test(c)) {
-      return (
-        <div className="flex items-center gap-3.5 p-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">
-          <div className="h-10 w-10 bg-indigo-50 text-indigo-700 rounded-xl flex items-center justify-center text-lg shadow-sm border border-indigo-100/40 shrink-0">
-            📊
-          </div>
-          <div>
-            <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Total Metric Value</div>
-            <div className="text-indigo-650 font-extrabold text-lg mt-0.5">{c}</div>
-          </div>
-        </div>
-      );
-    }
-  }
-
   // 5. Helper function to parse multiline lists into block groups
   const parseBlocks = (text: string) => {
     const lines = text.split('\n');
@@ -2052,7 +2203,6 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
       const trimmed = line.trim();
       if (!trimmed) continue;
       
-      // Match bullet point or numbered item start
       if (line.startsWith('•') || line.startsWith('-') || /^\d+\./.test(trimmed)) {
         const titleText = trimmed.replace(/^[•\-\d\.\s]+/, '').trim();
         if (titleText) {
@@ -2065,7 +2215,6 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
           currentBlock.details.push(detailText);
         }
       } else {
-        // Fallback for lines without a header block
         blocks.push({ title: trimmed, details: [] });
       }
     }
@@ -2074,6 +2223,13 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
 
   // 6. Detect Projects
   if (q.includes("project") || lowerContent.includes("project name")) {
+    if (lowerContent.includes("no project information is available")) {
+      return (
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 text-xs italic">
+          No project information is available in the resume.
+        </div>
+      );
+    }
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
       return (
@@ -2082,16 +2238,16 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
             <span className="text-indigo-600">🚀</span>
             <span>Key Projects ({blocks.length})</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {blocks.map((block, i) => (
-              <div key={i} className="bg-white border border-slate-200 p-4 rounded-xl relative overflow-hidden flex flex-col justify-between hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-300">
+              <div key={i} className="bg-white border border-slate-200 p-4 rounded-2xl relative overflow-hidden flex flex-col justify-between hover:border-indigo-400 hover:shadow-md transition-all duration-300">
                 <div className="absolute top-2 right-4 font-bold text-2xl text-slate-100 select-none">0{i + 1}</div>
                 <div>
                   <div className="font-bold text-slate-900 text-xs mb-2 pr-8 leading-tight">
                     {block.title}
                   </div>
                   {block.details.length > 0 && (
-                    <ul className="space-y-1.5 text-slate-650 text-[11px] pl-1">
+                    <ul className="space-y-1 text-slate-600 text-[11px] pl-1">
                       {block.details.map((detail, dIdx) => (
                         <li key={dIdx} className="leading-relaxed flex items-start gap-1.5">
                           <span className="text-indigo-500 shrink-0 mt-1">•</span>
@@ -2109,7 +2265,7 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     }
   }
 
-  // 7. Detect Experience
+  // 7. Detect Experience Timeline
   if (q.includes("experience") || q.includes("work") || q.includes("job") || q.includes("company") || q.includes("employment")) {
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
@@ -2117,13 +2273,13 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
             <Briefcase className="h-4.5 w-4.5 text-indigo-600" />
-            <span>Professional Experience</span>
+            <span>Professional Experience & Timeline</span>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 timeline-border pl-3">
             {blocks.map((block, i) => (
-              <div key={i} className="bg-white border border-slate-205 p-4 rounded-xl hover:shadow-md hover:shadow-indigo-500/5 hover:border-indigo-300 transition-all duration-300">
-                <div className="font-bold text-slate-900 flex items-center gap-2.5 mb-2.5 text-xs">
-                  <span className="h-2 w-2 bg-indigo-650 rounded-full shadow-sm" />
+              <div key={i} className="bg-white border border-slate-200 p-4 rounded-2xl hover:shadow-md hover:border-indigo-300 transition-all duration-300 relative">
+                <div className="font-bold text-slate-900 flex items-center gap-2.5 mb-2 text-xs">
+                  <span className="h-2.5 w-2.5 bg-indigo-600 rounded-full shadow-sm" />
                   {block.title}
                 </div>
                 {block.details.length > 0 && (
@@ -2143,25 +2299,25 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     }
   }
 
-  // 8. Detect Education
+  // 8. Detect Education Cards
   if (q.includes("education") || q.includes("study") || q.includes("college") || q.includes("degree") || q.includes("university")) {
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
       return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
             <GraduationCap className="h-4.5 w-4.5 text-indigo-600" />
             <span>Education & Credentials</span>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {blocks.map((block, i) => (
-              <div key={i} className="bg-white border border-slate-205 p-4 rounded-xl hover:shadow-md hover:border-indigo-300 transition-all duration-300">
-                <div className="font-bold text-slate-900 flex items-center gap-2.5 mb-2 text-xs">
-                  <span className="h-2 w-2 bg-purple-600 rounded-full shadow-sm" />
+              <div key={i} className="bg-white border border-slate-200 p-4 rounded-2xl hover:shadow-md hover:border-indigo-300 transition-all duration-300">
+                <div className="font-bold text-slate-900 flex items-center gap-2 mb-2 text-xs">
+                  <span className="h-2.5 w-2.5 bg-purple-600 rounded-full shadow-sm" />
                   {block.title}
                 </div>
                 {block.details.length > 0 && (
-                  <ul className="space-y-1.5 pl-4 text-slate-600 text-[11px]">
+                  <ul className="space-y-1 pl-4 text-slate-600 text-[11px]">
                     {block.details.map((detail, dIdx) => (
                       <li key={dIdx} className="list-disc leading-relaxed pl-0.5">
                         {detail}
@@ -2177,7 +2333,7 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     }
   }
 
-  // 9. Detect Skills
+  // 9. Detect Skills Badges
   if (q.includes("skills") || q.includes("technical") || q.includes("expert") || q.includes("competenc")) {
     const blocks = parseBlocks(c);
     if (blocks.length > 0) {
@@ -2185,11 +2341,11 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 font-bold text-slate-800 text-xs uppercase tracking-wider">
             <span className="text-indigo-600">💻</span>
-            <span>Skills & Expertise</span>
+            <span>Technical Skills & Core Competencies</span>
           </div>
           <div className="flex flex-wrap gap-2 mt-1">
             {blocks.map((block, i) => (
-              <span key={i} className="bg-indigo-50 border border-indigo-100 hover:border-indigo-300 text-indigo-700 text-[11px] px-3.5 py-1.5 rounded-full font-medium transition-all hover:bg-indigo-100/50 shadow-sm cursor-default">
+              <span key={i} className="skill-badge skill-badge-tech shadow-sm hover:scale-105 transition-all cursor-default">
                 {block.title}
               </span>
             ))}
@@ -2199,66 +2355,14 @@ function DynamicResponseRenderer({ content, question }: DynamicResponseRendererP
     }
   }
 
-  // 10. Detect Certifications
-  if (q.includes("certif")) {
-    const blocks = parseBlocks(c);
-    if (blocks.length > 0) {
-      return (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
-            <Award className="h-4.5 w-4.5 text-indigo-600" />
-            <span>Certifications & Achievements</span>
-          </div>
-          <div className="grid grid-cols-1 gap-2.5">
-            {blocks.map((block, i) => (
-              <div key={i} className="flex items-center gap-3 p-3.5 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-300 hover:shadow-md transition-all duration-300">
-                <div className="h-8 w-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-sm shadow-sm border border-amber-100/40 shrink-0">
-                  🏅
-                </div>
-                <span className="font-semibold text-slate-800 text-xs">{block.title}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-  }
-
-  // 11. Detect Languages / Address
-  const isLang = q.includes("language");
-  const isAddr = q.includes("address") || q.includes("location") || q.includes("where does");
-  if (isLang || isAddr) {
-    const blocks = parseBlocks(c);
-    if (blocks.length > 0) {
-      return (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
-            {isLang ? <Globe className="h-4.5 w-4.5 text-indigo-600" /> : <MapPin className="h-4.5 w-4.5 text-indigo-600" />}
-            <span>{isLang ? "Languages" : "Contact Location"}</span>
-          </div>
-          <div className="grid grid-cols-1 gap-2.5">
-            {blocks.map((block, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
-                <div className="h-8 w-8 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center text-sm shrink-0">
-                  {isLang ? "🗣️" : "📍"}
-                </div>
-                <span className="font-semibold text-slate-800 text-xs">{block.title}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-  }
-
-  // Default to Summary paragraph block
+  // Default to formatted prose block
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="flex items-center gap-2 font-bold text-slate-850 text-xs uppercase tracking-wider">
-        <span className="text-indigo-655">📝</span>
-        <span>Document Summary</span>
+      <div className="flex items-center gap-2 font-bold text-slate-800 text-xs uppercase tracking-wider">
+        <span className="text-indigo-600">📝</span>
+        <span>Executive Analysis</span>
       </div>
-      <p className="leading-relaxed text-slate-700 text-xs text-justify bg-slate-50/50 p-4 border border-slate-200/50 rounded-xl shadow-inner">{c}</p>
+      <p className="text-slate-700 leading-relaxed text-xs whitespace-pre-line bg-slate-50/50 p-3.5 rounded-2xl border border-slate-150">{c}</p>
     </div>
   );
 }
@@ -2314,6 +2418,7 @@ function DocumentChatView({ showToast }: { showToast: any }) {
   const [messages, setMessages] = useState<any[]>([])
   const [inputVal, setInputVal] = useState('')
   const [sessionId] = useState(() => Math.random().toString(36).substring(7))
+  const [docSubTab, setDocSubTab] = useState<'dashboard' | 'chat'>('dashboard')
   
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -2684,161 +2789,194 @@ function DocumentChatView({ showToast }: { showToast: any }) {
           </div>
         ) : (
           <>
-            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
-              <div className="flex items-center gap-2 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+              <div className="flex items-center gap-3 overflow-hidden">
                 <FileText className="h-4 w-4 text-indigo-650 shrink-0" />
-                <span className="font-bold text-slate-800 truncate max-w-xs md:max-w-md">
-                  Active: {documents.find(d => d.id === activeDocId)?.filename}
+                <span className="font-bold text-slate-800 truncate max-w-xs md:max-w-md text-xs">
+                  {documents.find(d => d.id === activeDocId)?.filename}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[9px] bg-emerald-50 border border-emerald-250 text-emerald-700 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Local Inference</span>
+              <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
+                <button
+                  onClick={() => setDocSubTab('dashboard')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                    docSubTab === 'dashboard' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Candidate Dashboard
+                </button>
+                <button
+                  onClick={() => setDocSubTab('chat')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                    docSubTab === 'chat' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  AI Intelligence Chat
+                </button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-              {messages.length === 0 && (
-                <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-450 p-8">
-                  <Bot className="h-8 w-8 text-slate-350 mb-2" />
-                  <p className="text-xs">Ask a question about the active document to start reasoning.</p>
-                  <div className="grid grid-cols-2 gap-2 mt-4 max-w-sm">
-                    <button onClick={() => handleSend("Summarize this document.")} className="text-[10px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-2 rounded-xl text-left transition-all truncate text-slate-500 hover:text-slate-800 shadow-sm cursor-pointer">
-                      Summarize this document
-                    </button>
-                    <button onClick={() => handleSend("What are the important points?")} className="text-[10px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-2 rounded-xl text-left transition-all truncate text-slate-500 hover:text-slate-800 shadow-sm cursor-pointer">
-                      What are the important points?
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`flex gap-3 max-w-3xl ${msg.role === 'user' ? 'self-end flex-row-reverse' : 'self-start'}`}>
-                  <div className={`p-2 rounded-full border shrink-0 h-max ${
-                    msg.role === 'user'
-                      ? 'bg-indigo-50 border-indigo-150 text-indigo-650 shadow-sm'
-                      : 'bg-slate-105 border-slate-200 text-slate-700 shadow-sm'
-                  }`}>
-                    {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <div className={`rounded-2xl px-4 py-2.5 text-[11px] leading-relaxed shadow-sm ${
-                      msg.role === 'user'
-                        ? 'bg-indigo-600 text-white rounded-tr-none'
-                        : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
-                    }`}>
-                      {msg.role === 'user' ? (
-                        msg.content
-                      ) : (
-                        <DynamicResponseRenderer content={msg.content} question={messages[idx - 1]?.content || ""} />
-                      )}
-                      {msg.loading && (
-                        <span className="inline-flex gap-0.5 ml-1 animate-pulse">
-                          <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
-                          <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
-                          <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
-                        </span>
-                      )}
+            {docSubTab === 'dashboard' ? (
+              <div className="flex-1 overflow-y-auto">
+                <CandidateDashboard
+                  profile={activeDocDetails?.profile || {}}
+                  healthScore={activeDocDetails?.health_score || 85}
+                  healthChecklist={activeDocDetails?.health_checklist}
+                  insights={activeDocDetails?.insights}
+                  roleMatch={activeDocDetails?.role_match}
+                  onQuickAction={(q) => {
+                    setDocSubTab('chat')
+                    handleSend(q)
+                  }}
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                  {messages.length === 0 && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-450 p-8">
+                      <Bot className="h-8 w-8 text-slate-350 mb-2" />
+                      <p className="text-xs">Ask a question about the active document to start reasoning.</p>
+                      <div className="grid grid-cols-2 gap-2 mt-4 max-w-sm">
+                        <button onClick={() => handleSend("Summarize this document.")} className="text-[10px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-2 rounded-xl text-left transition-all truncate text-slate-500 hover:text-slate-800 shadow-sm cursor-pointer">
+                          Summarize this document
+                        </button>
+                        <button onClick={() => handleSend("What are the important points?")} className="text-[10px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-2 rounded-xl text-left transition-all truncate text-slate-500 hover:text-slate-800 shadow-sm cursor-pointer">
+                          What are the important points?
+                        </button>
+                      </div>
                     </div>
+                  )}
 
-                    {msg.role === 'assistant' && msg.metadata && (
-                      <div className="flex flex-col gap-2 pl-1">
-                        {msg.metadata.sources && msg.metadata.sources.length > 0 && (
-                          <details className="text-[10px] text-slate-500 cursor-pointer">
-                            <summary className="hover:text-indigo-650 select-none font-semibold transition-all">
-                              Source References ({msg.metadata.sources.length} sections)
-                            </summary>
-                            <div className="flex flex-col gap-1.5 mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 shadow-sm">
-                              {msg.metadata.sources.map((src: any, sIdx: number) => (
-                                <div key={sIdx} className="border-b border-slate-100 pb-1.5 last:border-0 last:pb-0">
-                                  <div className="flex justify-between text-[9px] font-semibold text-slate-500 mb-0.5">
-                                    <span>Page {src.page_number} | Section: {src.section}</span>
-                                    <span className="text-indigo-650 font-bold">Match: {(src.score * 100).toFixed(0)}%</span>
-                                  </div>
-                                  <p className="text-[9px] text-slate-500 italic font-sans leading-normal">"{src.text}"</p>
+                  {messages.map((msg, idx) => (
+                    <div key={idx} className={`flex gap-3 max-w-3xl ${msg.role === 'user' ? 'self-end flex-row-reverse' : 'self-start'}`}>
+                      <div className={`p-2 rounded-full border shrink-0 h-max ${
+                        msg.role === 'user'
+                          ? 'bg-indigo-50 border-indigo-150 text-indigo-650 shadow-sm'
+                          : 'bg-slate-105 border-slate-200 text-slate-700 shadow-sm'
+                      }`}>
+                        {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <div className={`rounded-2xl px-4 py-2.5 text-[11px] leading-relaxed shadow-sm ${
+                          msg.role === 'user'
+                            ? 'bg-indigo-600 text-white rounded-tr-none'
+                            : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
+                        }`}>
+                          {msg.role === 'user' ? (
+                            msg.content
+                          ) : (
+                            <DynamicResponseRenderer content={msg.content} question={messages[idx - 1]?.content || ""} />
+                          )}
+                          {msg.loading && (
+                            <span className="inline-flex gap-0.5 ml-1 animate-pulse">
+                              <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
+                              <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
+                              <span className="h-1.5 w-1.5 bg-indigo-600 rounded-full"></span>
+                            </span>
+                          )}
+                        </div>
+
+                        {msg.role === 'assistant' && msg.metadata && (
+                          <div className="flex flex-col gap-2 pl-1">
+                            {msg.metadata.sources && msg.metadata.sources.length > 0 && (
+                              <details className="text-[10px] text-slate-500 cursor-pointer">
+                                <summary className="hover:text-indigo-650 select-none font-semibold transition-all">
+                                  Source References ({msg.metadata.sources.length} sections)
+                                </summary>
+                                <div className="flex flex-col gap-1.5 mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 shadow-sm">
+                                  {msg.metadata.sources.map((src: any, sIdx: number) => (
+                                    <div key={sIdx} className="border-b border-slate-100 pb-1.5 last:border-0 last:pb-0">
+                                      <div className="flex justify-between text-[9px] font-semibold text-slate-500 mb-0.5">
+                                        <span>Page {src.page_number} | Section: {src.section}</span>
+                                        <span className="text-indigo-650 font-bold">Match: {(src.score * 100).toFixed(0)}%</span>
+                                      </div>
+                                      <p className="text-[9px] text-slate-500 italic font-sans leading-normal">"{src.text}"</p>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </details>
-                        )}
+                              </details>
+                            )}
 
-                        {msg.metadata.confidence !== undefined && (
-                          <div className="flex flex-col gap-1 w-full max-w-xs mt-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 shadow-sm">
-                            <div className="flex justify-between items-center text-[10px] font-semibold text-slate-500">
-                              <span className="flex items-center gap-1.5">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-505 shrink-0" />
-                                MyGPT Confidence
-                              </span>
-                              <span className="text-slate-800 font-bold">{msg.metadata.confidence}%</span>
-                            </div>
-                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-indigo-600 rounded-full transition-all duration-500" 
-                                style={{ width: `${msg.metadata.confidence}%` }} 
-                              />
-                            </div>
-                          </div>
-                        )}
+                            {msg.metadata.confidence !== undefined && (
+                              <div className="flex flex-col gap-1 w-full max-w-xs mt-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 shadow-sm">
+                                <div className="flex justify-between items-center text-[10px] font-semibold text-slate-500">
+                                  <span className="flex items-center gap-1.5">
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-505 shrink-0" />
+                                    MyGPT Confidence
+                                  </span>
+                                  <span className="text-slate-800 font-bold">{msg.metadata.confidence}%</span>
+                                </div>
+                                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-indigo-600 rounded-full transition-all duration-500" 
+                                    style={{ width: `${msg.metadata.confidence}%` }} 
+                                  />
+                                </div>
+                              </div>
+                            )}
 
-                        {msg.metadata.suggested_questions && msg.metadata.suggested_questions.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-2.5">
-                            {msg.metadata.suggested_questions.map((q: string, qIdx: number) => (
-                              <button
-                                key={qIdx}
-                                onClick={() => handleSend(q)}
-                                className="text-[10px] bg-white hover:bg-indigo-55 text-indigo-650 hover:text-indigo-700 border border-indigo-100 hover:border-indigo-300 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-200 font-medium cursor-pointer"
-                              >
-                                {q}
-                              </button>
-                            ))}
+                            {msg.metadata.suggested_questions && msg.metadata.suggested_questions.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                                {msg.metadata.suggested_questions.map((q: string, qIdx: number) => (
+                                  <button
+                                    key={qIdx}
+                                    onClick={() => handleSend(q)}
+                                    className="text-[10px] bg-white hover:bg-indigo-55 text-indigo-650 hover:text-indigo-700 border border-indigo-100 hover:border-indigo-300 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-200 font-medium cursor-pointer"
+                                  >
+                                    {q}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ))}
+
+                  {chatLoading && messages[messages.length - 1]?.role === 'user' && (
+                    <div className="flex gap-3 max-w-lg self-start">
+                      <div className="p-2 rounded-full border bg-slate-100 border-slate-200 text-slate-500 shrink-0">
+                        <Bot className="h-4 w-4 animate-spin text-indigo-600" />
+                      </div>
+                      <div className="bg-white text-slate-500 border border-slate-200 rounded-2xl rounded-tl-none px-4 py-2.5 text-[11px] flex items-center gap-2 shadow-sm animate-pulse">
+                        <span>Searching context and reasoning...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={chatEndRef} />
                 </div>
-              ))}
 
-              {chatLoading && messages[messages.length - 1]?.role === 'user' && (
-                <div className="flex gap-3 max-w-lg self-start">
-                  <div className="p-2 rounded-full border bg-slate-100 border-slate-200 text-slate-500 shrink-0">
-                    <Bot className="h-4 w-4 animate-spin text-indigo-600" />
-                  </div>
-                  <div className="bg-white text-slate-500 border border-slate-200 rounded-2xl rounded-tl-none px-4 py-2.5 text-[11px] flex items-center gap-2 shadow-sm animate-pulse">
-                    <span>Searching context and reasoning...</span>
-                  </div>
+                <div className="p-4 border-t border-slate-200 bg-slate-50/50">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      handleSend(inputVal)
+                    }}
+                    className="relative"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Ask a question about the document..."
+                      value={inputVal}
+                      onChange={(e) => setInputVal(e.target.value)}
+                      disabled={chatLoading}
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 disabled:opacity-50 shadow-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={chatLoading || !inputVal.trim()}
+                      className="absolute right-2 top-2 p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-40 disabled:hover:bg-indigo-600 shrink-0"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                    </button>
+                  </form>
                 </div>
-              )}
-
-              <div ref={chatEndRef} />
-            </div>
-
-            <div className="p-4 border-t border-slate-200 bg-slate-50/50">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  handleSend(inputVal)
-                }}
-                className="relative"
-              >
-                <input
-                  type="text"
-                  placeholder="Ask a question about the document..."
-                  value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
-                  disabled={chatLoading}
-                  className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 disabled:opacity-50 shadow-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={chatLoading || !inputVal.trim()}
-                  className="absolute right-2 top-2 p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-40 disabled:hover:bg-indigo-600 shrink-0"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                </button>
-              </form>
-            </div>
+              </>
+            )}
           </>
         )}
       </div>

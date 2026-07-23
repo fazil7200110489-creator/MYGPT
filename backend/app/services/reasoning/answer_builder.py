@@ -1,19 +1,52 @@
 import re
 from typing import Any, List, Union
 
+# ---------------------------------------------------------------------------
+# Field-specific "not mentioned" messages — extend here, not in code
+# ---------------------------------------------------------------------------
+_NOT_MENTIONED_MESSAGES: dict = {
+    "AGE":            "The uploaded resume does not mention the candidate's age.",
+    "DATE_OF_BIRTH":  "The uploaded resume does not mention the candidate's date of birth.",
+    "DOB":            "The uploaded resume does not mention the candidate's date of birth.",
+    "GENDER":         "The uploaded resume does not mention the candidate's gender.",
+    "SALARY":         "The uploaded resume does not mention the candidate's expected salary or CTC.",
+    "NOTICE_PERIOD":  "The uploaded resume does not mention the candidate's notice period.",
+    "MARITAL_STATUS": "The uploaded resume does not mention the candidate's marital status.",
+    "NATIONALITY":    "The uploaded resume does not mention the candidate's nationality.",
+    "CERTIFICATIONS": "No certifications were found in the resume.",
+}
+
+_RESUME_FALLBACK = "The uploaded resume does not mention this information."
+_GENERIC_FALLBACK = "I couldn't find that information in the uploaded document."
+
+
 class AnswerBuilder:
-    """Formats answer values into structured styles depending on the Canonical Intent."""
+    """Formats answer values into structured styles depending on the Canonical Intent.
+
+    Design principles:
+    - Never returns an empty string.
+    - Field-specific "not mentioned" messages are driven by ``_NOT_MENTIONED_MESSAGES``.
+    - Adding a new intent formatter requires only adding a new elif branch or
+      extending the intent list on an existing branch.
+    """
 
     def build(self, value: Any, intent: str, doc_type: str) -> str:
         """Constructs response output strings based on intent formatting rules."""
         intent_upper = intent.upper()
 
+        # --- GENERAL / ROLE_INFERENCE: value is already a prose string ---
+        if intent_upper in ["GENERAL", "ROLE_INFERENCE"]:
+            if value and str(value).strip():
+                return str(value).strip()
+            return _RESUME_FALLBACK
+
+        # --- Empty / missing value guard ---
         if not value or value == "Not Found" or (isinstance(value, list) and len(value) == 0):
-            if intent_upper == "CERTIFICATIONS":
-                return "No certifications were found in the resume."
+            if intent_upper in _NOT_MENTIONED_MESSAGES:
+                return _NOT_MENTIONED_MESSAGES[intent_upper]
             if doc_type.lower() == "resume":
-                return "The uploaded resume does not mention this information."
-            return "I couldn't find that information in the uploaded document."
+                return _RESUME_FALLBACK
+            return _GENERIC_FALLBACK
 
         # 1. PHONE / EMAIL: raw single value strings
         if intent_upper in ["PHONE", "PHONE_NUMBERS"]:
@@ -34,10 +67,16 @@ class AnswerBuilder:
         elif intent_upper in ["CANDIDATE_NAME", "NAME", "NAMES"]:
             return str(value).strip()
 
-        elif intent_upper == "ADDRESS":
+        elif intent_upper in ["ADDRESS", "LOCATION"]:
             val_str = str(value).strip()
             val_str = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', val_str).strip()
             return val_str
+
+        elif intent_upper in ["LINKEDIN", "GITHUB", "PORTFOLIO"]:
+            return str(value).strip()
+
+        elif intent_upper in ["DOMAIN", "INDUSTRY"]:
+            return str(value).strip()
 
         elif intent_upper == "DESIGNATION":
             return str(value).strip()
@@ -141,10 +180,12 @@ class AnswerBuilder:
                     lines.append(f"{k}:\n{v_str}")
                 return "\n\n".join(lines)
 
-        # 11. Fallback or general intent
+        # 12. Fallback for any unhandled intent
         if isinstance(value, list):
-            return "\n".join(str(v) for v in value)
-        return str(value).strip()
+            result = "\n".join(str(v) for v in value if str(v).strip())
+            return result if result.strip() else _RESUME_FALLBACK if doc_type.lower() == "resume" else _GENERIC_FALLBACK
+        result = str(value).strip()
+        return result if result else (_RESUME_FALLBACK if doc_type.lower() == "resume" else _GENERIC_FALLBACK)
 
     def _to_list(self, value: Any) -> List[str]:
         """Helper to convert various types into clean lists of strings."""

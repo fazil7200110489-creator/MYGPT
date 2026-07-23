@@ -1,5 +1,8 @@
-from typing import Dict, Any, List, Optional
 import re
+from typing import Dict, Any, List, Optional, Tuple
+
+from backend.app.services.reasoning.domain_detector import domain_detector
+from backend.app.services.reasoning.role_inference_engine import role_inference_engine
 
 # Validation helpers (Problem 7 & v2.3 Validation)
 def validate_name(name: Any) -> bool:
@@ -99,7 +102,13 @@ def validate_education(edu: Any) -> List[str]:
         items = [ed.strip() for ed in str(edu).split('\n') if ed.strip()]
         
     valid = []
-    edu_kws = {"bachelor", "master", "doctor", "degree", "diploma", "qualification", "college", "school", "university", "technology", "institute", "engineering", "bca", "mca", "b.tech", "m.tech", "be", "me", "bsc", "msc", "high school", "ssc", "hsc"}
+    edu_kws = {
+        "bachelor", "master", "doctor", "degree", "diploma", "qualification",
+        "college", "school", "university", "technology", "institute", "engineering",
+        "bca", "mca", "mba", "bba", "b.tech", "m.tech", "be", "me", "bsc", "msc",
+        "b.com", "m.com", "b.sc", "m.sc", "b.a", "m.a", "phd", "llb", "llm", "mbbs",
+        "ca", "cma", "cpa", "b.arch", "m.arch", "high school", "ssc", "hsc"
+    }
     for ed in items:
         ed_clean = ed.strip()
         ed_lower = ed_clean.lower()
@@ -215,11 +224,149 @@ def filter_facts_by_intent(facts: List[str], intent: str) -> List[str]:
             if cleaned_lines:
                 filtered.append("\n".join(cleaned_lines))
                 
+
     return filtered if filtered else facts
+
+
+# ---------------------------------------------------------------------------
+# Role Inferencer — data-driven developer role detection
+# ---------------------------------------------------------------------------
+
+# ROLE_CONFIG: maps (role_label, confidence_weight) → required skill tokens
+# A role is matched when at least `min_matches` tokens from its list are
+# found in the candidate's skills.
+# Extend this list to add new roles — no code changes required.
+ROLE_CONFIG: List[Tuple[str, int, List[str]]] = [
+    # (role_label, min_matches, skill_tokens)
+    ("Full Stack Developer (MERN)",   3, ["mongodb", "express", "react", "node"]),
+    ("Full Stack Developer (MEAN)",   3, ["mongodb", "express", "angular", "node"]),
+    ("Full Stack Developer",          3, ["frontend", "backend", "full stack", "fullstack"]),
+    ("Mobile Application Developer",  2, ["flutter", "dart"]),
+    ("iOS Developer",                 1, ["swift", "ios", "swiftui", "objective-c"]),
+    ("Android Developer",             1, ["android", "kotlin", "java android"]),
+    ("React Native Developer",        2, ["react native", "react", "mobile"]),
+    ("Frontend Developer",            2, ["react", "angular", "vue", "html", "css", "javascript"]),
+    ("Backend Developer (Python)",    2, ["django", "flask", "fastapi", "python"]),
+    ("Backend Developer (Java)",      2, ["spring", "spring boot", "java", "hibernate"]),
+    ("Backend Developer (PHP)",       2, ["laravel", "php", "symfony", "codeigniter"]),
+    ("Backend Developer (Node.js)",   2, ["node", "express", "nestjs", "nodejs"]),
+    ("Backend Developer",             2, ["rest api", "microservices", "backend", "server"]),
+    ("DevOps / Cloud Engineer",       2, ["docker", "kubernetes", "aws", "gcp", "azure", "ci/cd", "jenkins"]),
+    ("Data Engineer",                 2, ["spark", "kafka", "airflow", "hadoop", "etl", "pipeline"]),
+    ("ML / AI Engineer",              2, ["tensorflow", "pytorch", "keras", "machine learning", "deep learning", "scikit-learn"]),
+    ("Data Analyst",                  2, ["power bi", "tableau", "excel", "sql", "data analysis", "pandas"]),
+    ("Database Administrator",        2, ["mysql", "postgresql", "oracle", "dba", "sql server", "mongodb"]),
+    ("QA / Test Engineer",            2, ["selenium", "cypress", "junit", "testing", "qa", "quality assurance"]),
+    ("Software Developer",            1, ["software", "developer", "programmer", "coding"]),
+]
+
+
+class RoleInferencer:
+    """Infers a developer role label from a candidate's extracted skills.
+
+    Usage::
+
+        inferencer = RoleInferencer()
+        role, evidence = inferencer.infer(["Flutter", "Dart", "Firebase"])
+        # → ("Mobile Application Developer", ["flutter", "dart"])
+    """
+
+    def infer(
+        self, skills: List[str]
+    ) -> Tuple[Optional[str], List[str]]:
+        """Infer the most specific developer role from a skills list.
+
+        Args:
+            skills: List of skill strings (case-insensitive).
+
+        Returns:
+            Tuple of (role_label, matched_tokens).
+            role_label is None if no role could be inferred.
+        """
+        if not skills:
+            return None, []
+
+        # Flatten skills to a single searchable string for token matching
+        skills_text = " ".join(s.lower() for s in skills)
+
+        best_role: Optional[str] = None
+        best_count: int = 0
+        best_evidence: List[str] = []
+
+        for role_label, min_matches, tokens in ROLE_CONFIG:
+            matched = [t for t in tokens if t in skills_text]
+            if len(matched) >= min_matches and len(matched) > best_count:
+                best_count = len(matched)
+                best_role = role_label
+                best_evidence = matched
+
+        return best_role, best_evidence
+
+    def build_answer(
+        self,
+        role: Optional[str],
+        evidence: List[str],
+        question: str,
+        candidate_name: Optional[str] = None,
+    ) -> str:
+        """Build a natural language answer for a role inference question.
+
+        Args:
+            role:           Inferred role label (or None).
+            evidence:       Skills that led to the inference.
+            question:       Original user question (lowercased).
+            candidate_name: Candidate name for personalized response.
+
+        Returns:
+            Natural language answer string.
+        """
+        subject = candidate_name or "The candidate"
+        q = question.lower()
+
+        if role is None:
+            return (
+                f"Based on the skills listed in the resume, it is not possible "
+                f"to clearly identify a specific developer role for {subject}."
+            )
+
+        skill_list = ", ".join(e.title() for e in evidence[:4])
+
+        # Yes/No phrasing for "is he / can he / suitable" questions
+        is_yes_no = any(w in q.split()[:3] for w in ["is", "can", "does", "would", "could"])
+        if is_yes_no:
+            # Check if the question references a specific role
+            q_lower_full = q
+            role_lower = role.lower()
+            # Check overlap: if the question mentions the inferred role area
+            role_words = set(role_lower.replace("(", "").replace(")", "").split())
+            q_words = set(re.findall(r"\b\w+\b", q_lower_full))
+            overlap = role_words & q_words - {"developer", "engineer", "a", "the", "an"}
+            if overlap:
+                return (
+                    f"Yes. Based on the resume skills ({skill_list}), "
+                    f"{subject} appears to be a {role}."
+                )
+            else:
+                # Question asks about a different role than what we inferred
+                return (
+                    f"Based on the resume skills ({skill_list}), "
+                    f"{subject} is best suited as a {role}, "
+                    f"not the specific role mentioned in the question."
+                )
+
+        return (
+            f"Based on the candidate's skills ({skill_list}), "
+            f"{subject} appears to be a {role}."
+        )
+
+
+# Singleton instance — created once, reused
+_role_inferencer = RoleInferencer()
 
 
 class ResumeReasoner:
     """Document Specialist for parsing and reasoning over CVs/Resumes."""
+
 
     def pre_resolve_entities(self, entities: Dict[str, Any], facts: List[str]):
         if entities.get("_pre_resolved"):
@@ -459,34 +606,92 @@ class ResumeReasoner:
 
         if is_yes_no and question:
             q_lower = question.lower().strip()
-            
-            # graduation check
-            if "graduated" in q_lower or "graduate" in q_lower or "educated" in q_lower:
+
+            # 1. Graduation / Education check
+            if any(k in q_lower for k in ["graduated", "graduate", "educated"]):
                 edu = entities.get("education") or []
                 edu = validate_education(edu)
-                if not edu and facts:
-                    for f in facts:
-                        for line in f.split('\n'):
-                            line_strip = line.strip()
-                            if "education" in line_strip.lower() or "degree" in line_strip.lower() or "university" in line_strip.lower() or "college" in line_strip.lower() or "academic" in line_strip.lower():
-                                cleaned = re.sub(r'^(?:education|degree|university)\s*[:\-]?\s*', '', line_strip, flags=re.IGNORECASE).strip()
-                                if cleaned:
-                                    edu.append(cleaned)
-                    edu = validate_education(edu)
                 if edu:
                     degree = edu[0].split('\n')[0].strip()
-                    return f"Yes. The candidate holds a {degree}."
-                return "No. The uploaded document does not mention this."
+                    return (
+                        f"Answer:\nYes\n\n"
+                        f"Reason:\nThe candidate holds a {degree}.\n\n"
+                        f"Evidence:\nEducation section\n\n"
+                        f"Confidence:\n95%"
+                    )
+                return (
+                    f"Answer:\nNo\n\n"
+                    f"Reason:\nThe uploaded resume does not mention graduation or degree details.\n\n"
+                    f"Evidence:\nEducation section\n\n"
+                    f"Confidence:\n95%"
+                )
 
-            # experience check
-            if "experienced" in q_lower or "experience" in q_lower:
+            # 2. Total Experience check
+            if any(k in q_lower for k in ["experienced", "experience"]) and not any(k in q_lower for k in ["flutter", "react", "python", "java", "node", "api", "mobile", "backend", "frontend", "cloud"]):
                 exp = entities.get("work_experience") or entities.get("experience") or []
                 total_exp_str = calculate_total_experience(exp)
                 if total_exp_str != "0 years":
-                    return f"Yes, the candidate has approximately {total_exp_str} of experience."
+                    return (
+                        f"Answer:\nYes\n\n"
+                        f"Reason:\nThe candidate has approximately {total_exp_str} of professional experience.\n\n"
+                        f"Evidence:\nWork Experience section\n\n"
+                        f"Confidence:\n95%"
+                    )
 
-            # Step 1: Extract the candidate entity from the question by stripping
-            # stop-words.  We want the meaningful noun that the user is asking about.
+            # 3a. Location-based yes/no check: "Is she from Chennai?" / "Is he based in Bangalore?"
+            LOCATION_YES_NO_PATTERNS = [
+                r'\b(?:from|based in|living in|located in|residing in|staying in|is she from|is he from|native of)\b'
+            ]
+            is_location_query = any(re.search(p, q_lower) for p in LOCATION_YES_NO_PATTERNS)
+            if is_location_query:
+                from backend.app.services.reasoning.candidate_profile_builder import candidate_profile_builder
+                profile = candidate_profile_builder.build_profile(entities, text)
+                city_m = re.search(r'(?:from|in|of)\s+([A-Za-z]+)', q_lower)
+                if city_m:
+                    city_q = city_m.group(1).strip().title()
+                    current = profile.get("current_location", "") or ""
+                    permanent = profile.get("permanent_address", "") or ""
+                    work = profile.get("work_location", "") or ""
+                    locations_str = f"{current}, {permanent}, {work}"
+                    if city_q.lower() in locations_str.lower():
+                        return (
+                            f"Answer:\nYes\n\n"
+                            f"Reason:\nCandidate is associated with {city_q}. "
+                            f"Current Location: {current}. Permanent Address: {permanent}."
+                            f"{'Work Location: ' + work + '.' if work and work != 'Not Mentioned' else ''}\n\n"
+                            f"Evidence:\n{', '.join(profile.get('location_sources', ['Location section']))}\n\n"
+                            f"Confidence:\n90%"
+                        )
+                    else:
+                        return (
+                            f"Answer:\nNo\n\n"
+                            f"Reason:\nThe resume does not indicate the candidate is from {city_q}. "
+                            f"Current Location: {current}. Permanent Address: {permanent}.\n\n"
+                            f"Evidence:\n{', '.join(profile.get('location_sources', ['Location section']))}\n\n"
+                            f"Confidence:\n88%"
+                        )
+
+            # 3b. Domain-Aware Role / Suitability Yes/No check
+            role_keywords = [
+                "app developer", "backend developer", "frontend developer",
+                "full stack developer", "fullstack developer", "mobile developer",
+                "devops engineer", "cloud engineer", "ml engineer", "ai engineer",
+                "developer", "engineer", "accountant", "hr", "analyst", "designer",
+                "consultant", "architect", "manager", "officer", "suitable", "suitability",
+                "fit", "work as", "role"
+            ]
+            if any(rk in q_lower for rk in role_keywords):
+                domain = domain_detector.detect_domain(entities, text)
+                is_suitable, reason_msg, evidence_sec = role_inference_engine.infer_role_suitability(entities, target_role_query=question, domain=domain)
+                ans_str = "Yes" if is_suitable else "No"
+                return (
+                    f"Answer:\n{ans_str}\n\n"
+                    f"Reason:\n{reason_msg}\n\n"
+                    f"Evidence:\n{evidence_sec}\n\n"
+                    f"Confidence:\n95%"
+                )
+
+            # 4. Extract topic for technology / skill / entity inquiry
             YES_NO_STOP = {
                 "did", "does", "is", "has", "was", "can", "are", "should",
                 "would", "do", "she", "he", "they", "it", "this", "that",
@@ -494,7 +699,7 @@ class ResumeReasoner:
                 "used", "got", "get", "hold", "holds", "at", "in", "with",
                 "the", "a", "an", "on", "for", "of", "to", "or", "and",
                 "candidate", "applicant", "person", "resume", "experienced",
-                "graduated", "graduate", "any", "ever", "certificate",
+                "graduated", "graduate", "any", "ever", "certificate", "experience"
             }
             q_tokens = [
                 w for w in re.findall(r'\b\w[\w+#]*\b', q_lower)
@@ -502,345 +707,467 @@ class ResumeReasoner:
             ]
 
             if not q_tokens:
-                return "The uploaded document does not mention this."
+                return (
+                    f"Answer:\nNo\n\n"
+                    f"Reason:\nThe uploaded resume does not mention this information.\n\n"
+                    f"Evidence:\nResume Document\n\n"
+                    f"Confidence:\n95%"
+                )
 
-            # Step 2: Determine entity type by inspecting what's present in the
-            # resume's structured data – no predefined technology list.
-            skills_all    = entities.get("skills") or []
-            prog_langs    = entities.get("programming_languages") or []
-            projects_all  = entities.get("projects") or []
-            exp_all       = entities.get("experience") or []
-            certs_all     = entities.get("certifications") or []
-            companies_all = entities.get("companies") or []
+            topic = " ".join(q_tokens)
+            
+            # Map query to appropriate intent
+            target_intent = "SKILLS"
+            if any(k in topic for k in ["project", "app", "portfolio"]):
+                target_intent = "PROJECTS"
+            elif any(k in topic for k in ["cert", "ibm", "aws cert", "microsoft"]):
+                target_intent = "CERTIFICATIONS"
+            elif any(k in topic for k in ["company", "worked at"]):
+                target_intent = "EXPERIENCE"
 
-            # Build flat, lower-cased search corpora for each domain
-            corpus_tech   = " ".join([s.lower() for s in skills_all + prog_langs])
-            corpus_proj   = " ".join([p.lower() for p in projects_all])
-            corpus_exp    = " ".join([e.lower() for e in exp_all])
-            corpus_certs  = " ".join([c.lower() for c in certs_all])
-            corpus_orgs   = " ".join([o.lower() for o in companies_all])
-            corpus_all    = "\n".join([corpus_tech, corpus_proj, corpus_exp,
-                                       corpus_certs, corpus_orgs, text.lower()])
+            from backend.app.services.reasoning.evidence_selector import evidence_selector
+            sections_dict = entities.get("sections", {}) if isinstance(entities, dict) else {}
+            selected = evidence_selector.select(
+                entities=entities,
+                sections=sections_dict,
+                intent=target_intent,
+                topic=topic,
+                question=question
+            )
 
-            # Classification signals (org-like suffixes, cert-like prefixes, etc.)
-            ORG_SUFFIXES  = {"ltd", "inc", "corp", "pvt", "llc", "solutions",
-                             "systems", "technologies", "services", "group"}
-            CERT_PREFIXES = {"aws", "ibm", "microsoft", "google", "oracle",
-                             "cisco", "pmp", "scrum", "comptia", "itil", "azure"}
+            if selected.is_found:
+                evidence_detail = ", ".join(selected.matched_tokens) if selected.matched_tokens else selected.section_name
+                return (
+                    f"Answer:\nYes\n\n"
+                    f"Reason:\n{selected.reasoning}\n\n"
+                    f"Evidence:\n{evidence_detail}\n\n"
+                    f"Confidence:\n88%"
+                )
+            else:
+                return (
+                    f"Answer:\nNo\n\n"
+                    f"Reason:\n{selected.reasoning}\n\n"
+                    f"Evidence:\n{selected.section_name}\n\n"
+                    f"Confidence:\n88%"
+                )
 
-            def _make_pattern(token: str) -> str:
-                return r'\b' + re.escape(token) + r'\b'
+        # 3. Route through Candidate Profile Builder (Single Source of Truth)
+        from backend.app.services.reasoning.candidate_profile_builder import candidate_profile_builder
+        profile = candidate_profile_builder.build_profile(entities, text)
 
-            matched_token  = None
-            matched_domain = None  # 'tech' | 'cert' | 'employer' | 'project' | 'general'
-            found_in_resume = False
+        if intent_upper in ["DOMAIN", "INDUSTRY"]:
+            conf = profile.get("primary_domain_confidence", 85)
+            sec = profile.get("secondary_domain", "")
+            sec_conf = profile.get("secondary_domain_confidence", 0)
+            result = f"Primary Domain: {profile['domain']} ({conf}% confidence)"
+            if sec and sec != "Not Applicable":
+                result += f"\nSecondary Domain: {sec} ({sec_conf}% confidence)"
+            return result
 
-            for token in q_tokens:
-                token_l = token.lower()
+        elif intent_upper in ["CONTACT", "CONTACT_DETAILS"]:
+            return (
+                f"Candidate Information\n\n"
+                f"Name: {profile['name']}\n"
+                f"Email: {profile['email']}\n"
+                f"Phone: {profile['phone']}\n"
+                f"Current Location: {profile['current_location']}\n"
+                f"Permanent Address: {profile['permanent_address']}\n"
+                f"LinkedIn: {profile['linkedin']}\n"
+                f"GitHub: {profile['github']}\n"
+                f"Portfolio: {profile['portfolio']}"
+            )
 
-                # Does the token appear in any corpus?
-                token_in_resume = bool(re.search(_make_pattern(token_l), corpus_all))
-
-                # Classify the token's domain
-                in_tech   = bool(re.search(_make_pattern(token_l), corpus_tech))
-                in_proj   = bool(re.search(_make_pattern(token_l), corpus_proj))
-                in_exp    = bool(re.search(_make_pattern(token_l), corpus_exp))
-                in_certs  = bool(re.search(_make_pattern(token_l), corpus_certs))
-                in_orgs   = bool(re.search(_make_pattern(token_l), corpus_orgs))
-
-                # Heuristic classification signals
-                looks_like_cert  = token_l in CERT_PREFIXES or in_certs
-                looks_like_org   = token_l in ORG_SUFFIXES or in_orgs
-                looks_like_proj  = in_proj and not in_tech
-                looks_like_tech  = in_tech or (not looks_like_cert and not looks_like_org and not looks_like_proj and in_exp)
-
-                if token_in_resume:
-                    matched_token = token
-                    found_in_resume = True
-                    if looks_like_cert:
-                        matched_domain = "cert"
-                    elif looks_like_org:
-                        matched_domain = "employer"
-                    elif looks_like_proj:
-                        matched_domain = "project"
-                    elif looks_like_tech:
-                        matched_domain = "tech"
-                    else:
-                        matched_domain = "general"
-                    break
-
-            candidate_name = entities.get("candidate_name") or entities.get("name") or "the candidate"
-            if not validate_name(candidate_name):
-                candidate_name = "the candidate"
-
-            if found_in_resume and matched_token:
-                display = matched_token.upper() if len(matched_token) <= 3 else matched_token.title()
-                if matched_domain == "cert":
-                    return f"Yes. The resume mentions {display} as a certification or achievement."
-                elif matched_domain == "employer":
-                    return f"Yes. {candidate_name} has worked at or with {display}."
-                elif matched_domain == "project":
-                    return f"Yes. The resume mentions a project related to {display}."
-                elif matched_domain == "tech":
-                    return f"Yes. The resume mentions experience with {display}."
-                else:
-                    return f"Yes. The resume mentions {display}."
-
-            # Not found in any corpus
-            if q_tokens:
-                display = q_tokens[0].upper() if len(q_tokens[0]) <= 3 else q_tokens[0].title()
-                return f"The uploaded resume does not mention {display}."
-
-            return "The uploaded document does not mention this."
-
-        # 3. Priority routing with Candidate ans        if intent_upper in ["PHONE", "PHONE_NUMBERS"]:
-            return entities.get("phone")
+        elif intent_upper in ["PHONE", "PHONE_NUMBERS"]:
+            return profile["phone"]
 
         elif intent_upper == "EMAIL":
-            return entities.get("email")
+            return profile["email"]
 
         elif intent_upper in ["CANDIDATE_NAME", "NAME", "NAMES"]:
-            return entities.get("candidate_name")
+            return profile["name"]
 
-        elif intent_upper == "FATHER_NAME":
-            return entities.get("father_name")
+        elif intent_upper == "LINKEDIN":
+            return profile["linkedin"]
 
-        elif intent_upper == "MOTHER_NAME":
-            return entities.get("mother_name")
+        elif intent_upper == "GITHUB":
+            return profile["github"]
 
-        elif intent_upper == "ADDRESS":
-            return entities.get("address")
+        elif intent_upper == "PORTFOLIO":
+            return profile["portfolio"]
+
+        elif intent_upper in ["ADDRESS", "LOCATION"]:
+            # Handle "Is she from Chennai?" type queries
+            q_lower = (question or "").lower()
+            city_m = re.search(r'from\s+([A-Za-z]+)', q_lower) or re.search(r'in\s+([A-Za-z]+)', q_lower)
+            if city_m:
+                city_q = city_m.group(1).title()
+                current = profile.get("current_location", "")
+                permanent = profile.get("permanent_address", "")
+                work = profile.get("work_location", "")
+                locations_str = f"{current}, {permanent}, {work}"
+                if city_q.lower() in locations_str.lower():
+                    return (
+                        f"Answer:\nYes\n\n"
+                        f"Reason:\nCandidate is associated with {city_q}. "
+                        f"Current Location: {current}. Permanent Address: {permanent}."
+                        f"{'Work Location: ' + work + '.' if work and work != 'Not Mentioned' else ''}\n\n"
+                        f"Evidence:\n{', '.join(profile.get('location_sources', ['Location section']))}\n\n"
+                        f"Confidence:\n90%"
+                    )
+                else:
+                    return (
+                        f"Answer:\nNo\n\n"
+                        f"Reason:\nThe resume does not indicate the candidate is from {city_q}. "
+                        f"Current Location: {current}. Permanent Address: {permanent}.\n\n"
+                        f"Evidence:\n{', '.join(profile.get('location_sources', ['Location section']))}\n\n"
+                        f"Confidence:\n88%"
+                    )
+            # General location query
+            current = profile.get("current_location", "Not Mentioned")
+            permanent = profile.get("permanent_address", "Not Mentioned")
+            work = profile.get("work_location", "Not Mentioned")
+            if current == "Not Mentioned" and permanent == "Not Mentioned":
+                return "Not Mentioned"
+            result = f"Current Location: {current}\nPermanent Address: {permanent}"
+            if work and work != "Not Mentioned":
+                result += f"\nWork Location: {work}"
+            return result
 
         elif intent_upper == "DESIGNATION":
-            return entities.get("designation")
+            return profile["designation"]
 
-        elif intent_upper in ["DATE_OF_BIRTH", "DOB"]:
-            return entities.get("date_of_birth") or (facts[0] if facts else None)
+        elif intent_upper == "CURRENT_COMPANY":
+            timeline = profile.get("experience_timeline", [])
+            if timeline:
+                latest = timeline[-1]
+                return (
+                    f"Current Company: {latest.get('company', 'Not Mentioned')}\n"
+                    f"Current Role: {latest.get('title', 'Not Mentioned')}\n"
+                    f"Since: {latest.get('years', 'Not Mentioned')}"
+                )
+            hist = profile.get("experience_history", [])
+            return hist[0] if hist else "Not Mentioned"
 
-        elif intent_upper == "GENDER":
-            gender = entities.get("gender")
-            if gender and gender.lower() in ["male", "female", "other"]:
-                return gender.title()
-            match = re.search(r'\bgender\s*:\s*(male|female|other)\b', text.lower())
-            if match:
-                return match.group(1).title()
-            return "The uploaded resume does not mention this information."
+        elif intent_upper == "ERP_PLATFORMS":
+            erps = profile.get("erp_platforms", [])
+            return erps if erps else "The resume does not mention any ERP platforms."
+
+        elif intent_upper == "AWARDS":
+            awards = profile.get("awards", [])
+            if not awards:
+                return "The resume does not mention any awards or recognitions."
+            lines = []
+            for a in awards:
+                name = a.get("name", "Not Mentioned")
+                org = a.get("organization", "Not Mentioned")
+                yr = a.get("year", "Not Mentioned")
+                lines.append(f"• {name}" + (f" — {org}" if org != "Not Mentioned" else "") + (f" ({yr})" if yr != "Not Mentioned" else ""))
+            return "Awards & Recognitions:\n" + "\n".join(lines)
+
+        elif intent_upper in ["CGPA", "CGPA_PERCENTAGE"]:
+            for edu in profile.get("education", []):
+                cgpa = edu.get("cgpa_percentage", "")
+                if cgpa and cgpa not in ("Not Mentioned", "Not Specified", ""):
+                    return f"Academic Score: {cgpa}\n(From: {edu.get('degree', 'Higher Education')} — {edu.get('institution', 'Institution')})"
+            return "The resume does not mention CGPA or percentage."
+
+        elif intent_upper in ["GRADUATION_YEAR", "GRADUATION"]:
+            years = []
+            for edu in profile.get("education", []):
+                year = edu.get("year", "")
+                degree = edu.get("degree", "")
+                if year and year != "Not Mentioned":
+                    years.append(f"{degree} — {year}" if degree and degree != "Not Mentioned" else year)
+            return "\n".join(years) if years else "The resume does not mention graduation year."
+
+        elif intent_upper == "CAREER_TRANSITION":
+            ct = profile.get("career_transition", {})
+            if ct.get("is_transition"):
+                prev_domains = ", ".join(ct.get("previous_domains", []))
+                return (
+                    f"Career Transition Detected\n\n"
+                    f"Transition Path: {ct.get('transition_path', 'Not Mentioned')}\n"
+                    f"Current Career: {ct.get('current_domain', 'Not Mentioned')}\n"
+                    f"Previous Career(s): {prev_domains or 'Not Mentioned'}"
+                )
+            return f"No significant career transition detected. Candidate has consistently worked in {profile.get('domain', 'their current domain')}."
+
+        elif intent_upper == "DOMAIN_EXPERIENCE":
+            per_domain = profile.get("per_domain_experience", {})
+            if not per_domain:
+                return f"Total Experience: {profile.get('total_experience', 'Not Mentioned')}"
+            lines = [f"• {d}: {exp}" for d, exp in per_domain.items()]
+            return (
+                f"Total Professional Experience: {profile.get('total_experience', 'Not Mentioned')}\n\n"
+                f"Experience by Domain:\n" + "\n".join(lines)
+            )
+
+        elif intent_upper == "TIMELINE":
+            timeline = profile.get("experience_timeline", [])
+            if not timeline:
+                return "Experience timeline information not available in the resume."
+            lines = []
+            for entry in timeline:
+                years = entry.get("years", "")
+                title = entry.get("title", "")
+                company = entry.get("company", "")
+                domain = entry.get("domain", "")
+                lines.append(f"{years}\n  {title}\n  {company}" + (f" ({domain})" if domain else ""))
+            return "Experience Timeline:\n\n" + "\n\n".join(lines)
+
+        elif intent_upper == "SKILL_VERIFY":
+            q_lower = (question or "").lower()
+            # Extract skill being asked about
+            skill_patterns = [
+                r'(?:know|use|have|learned|experienced in|proficient in|familiar with)\s+([A-Za-z\s\+\.\#]+?)(?:\?|$|\s+and)',
+                r'(?:does|is|can)\s+(?:she|he|the candidate|candidate)\s+(?:know|use|have)\s+([A-Za-z\s\+\.\#]+?)(?:\?|$)',
+            ]
+            topic_skill = ""
+            for pat in skill_patterns:
+                m = re.search(pat, q_lower)
+                if m:
+                    topic_skill = m.group(1).strip()
+                    break
+            if not topic_skill:
+                # Single-word query IS the skill
+                topic_skill = (question or "").strip().rstrip("?")
+
+            topic_lower = topic_skill.lower()
+            all_skills_lower = [s.lower() for s in profile.get("skills", [])]
+            all_skills_text = " ".join(all_skills_lower)
+            found = any(topic_lower in s for s in all_skills_lower) or topic_lower in all_skills_text
+
+            if found:
+                matching = [s for s in profile.get("skills", []) if topic_lower in s.lower()]
+                evidence_str = ", ".join(matching[:3]) if matching else topic_skill.title()
+                return (
+                    f"Answer:\nYes\n\n"
+                    f"Reason:\n{topic_skill.title()} is listed in the candidate's skill set.\n\n"
+                    f"Evidence:\n{evidence_str}\n\n"
+                    f"Confidence:\n92%"
+                )
+            else:
+                return (
+                    f"Answer:\nNo\n\n"
+                    f"Reason:\nThe resume does not mention {topic_skill.title()} in the skills section.\n\n"
+                    f"Evidence:\nSkills section\n\n"
+                    f"Confidence:\n88%"
+                )
+
+        elif intent_upper == "ROLE_COMPARE":
+            q_lower = (question or "").lower()
+            # Extract two roles from query: "HR Manager vs HR Business Partner"
+            vs_match = re.search(r'(.+?)\s+(?:vs\.?|versus|or|compared to|and)\s+(.+?)(?:\?|$)', q_lower)
+            if vs_match:
+                role_a = vs_match.group(1).strip().title()
+                role_b = vs_match.group(2).strip().title()
+                comparison = role_inference_engine.compare_roles(entities, role_a, role_b, profile["domain"])
+                ra = comparison[role_a]
+                rb = comparison[role_b]
+                return (
+                    f"Role Comparison: {role_a} vs {role_b}\n\n"
+                    f"**{role_a}:** {ra['match_percentage']}% match — {ra['suitability_tier']}\n"
+                    f"  Matching: {', '.join(ra['matching_skills']) or 'Core domain skills'}\n"
+                    f"  Missing: {', '.join(ra['missing_skills']) or 'None'}\n\n"
+                    f"**{role_b}:** {rb['match_percentage']}% match — {rb['suitability_tier']}\n"
+                    f"  Matching: {', '.join(rb['matching_skills']) or 'Core domain skills'}\n"
+                    f"  Missing: {', '.join(rb['missing_skills']) or 'None'}\n\n"
+                    f"Recommendation: {comparison['recommendation']}"
+                )
+            return "Please specify two roles to compare (e.g. 'HR Manager vs HR Business Partner')."
 
         elif intent_upper == "HUMAN_LANGUAGES":
             langs = entities.get("human_languages") or entities.get("languages") or []
-            langs = validate_languages(langs)
-            if not langs and facts:
-                HUMAN_LANGS = {
-                    "english", "tamil", "hindi", "french", "german", "spanish", "mandarin", 
-                    "japanese", "russian", "arabic", "bengali", "portuguese", "urdu", 
-                    "telugu", "marathi", "kannada", "malayalam", "gujarati", "punjabi"
-                }
-                for f in facts:
-                    for line in f.split('\n'):
-                        for word in re.findall(r'\b\w+\b', line.lower()):
-                            if word in HUMAN_LANGS:
-                                langs.append(word.title())
-                langs = validate_languages(langs)
-            return langs if langs else None
+            return validate_languages(langs) if langs else None
 
         elif intent_upper == "PROGRAMMING_LANGUAGES":
-            prog = entities.get("programming_languages") or []
-            if not prog and facts:
-                PROGRAMMING_LANGS = {
-                    "php", "python", "java", "javascript", "c#", "c++", "c", "ruby", "golang", 
-                    "swift", "kotlin", "typescript", "rust", "scala", "perl", "r", "shell", "bash",
-                    "sql", "html", "css", "assembly"
-                }
-                for f in facts:
-                    for line in f.split('\n'):
-                        for word in re.findall(r'\b[\w+#+]+\b', line.lower()):
-                            if word in PROGRAMMING_LANGS:
-                                prog.append(word.title())
-            return prog if prog else None
-
-        elif intent_upper == "OBJECTIVE":
-            return entities.get("objective") or (facts[0] if facts else None)
+            progs = profile.get("programming_languages", [])
+            return progs if progs else profile.get("skills") or None
 
         elif intent_upper in ["SUMMARY", "PROFILE_SUMMARY"]:
-            name = entities.get("candidate_name")
-            exp_list = entities.get("experience") or []
-            total_exp = calculate_total_experience(exp_list)
-            role = entities.get("designation") or ("Professional" if exp_list else None)
-            edu_list = entities.get("education") or []
-            edu_str = edu_list[0] if edu_list else None
-            skills_list = entities.get("skills") or []
-            skills_str = ", ".join(skills_list[:5]) if skills_list else None
-            proj_list = entities.get("projects") or []
-            proj_str = ", ".join(proj_list[:2]) if proj_list else None
-            
-            parts = []
-            if name:
-                parts.append(f"{name.strip()} is a professional {role or 'Candidate'}.")
-            else:
-                parts.append(f"The candidate is a professional {role or 'Candidate'}.")
-                
-            if total_exp != "0 years":
-                parts.append(f"They have a total of {total_exp} of professional work experience.")
-                
-            if edu_str:
-                clean_edu = edu_str.split('\n')[0].strip()
-                parts.append(f"For their academic background, they completed {clean_edu}.")
-                
-            if skills_str:
-                parts.append(f"Their core technical skills include {skills_str}.")
-                
-            if proj_str:
-                clean_proj = proj_str.split('\n')[0].replace("Project Name:", "").strip()
-                parts.append(f"Additionally, they have successfully developed major projects such as {clean_proj}.")
-                
-            parts.append(f"They are committed to leveraging their expertise for software design and organizational development.")
-            
-            summary_paragraph = " ".join(parts)
-            words = summary_paragraph.split()
-            if len(words) > 120:
-                summary_paragraph = " ".join(words[:120]) + "."
-            return summary_paragraph
+            roles_str = ", ".join(profile["recommended_roles"]) if profile["recommended_roles"] else profile["designation"]
+            edu_list = profile.get("education", [])
+            edu_str = edu_list[0]["degree"] if edu_list and edu_list[0].get("degree") != "Not Mentioned" else "Not Mentioned"
+            certs = profile.get("certifications", [])
+            certs_str = ", ".join(certs[:3]) if certs else "Not Mentioned"
+            proj_list = profile.get("projects", [])
+            proj_str = "\n".join(f"• {p}" for p in proj_list[:3]) if proj_list else "• Not Mentioned"
+            skills_str = ", ".join(profile["skills"][:10]) if profile["skills"] else "Not Mentioned"
+
+            # Transition summary line
+            ct = profile.get("career_transition", {})
+            transition_line = ""
+            if ct.get("is_transition"):
+                transition_line = f"• **Career Path:** {ct.get('transition_path', '')}\n"
+
+            highlights = (
+                f"## Candidate Highlights\n\n"
+                f"### Candidate Overview\n"
+                f"• **Name:** {profile['name']}\n"
+                f"• **Designation:** {profile['designation']}\n"
+                f"• **Primary Domain:** {profile['domain']} ({profile.get('primary_domain_confidence', '—')}% confidence)\n"
+                f"{transition_line}"
+                f"• **Total Experience:** {profile['total_experience']}\n"
+                f"• **Current Domain Experience:** {profile.get('current_domain_experience', 'Not Mentioned')}\n"
+                f"• **Recommended Roles:** {roles_str}\n\n"
+                f"### Education\n"
+                f"• {edu_str}\n\n"
+                f"### Technical & Professional Expertise\n"
+                f"• **Core Skills:** {skills_str}\n"
+                f"• **HR Skills:** {', '.join(profile.get('hr_skills', [])) or 'Not Mentioned'}\n"
+                f"• **ERP Systems:** {', '.join(profile.get('erp_platforms', [])) or 'Not Mentioned'}\n\n"
+                f"### Certifications\n"
+                f"• {certs_str}\n\n"
+                f"### Awards & Recognitions\n"
+                f"• {', '.join(a['name'] for a in profile.get('awards', [])[:3]) or 'Not Mentioned'}\n\n"
+                f"### Key Projects\n"
+                f"{proj_str}"
+            )
+            return highlights
 
         elif intent_upper == "SKILLS":
-            is_framework = False
-            if question:
-                q_lower = question.lower()
-                if "framework" in q_lower or "library" in q_lower or "libraries" in q_lower:
-                    is_framework = True
-            
-            skills_val = entities.get("skills") or []
-            if is_framework and skills_val:
+            if question and any(fw_kw in question.lower() for fw_kw in ["framework", "library", "libraries"]):
                 FRAMEWORKS = {
-                    "yii2", "angular", "angular 4", "angularjs", "react", "react native", 
-                    "vue", "django", "flask", "laravel", "spring", "spring boot", "express", 
-                    "next.js", "nextjs", "nuxt", "svelte", "jquery", "bootstrap", "tailwind", 
-                    "fastapi", "rails", "ruby on rails", "asp.net", "symfony", "codeigniter"
+                    "yii2", "angular", "react", "vue", "django", "flask", "laravel",
+                    "spring", "express", "next.js", "fastapi", "rails", "asp.net"
                 }
-                frameworks_found = [s for s in skills_val if any(fw in s.lower() for fw in FRAMEWORKS)]
-                return frameworks_found if frameworks_found else None
-            return skills_val if skills_val else None
+                found = [s for s in profile["skills"] if any(fw in s.lower() for fw in FRAMEWORKS)]
+                return found if found else None
+
+            # Return categorized skills for HR/domain resumes
+            hr_skills = profile.get("hr_skills", [])
+            tech_skills = profile.get("technical_skills", [])
+            soft_skills = profile.get("soft_skills", [])
+
+            if hr_skills:
+                result_parts = []
+                if hr_skills:
+                    result_parts.append(f"HR Skills: {', '.join(hr_skills)}")
+                if tech_skills:
+                    result_parts.append(f"Technical Skills: {', '.join(tech_skills)}")
+                if soft_skills:
+                    result_parts.append(f"Soft Skills: {', '.join(soft_skills)}")
+                return "\n".join(result_parts) if result_parts else profile["skills"]
+
+            return profile["skills"] if profile["skills"] else "Not Mentioned"
 
         elif intent_upper == "EDUCATION":
-            edu_val = entities.get("education") or []
-            if not edu_val:
-                return None
-                
             structured_edu = []
-            for item in edu_val:
-                item_str = str(item).strip()
-                degree = item_str
-                inst = "Not specified"
-                year = "Not specified"
-                pct = "Not specified"
-                
-                inst_match = re.search(r'\bat\s+([A-Za-z\s\d,]+)', item_str)
-                if inst_match:
-                    inst = inst_match.group(1).strip()
-                    degree = re.sub(r'\bat\s+([A-Za-z\s\d,]+)', '', degree).strip()
-                
-                year_match = re.search(r'\((\d{4})\)', item_str)
-                if year_match:
-                    year = year_match.group(1).strip()
-                    degree = re.sub(r'\((\d{4})\)', '', degree).strip()
-                
-                pct_match = re.search(r'\b(\d+(?:\.\d+)?%|\d+\.\d+\s*(?:CGPA|GPA)?)\b', item_str, re.IGNORECASE)
-                if pct_match:
-                    pct = pct_match.group(1).strip()
-                    degree = re.sub(r'\b(\d+(?:\.\d+)?%|\d+\.\d+\s*(?:CGPA|GPA)?)\b', '', degree, flags=re.IGNORECASE).strip()
-                
-                degree = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', degree).strip()
-                inst = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', inst).strip()
-                
-                block = f"{degree}\n  - Institution: {inst}\n  - University: {inst}\n  - Percentage/CGPA: {pct}\n  - Year: {year}"
+            for item in profile["education"]:
+                degree = item.get("degree", "Not Mentioned")
+                inst = item.get("institution", "Not Mentioned")
+                year = item.get("year", "Not Mentioned")
+                spec = item.get("specialization", "Not Mentioned")
+                cgpa = item.get("cgpa_percentage", "Not Mentioned")
+                edu_level = item.get("education_level", "")
+
+                if degree == "Not Mentioned" and inst == "Not Mentioned":
+                    continue
+
+                block = f"{edu_level + ': ' if edu_level and edu_level != 'Not Mentioned' else ''}{degree}"
+                if inst != "Not Mentioned":
+                    block += f"\n  Institution: {inst}"
+                if year != "Not Mentioned":
+                    block += f"\n  Year: {year}"
+                if spec != "Not Mentioned":
+                    block += f"\n  Specialization: {spec}"
+                if cgpa != "Not Mentioned":
+                    block += f"\n  CGPA/Percentage: {cgpa}"
                 structured_edu.append(block)
-            return structured_edu if structured_edu else None
+            return structured_edu if structured_edu else "Not Mentioned"
 
         elif intent_upper == "CERTIFICATIONS":
-            return entities.get("certifications") or None
+            certs = profile.get("certifications", [])
+            return certs if certs else "The resume does not mention any certifications."
 
         elif intent_upper in ["EXPERIENCE", "WORK_EXPERIENCE"]:
-            exp_val = entities.get("experience") or []
-            if not exp_val:
-                return None
-            
-            total_exp_val = calculate_total_experience(exp_val)
-            has_total_exp = any("total experience" in str(x).lower() for x in exp_val)
-            
-            structured_exp = []
-            for item in exp_val:
-                item_str = str(item).strip()
-                if "total experience" in item_str.lower():
-                    structured_exp.append(item_str)
-                    continue
-                role = "Professional"
-                company = "Organization"
-                duration = "Not specified"
-                
-                role_match = re.search(r'^([A-Za-z\s]+)\s+at\s+([A-Za-z\s\d,]+)', item_str)
-                if role_match:
-                    role = role_match.group(1).strip()
-                    company = role_match.group(2).strip()
-                else:
-                    parts = item_str.split('at')
-                    if len(parts) > 1:
-                        role = parts[0].strip()
-                        company = parts[1].strip()
-                    else:
-                        role = item_str
-                
-                dur_match = re.search(r'\(([^)]+)\)', item_str)
-                if dur_match:
-                    duration = dur_match.group(1).strip()
-                    company = re.sub(r'\([^)]+\)', '', company).strip()
-                
-                role = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', role).strip()
-                company = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', company).strip()
-                
-                block = f"{role} at {company} ({duration})\n  - Responsibilities: Handled project execution and technical responsibilities."
-                structured_exp.append(block)
-                
-            if not has_total_exp and total_exp_val != "0 years":
-                structured_exp.append(f"Total experience: {total_exp_val}")
-                
-            return structured_exp if structured_exp else None
+            if question:
+                q_lower = question.lower().strip()
+                if any(k in q_lower for k in ["years of experience", "how many years", "total experience"]):
+                    return f"Total Experience: {profile['total_experience']}"
+
+            ct = profile.get("career_transition", {})
+            per_domain = profile.get("per_domain_experience", {})
+
+            result = f"Total Professional Experience: {profile['total_experience']}"
+            if profile.get("current_domain_experience") and profile["current_domain_experience"] != "Not Mentioned":
+                result += f"\nCurrent Domain: {profile['current_domain_experience']}"
+            if per_domain and len(per_domain) > 1:
+                result += "\n\nExperience by Domain:"
+                for d, exp in per_domain.items():
+                    result += f"\n• {d}: {exp}"
+
+            timeline = profile.get("experience_timeline", [])
+            if timeline:
+                result += "\n\nWork History:"
+                for entry in reversed(timeline):
+                    result += f"\n• {entry.get('years', '')} — {entry.get('title', '')} at {entry.get('company', '')}"
+
+            return result
 
         elif intent_upper == "PROJECTS":
-            proj_val = entities.get("projects") or []
-            if not proj_val:
-                return None
-            structured_projects = []
-            for p in proj_val:
-                p_str = str(p).strip()
-                p_str = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', p_str).strip()
-                if not p_str:
-                    continue
-                parts = re.split(r'\s+-\s+|\s*:\s*', p_str, maxsplit=1)
-                title = parts[0].strip()
-                structured_projects.append(title)
-            return structured_projects if structured_projects else None
+            if not profile.get("has_dedicated_projects", False) or not profile["projects"]:
+                # Fallback to responsibilities from experience
+                hist = profile.get("experience_history", [])
+                if hist:
+                    resp_str = "\n".join(f"• {e}" for e in hist[:5])
+                    return (
+                        f"No separate Projects section was found in this resume.\n\n"
+                        f"Key Professional Responsibilities:\n{resp_str}"
+                    )
+                return "No separate Projects section was found in this resume. The resume does not detail individual projects."
+            return profile["projects"]
 
         elif intent_upper == "BASIC_PROFILE":
-            name = entities.get("candidate_name") or "Not Mentioned"
-            designation = entities.get("designation") or "Not Mentioned"
-            location = entities.get("address") or "Not Mentioned"
-            exp_list = entities.get("experience") or []
-            experience = calculate_total_experience(exp_list)
-            if experience == "0 years":
-                experience = "Not Mentioned"
-            edu_list = entities.get("education") or []
-            education = edu_list[0] if edu_list else "Not Mentioned"
-            email = entities.get("email") or "Not Mentioned"
-            phone = entities.get("phone") or "Not Mentioned"
-            
+            ct = profile.get("career_transition", {})
+            transition_str = ct.get("transition_path", "Not Mentioned") if ct.get("is_transition") else "Not Applicable"
             return {
-                "Name": name,
-                "Designation": designation,
-                "Location": location,
-                "Experience": experience,
-                "Education": education,
-                "Email": email,
-                "Phone": phone
+                "Name": profile["name"],
+                "Designation": profile["designation"],
+                "Primary Domain": profile["domain"],
+                "Secondary Domain": profile.get("secondary_domain", "Not Applicable"),
+                "Career Transition": transition_str,
+                "Total Experience": profile["total_experience"],
+                "Current Domain Experience": profile.get("current_domain_experience", "Not Mentioned"),
+                "Education": profile["education"][0]["degree"] if profile["education"] and profile["education"][0].get("degree") != "Not Mentioned" else "Not Mentioned",
+                "Email": profile["email"],
+                "Phone": profile["phone"],
+                "Current Location": profile.get("current_location", "Not Mentioned"),
+                "LinkedIn": profile["linkedin"],
+                "Recommended Roles": ", ".join(profile["recommended_roles"])
             }
 
-        filtered_facts = filter_facts_by_intent(facts, intent)
-        return filtered_facts if filtered_facts else None
+        elif intent_upper in ["GENERAL", "ROLE_INFERENCE"]:
+            q_for_role = question or "Role Suitability"
+            suitability_res = role_inference_engine.calculate_role_similarity(entities, q_for_role, profile["domain"])
+
+            matching_str = ", ".join(suitability_res["matching_skills"]) if suitability_res["matching_skills"] else "Core domain skills"
+            missing_str = ", ".join(suitability_res["missing_skills"]) if suitability_res["missing_skills"] else "None"
+
+            return (
+                f"Answer:\n{suitability_res['suitability_tier']} for {suitability_res['target_role']} (Match: {suitability_res['match_percentage']}%)\n\n"
+                f"Reason:\n{suitability_res['reason']}\n\n"
+                f"Matching Skills:\n{matching_str}\n\n"
+                f"Missing Skills:\n{missing_str}\n\n"
+                f"Evidence:\n{suitability_res['evidence']}\n\n"
+                f"Confidence:\n88%"
+            )
+
+        # Final fallback: return section-filtered facts or None if empty
+        filtered = filter_facts_by_intent(facts, intent)
+        return filtered if filtered else None
+
+    def calculate_resume_health_score(self, entities: Dict[str, Any], text: str = "") -> Dict[str, Any]:
+        """Calculates candidate Resume Health Score (0-100%) and itemized component checklist using CandidateProfileBuilder."""
+        from backend.app.services.reasoning.candidate_profile_builder import candidate_profile_builder
+        profile = candidate_profile_builder.build_profile(entities, text)
+        return {
+            "health_score": profile["health_score"],
+            "checklist": profile["health_checklist"]
+        }
+
+    def generate_candidate_insights(self, entities: Dict[str, Any], text: str = "") -> Dict[str, Any]:
+        """Generates candidate profile insights using CandidateProfileBuilder."""
+        from backend.app.services.reasoning.candidate_profile_builder import candidate_profile_builder
+        profile = candidate_profile_builder.build_profile(entities, text)
+        return profile["insights"]

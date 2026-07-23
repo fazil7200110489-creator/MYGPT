@@ -869,3 +869,443 @@
 2026-07-17 18:02:49 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
 2026-07-17 18:03:00 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
 2026-07-17 18:03:12 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:03:20 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:03:32 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:04:02 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:04:26 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:05:20 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:05:37 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:06:03 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:06:50 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:07:42 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:08:24 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:09:07 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:10:07 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:11:13 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:11:32 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:11:54 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:12:06 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:12:14 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:12:27 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:12:39 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:13:06 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:13:23 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:13:37 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:13:48 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:15:13 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:16:25 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-07-17 18:16:35 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-07-17 18:51:07 | WebSocket client disconnected from training stream.
+2026-07-17 18:51:15 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:51:35 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:51:44 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:52:04 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:52:21 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:52:33 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:53:32 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:54:25 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:54:35 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:55:15 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:55:45 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:56:05 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:56:17 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:56:30 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:56:40 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:56:57 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:57:17 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:57:40 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:57:54 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:58:07 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:58:32 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:59:00 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:59:19 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 18:59:38 | Saved training sample for doc_id 006273b7-d0f4-48c8-b9d5-059129e78e47 to D:\MYGPT\data\training_samples.jsonl
+2026-07-17 19:01:30 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-07-17 19:01:40 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-07-20 14:34:04 | Successfully restored training history.
+2026-07-20 14:34:52 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 14:35:47 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 14:35:57 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 14:36:20 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 14:36:34 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 14:37:21 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 14:59:40 | WebSocket client disconnected from training stream.
+2026-07-20 14:59:40 | WebSocket client disconnected from training stream.
+2026-07-20 14:59:52 | Successfully restored training history.
+2026-07-20 15:00:46 | WebSocket client disconnected from training stream.
+2026-07-20 15:00:46 | WebSocket client disconnected from training stream.
+2026-07-20 15:00:58 | Successfully restored training history.
+2026-07-20 15:01:17 | WebSocket client disconnected from training stream.
+2026-07-20 15:01:17 | WebSocket client disconnected from training stream.
+2026-07-20 15:01:29 | Successfully restored training history.
+2026-07-20 15:01:39 | WebSocket client disconnected from training stream.
+2026-07-20 15:01:39 | WebSocket client disconnected from training stream.
+2026-07-20 15:01:51 | Successfully restored training history.
+2026-07-20 15:02:09 | WebSocket client disconnected from training stream.
+2026-07-20 15:02:09 | WebSocket client disconnected from training stream.
+2026-07-20 15:02:20 | Successfully restored training history.
+2026-07-20 15:03:39 | WebSocket client disconnected from training stream.
+2026-07-20 15:03:40 | WebSocket client disconnected from training stream.
+2026-07-20 15:04:36 | Successfully restored training history.
+2026-07-20 15:05:16 | Successfully restored training history.
+2026-07-20 15:05:48 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:06:50 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:07:52 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:08:22 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:09:49 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:10:18 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:14:57 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:15:02 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:16:09 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:16:21 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:18:13 | Saved training sample for doc_id 71c78469-f9ed-48c0-b3dc-787b899fdfd4 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:37:13 | WebSocket client disconnected from training stream.
+2026-07-20 15:37:13 | WebSocket client disconnected from training stream.
+2026-07-20 15:37:30 | Successfully restored training history.
+2026-07-20 15:37:44 | WebSocket client disconnected from training stream.
+2026-07-20 15:37:44 | WebSocket client disconnected from training stream.
+2026-07-20 15:38:15 | Successfully restored training history.
+2026-07-20 15:43:20 | WebSocket client disconnected from training stream.
+2026-07-20 15:43:20 | WebSocket client disconnected from training stream.
+2026-07-20 15:43:47 | Successfully restored training history.
+2026-07-20 15:44:34 | WebSocket client disconnected from training stream.
+2026-07-20 15:44:34 | WebSocket client disconnected from training stream.
+2026-07-20 15:44:49 | Successfully restored training history.
+2026-07-20 15:45:25 | WebSocket client disconnected from training stream.
+2026-07-20 15:45:26 | WebSocket client disconnected from training stream.
+2026-07-20 15:46:04 | Successfully restored training history.
+2026-07-20 15:46:42 | WebSocket client disconnected from training stream.
+2026-07-20 15:46:42 | WebSocket client disconnected from training stream.
+2026-07-20 15:47:10 | Successfully restored training history.
+2026-07-20 15:47:53 | WebSocket client disconnected from training stream.
+2026-07-20 15:47:53 | WebSocket client disconnected from training stream.
+2026-07-20 15:48:27 | Successfully restored training history.
+2026-07-20 15:48:48 | WebSocket client disconnected from training stream.
+2026-07-20 15:49:16 | Successfully restored training history.
+2026-07-20 15:53:37 | WebSocket client disconnected from training stream.
+2026-07-20 15:53:37 | WebSocket client disconnected from training stream.
+2026-07-20 15:54:16 | Saved training sample for doc_id e7c3a66a-1c3c-448c-aa04-993213cdc773 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:54:28 | Saved training sample for doc_id e7c3a66a-1c3c-448c-aa04-993213cdc773 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:54:33 | Saved training sample for doc_id e7c3a66a-1c3c-448c-aa04-993213cdc773 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:54:57 | Saved training sample for doc_id e7c3a66a-1c3c-448c-aa04-993213cdc773 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 15:55:23 | WebSocket client disconnected from training stream.
+2026-07-20 15:55:23 | WebSocket client disconnected from training stream.
+2026-07-20 16:13:00 | Successfully restored training history.
+2026-07-20 16:13:23 | Successfully restored training history.
+2026-07-20 16:14:08 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:14:23 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:14:36 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:14:49 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:15:06 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:15:29 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:15:58 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:16:19 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:16:39 | Saved training sample for doc_id fb3d5363-fdd9-4064-9a3f-a452b4953f02 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:19:15 | WebSocket client disconnected from training stream.
+2026-07-20 16:20:05 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:20:47 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:21:04 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:21:37 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:22:41 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:22:49 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:22:59 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:34:54 | Saved training sample for doc_id aac04a46-f283-4835-a9d1-abd5f08c4cd7 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:35:25 | WebSocket client disconnected from training stream.
+2026-07-20 16:35:25 | WebSocket client disconnected from training stream.
+2026-07-20 16:35:33 | Saved training sample for doc_id e8bde23a-9d41-40ad-8f81-68b038d56010 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:36:06 | Saved training sample for doc_id e8bde23a-9d41-40ad-8f81-68b038d56010 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:36:18 | Saved training sample for doc_id e8bde23a-9d41-40ad-8f81-68b038d56010 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:36:42 | Saved training sample for doc_id e8bde23a-9d41-40ad-8f81-68b038d56010 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:37:02 | Saved training sample for doc_id e8bde23a-9d41-40ad-8f81-68b038d56010 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:37:12 | Saved training sample for doc_id e8bde23a-9d41-40ad-8f81-68b038d56010 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:37:20 | Saved training sample for doc_id e8bde23a-9d41-40ad-8f81-68b038d56010 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:39:02 | WebSocket client disconnected from training stream.
+2026-07-20 16:39:02 | WebSocket client disconnected from training stream.
+2026-07-20 16:39:14 | Saved training sample for doc_id 5db2f3bd-6a2e-4813-a768-79eb3438d4b5 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:39:28 | Saved training sample for doc_id 5db2f3bd-6a2e-4813-a768-79eb3438d4b5 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:39:36 | Saved training sample for doc_id 5db2f3bd-6a2e-4813-a768-79eb3438d4b5 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:39:48 | Saved training sample for doc_id 5db2f3bd-6a2e-4813-a768-79eb3438d4b5 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:40:12 | Saved training sample for doc_id 5db2f3bd-6a2e-4813-a768-79eb3438d4b5 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:40:31 | Saved training sample for doc_id 5db2f3bd-6a2e-4813-a768-79eb3438d4b5 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:41:25 | WebSocket client disconnected from training stream.
+2026-07-20 16:41:25 | WebSocket client disconnected from training stream.
+2026-07-20 16:42:01 | Saved training sample for doc_id 3f9b7214-70cc-4abd-afe5-0d56bc33c073 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:42:14 | Saved training sample for doc_id 3f9b7214-70cc-4abd-afe5-0d56bc33c073 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:42:33 | Saved training sample for doc_id 3f9b7214-70cc-4abd-afe5-0d56bc33c073 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:42:44 | Saved training sample for doc_id 3f9b7214-70cc-4abd-afe5-0d56bc33c073 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:42:54 | Saved training sample for doc_id 3f9b7214-70cc-4abd-afe5-0d56bc33c073 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:43:09 | Saved training sample for doc_id 3f9b7214-70cc-4abd-afe5-0d56bc33c073 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:43:18 | Saved training sample for doc_id 3f9b7214-70cc-4abd-afe5-0d56bc33c073 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:44:20 | WebSocket client disconnected from training stream.
+2026-07-20 16:44:20 | WebSocket client disconnected from training stream.
+2026-07-20 16:44:47 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:44:52 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:44:58 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:45:03 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:45:11 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 16:45:18 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:24:22 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-07-20 17:28:03 | WebSocket client disconnected from training stream.
+2026-07-20 17:28:03 | WebSocket client disconnected from training stream.
+2026-07-20 17:33:55 | Successfully restored training history.
+2026-07-20 17:33:56 | WebSocket client disconnected from training stream.
+2026-07-20 17:34:03 | WebSocket client disconnected from training stream.
+2026-07-20 17:34:03 | WebSocket client disconnected from training stream.
+2026-07-20 17:34:08 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:34:16 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:34:20 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:34:31 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:35:26 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:35:34 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:35:45 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:35:58 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:36:06 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:36:15 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:36:48 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:37:42 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:38:04 | Saved training sample for doc_id 47088dde-aa20-464f-874e-41de79c50b08 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 17:45:01 | WebSocket client disconnected from training stream.
+2026-07-20 17:45:01 | WebSocket client disconnected from training stream.
+2026-07-20 17:58:40 | Successfully restored training history.
+2026-07-20 17:59:16 | Successfully restored training history.
+2026-07-20 17:59:22 | WebSocket client disconnected from training stream.
+2026-07-20 17:59:53 | Saved training sample for doc_id 6cdbcf75-58a4-42f5-9970-92c0ff9dcb41 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:00:32 | Saved training sample for doc_id 6cdbcf75-58a4-42f5-9970-92c0ff9dcb41 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:00:57 | Saved training sample for doc_id 6cdbcf75-58a4-42f5-9970-92c0ff9dcb41 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:04:44 | Saved training sample for doc_id 6cdbcf75-58a4-42f5-9970-92c0ff9dcb41 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:05:09 | Saved training sample for doc_id 6cdbcf75-58a4-42f5-9970-92c0ff9dcb41 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:05:28 | WebSocket client disconnected from training stream.
+2026-07-20 18:05:28 | WebSocket client disconnected from training stream.
+2026-07-20 18:06:22 | Saved training sample for doc_id 08050ae8-191c-4cd3-8bf8-7c6e2406da30 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:06:38 | Saved training sample for doc_id 08050ae8-191c-4cd3-8bf8-7c6e2406da30 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:06:49 | Saved training sample for doc_id 08050ae8-191c-4cd3-8bf8-7c6e2406da30 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:07:09 | Saved training sample for doc_id 08050ae8-191c-4cd3-8bf8-7c6e2406da30 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:07:41 | Saved training sample for doc_id 08050ae8-191c-4cd3-8bf8-7c6e2406da30 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:07:59 | Saved training sample for doc_id 08050ae8-191c-4cd3-8bf8-7c6e2406da30 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:08:11 | Saved training sample for doc_id 08050ae8-191c-4cd3-8bf8-7c6e2406da30 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:16:31 | WebSocket client disconnected from training stream.
+2026-07-20 18:16:31 | WebSocket client disconnected from training stream.
+2026-07-20 18:32:57 | Successfully restored training history.
+2026-07-20 18:33:44 | Successfully restored training history.
+2026-07-20 18:39:14 | WebSocket client disconnected from training stream.
+2026-07-20 18:39:15 | WebSocket client disconnected from training stream.
+2026-07-20 18:42:03 | WebSocket client disconnected from training stream.
+2026-07-20 18:42:03 | WebSocket client disconnected from training stream.
+2026-07-20 18:44:45 | WebSocket client disconnected from training stream.
+2026-07-20 18:46:29 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:46:51 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:47:14 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:47:27 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:47:41 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:48:14 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:48:29 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:48:43 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:49:11 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:49:38 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:50:15 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:50:28 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:50:45 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:51:23 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 18:51:34 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-20 19:02:31 | WebSocket client disconnected from training stream.
+2026-07-20 19:02:31 | WebSocket client disconnected from training stream.
+2026-07-20 19:07:57 | WebSocket client disconnected from training stream.
+2026-07-20 19:07:57 | WebSocket client disconnected from training stream.
+2026-07-22 12:37:01 | Successfully restored training history.
+2026-07-22 12:37:13 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 12:37:26 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 12:37:29 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 12:38:15 | Saved training sample for doc_id 713ea054-d65c-49cd-ae44-659e52bc90e6 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 12:46:33 | WebSocket client disconnected from training stream.
+2026-07-22 12:46:33 | WebSocket client disconnected from training stream.
+2026-07-22 12:53:00 | Successfully restored training history.
+2026-07-22 12:56:14 | WebSocket client disconnected from training stream.
+2026-07-22 12:56:14 | WebSocket client disconnected from training stream.
+2026-07-22 13:07:07 | Successfully restored training history.
+2026-07-22 13:09:01 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:10:32 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:10:41 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:11:52 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:13:01 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:14:09 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:15:12 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:16:30 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:16:51 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:17:13 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:22:06 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:22:54 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 13:25:52 | WebSocket client disconnected from training stream.
+2026-07-22 13:25:53 | WebSocket client disconnected from training stream.
+2026-07-22 13:26:08 | Successfully restored training history.
+2026-07-22 13:26:28 | WebSocket client disconnected from training stream.
+2026-07-22 13:26:28 | WebSocket client disconnected from training stream.
+2026-07-22 13:26:50 | Successfully restored training history.
+2026-07-22 13:27:08 | WebSocket client disconnected from training stream.
+2026-07-22 13:27:08 | WebSocket client disconnected from training stream.
+2026-07-22 13:27:33 | Successfully restored training history.
+2026-07-22 13:28:05 | WebSocket client disconnected from training stream.
+2026-07-22 13:28:05 | WebSocket client disconnected from training stream.
+2026-07-22 13:28:25 | Successfully restored training history.
+2026-07-22 14:42:49 | WebSocket client disconnected from training stream.
+2026-07-22 14:42:49 | WebSocket client disconnected from training stream.
+2026-07-22 14:43:01 | Successfully restored training history.
+2026-07-22 14:43:31 | WebSocket client disconnected from training stream.
+2026-07-22 14:43:32 | WebSocket client disconnected from training stream.
+2026-07-22 14:43:43 | Successfully restored training history.
+2026-07-22 14:43:54 | WebSocket client disconnected from training stream.
+2026-07-22 14:43:54 | WebSocket client disconnected from training stream.
+2026-07-22 14:44:05 | Successfully restored training history.
+2026-07-22 14:45:02 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 14:45:27 | WebSocket client disconnected from training stream.
+2026-07-22 14:45:27 | WebSocket client disconnected from training stream.
+2026-07-22 14:45:57 | Successfully restored training history.
+2026-07-22 14:46:33 | WebSocket client disconnected from training stream.
+2026-07-22 14:46:33 | WebSocket client disconnected from training stream.
+2026-07-22 14:46:43 | Successfully restored training history.
+2026-07-22 14:47:30 | WebSocket client disconnected from training stream.
+2026-07-22 14:47:30 | WebSocket client disconnected from training stream.
+2026-07-22 14:47:48 | Successfully restored training history.
+2026-07-22 14:48:12 | WebSocket client disconnected from training stream.
+2026-07-22 14:48:23 | Successfully restored training history.
+2026-07-22 14:49:53 | WebSocket client disconnected from training stream.
+2026-07-22 14:49:53 | WebSocket client disconnected from training stream.
+2026-07-22 14:50:04 | Successfully restored training history.
+2026-07-22 14:50:51 | WebSocket client disconnected from training stream.
+2026-07-22 14:50:51 | WebSocket client disconnected from training stream.
+2026-07-22 14:51:11 | Successfully restored training history.
+2026-07-22 14:51:42 | WebSocket client disconnected from training stream.
+2026-07-22 14:51:42 | WebSocket client disconnected from training stream.
+2026-07-22 14:51:51 | Successfully restored training history.
+2026-07-22 14:54:36 | WebSocket client disconnected from training stream.
+2026-07-22 14:54:36 | WebSocket client disconnected from training stream.
+2026-07-22 14:54:50 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 14:55:00 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 14:55:12 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 14:55:29 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 14:57:50 | Saved training sample for doc_id 2176c492-b446-4896-b488-54a3c581c85e to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:12:28 | WebSocket client disconnected from training stream.
+2026-07-22 15:12:28 | WebSocket client disconnected from training stream.
+2026-07-22 15:13:19 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:13:31 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:14:30 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:14:49 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:17:34 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:18:42 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:28:48 | WebSocket client disconnected from training stream.
+2026-07-22 15:28:48 | WebSocket client disconnected from training stream.
+2026-07-22 15:32:46 | Successfully restored training history.
+2026-07-22 15:33:16 | Successfully restored training history.
+2026-07-22 15:34:01 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:34:17 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:34:38 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:35:11 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:35:21 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:35:36 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:35:50 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:36:06 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:36:16 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:36:28 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:36:51 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:37:10 | Saved training sample for doc_id 920d2d84-cc8d-41b1-b505-c41ebe90aca8 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 15:44:47 | WebSocket client disconnected from training stream.
+2026-07-22 15:44:47 | WebSocket client disconnected from training stream.
+2026-07-22 16:08:36 | Successfully restored training history.
+2026-07-22 16:10:14 | Saved training sample for doc_id 7155d1cc-ec2f-445c-a3ff-0c6e48e986e1 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:10:43 | Saved training sample for doc_id 7155d1cc-ec2f-445c-a3ff-0c6e48e986e1 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:10:57 | Saved training sample for doc_id 7155d1cc-ec2f-445c-a3ff-0c6e48e986e1 to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:12:10 | WebSocket client disconnected from training stream.
+2026-07-22 16:12:11 | WebSocket client disconnected from training stream.
+2026-07-22 16:12:40 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:12:54 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:13:01 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:13:26 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:13:42 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:13:55 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:14:36 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:21:19 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 16:33:14 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:23:12 | WebSocket client disconnected from training stream.
+2026-07-22 17:23:13 | WebSocket client disconnected from training stream.
+2026-07-22 17:23:44 | Successfully restored training history.
+2026-07-22 17:24:05 | WebSocket client disconnected from training stream.
+2026-07-22 17:24:05 | WebSocket client disconnected from training stream.
+2026-07-22 17:24:24 | Saved training sample for doc_id 749cc0a4-ee20-440f-bba0-17a621fe7f4a to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:27:11 | WebSocket client disconnected from training stream.
+2026-07-22 17:27:11 | WebSocket client disconnected from training stream.
+2026-07-22 17:27:37 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:27:54 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:27:59 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:28:19 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:28:28 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:28:43 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:30:04 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:30:29 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:30:38 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:30:59 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:31:45 | WebSocket client disconnected from training stream.
+2026-07-22 17:31:45 | WebSocket client disconnected from training stream.
+2026-07-22 17:32:11 | Successfully restored training history.
+2026-07-22 17:32:25 | WebSocket client disconnected from training stream.
+2026-07-22 17:32:25 | WebSocket client disconnected from training stream.
+2026-07-22 17:32:32 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:32:38 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:33:03 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:33:42 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:33:54 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:34:06 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:34:25 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:34:48 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 17:35:03 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:02:48 | WebSocket client disconnected from training stream.
+2026-07-22 18:02:48 | WebSocket client disconnected from training stream.
+2026-07-22 18:03:01 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:03:22 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:03:35 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:04:09 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:04:22 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:04:37 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:04:58 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:05:06 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:05:11 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:05:17 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:05:32 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:05:59 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:06:12 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:06:25 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:07:23 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:07:37 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:07:46 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:13:05 | WebSocket client disconnected from training stream.
+2026-07-22 18:13:09 | WebSocket client disconnected from training stream.
+2026-07-22 18:13:36 | WebSocket client disconnected from training stream.
+2026-07-22 18:14:14 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-07-22 18:54:32 | WebSocket client disconnected from training stream.
+2026-07-22 18:54:32 | WebSocket client disconnected from training stream.
+2026-07-22 18:54:57 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:55:04 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:55:17 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:55:23 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:55:34 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:55:47 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:56:04 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:56:12 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:56:22 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:56:50 | Saved training sample for doc_id 1947c81d-2d35-45a0-a6c9-fcca1ead210b to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:57:53 | WebSocket client disconnected from training stream.
+2026-07-22 18:57:53 | WebSocket client disconnected from training stream.
+2026-07-22 18:58:10 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:58:30 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:58:55 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:59:18 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:59:29 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 18:59:38 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:00:24 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:00:39 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:00:58 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:01:18 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:01:52 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:02:10 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:02:16 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:02:34 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:03:01 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl
+2026-07-22 19:03:22 | Saved training sample for doc_id b5ff32ac-32fc-4996-92bc-6c9e3413a5cd to D:\MYGPT\data\training_samples.jsonl

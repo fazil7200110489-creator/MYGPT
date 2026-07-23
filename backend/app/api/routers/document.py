@@ -87,18 +87,58 @@ async def delete_document(doc_id: str) -> Dict[str, Any]:
 
 @router.get("/document/{doc_id}")
 async def get_document_details(doc_id: str) -> Dict[str, Any]:
-    """Retrieves document metadata and its parsed text chunks."""
+    """Retrieves document metadata, parsed chunks, and backend-calculated candidate intelligence."""
     meta = document_manager.get_document(doc_id)
     if not meta:
         raise HTTPException(status_code=404, detail="Document not found")
         
     chunks = storage_service.get_chunks(doc_id)
-    # Clean embeddings out of response payload
     clean_chunks = [{k: v for k, v in c.items() if k != "embedding"} for c in chunks]
-    
+
+    # Fetch structured knowledge & backend-calculated candidate profile metrics
+    from backend.app.services.knowledge_service import knowledge_store
+    from backend.app.services.reasoning.specialists.resume_reasoner import ResumeReasoner
+    from backend.app.services.reasoning.domain_detector import domain_detector
+    from backend.app.services.reasoning.role_inference_engine import role_inference_engine
+
+    knowledge = knowledge_store.get_knowledge(doc_id) or {}
+    entities = knowledge.get("entities", {})
+    text = "\n".join(c.get("text", "") for c in chunks)
+
+    resume_reasoner = ResumeReasoner()
+    resume_reasoner.pre_resolve_entities(entities, [text] if text else [])
+
+    health = resume_reasoner.calculate_resume_health_score(entities)
+    insights = resume_reasoner.generate_candidate_insights(entities, text)
+    domain = domain_detector.detect_domain(entities, text)
+    default_role_match = role_inference_engine.calculate_role_similarity(entities, target_role_query="", domain=domain)
+
+    candidate_profile = {
+        "name": entities.get("candidate_name") or entities.get("name") or meta.get("filename"),
+        "designation": entities.get("designation") or "Professional",
+        "domain": domain,
+        "total_experience": entities.get("experience_total") or "Not specified",
+        "education": entities.get("education") or [],
+        "skills": entities.get("skills") or [],
+        "projects": entities.get("projects") or [],
+        "certifications": entities.get("certifications") or [],
+        "email": entities.get("email"),
+        "phone": entities.get("phone"),
+        "address": entities.get("address"),
+        "linkedin": entities.get("linkedin"),
+        "github": entities.get("github"),
+        "portfolio": entities.get("portfolio")
+    }
+
     return {
         "metadata": meta,
-        "chunks": clean_chunks
+        "chunks": clean_chunks,
+        "knowledge": knowledge,
+        "profile": candidate_profile,
+        "health_score": health["health_score"],
+        "health_checklist": health["checklist"],
+        "insights": insights,
+        "role_match": default_role_match
     }
 
 

@@ -45,6 +45,7 @@ This project is an educational, step-by-step walkthrough of building, training, 
    pip install -r requirements.txt
    ```
 <!-- Activate the virtual environment -->
+venv\Scripts\activate
 
    venv\Scripts\activate   
 <!-- ### server start  -->

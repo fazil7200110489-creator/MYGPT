@@ -288,14 +288,22 @@ class AnswerFormatter:
 
         # Determine formatted output based on intent
         intent_upper = intent.upper() if intent else ""
-        if intent_upper == "SUMMARY":
-            formatted_answer = f"## Summary\n{answer}"
-        elif intent_upper in ["SKILLS", "TECHNOLOGIES", "PROJECTS"]:
-            formatted_answer = format_list_answer(answer)
-        elif intent_upper == "COMPARISON":
-            formatted_answer = format_comparison_answer(answer)
-        elif intent_upper == "Research":
-            formatted_answer = format_research_answer(answer)
+        
+        # Check if answer already has Answer / Reason / Evidence format
+        if "Answer:" in answer and "Reason:" in answer:
+            formatted_answer = answer
+        elif intent_upper == "SUMMARY":
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nSynthesized executive profile summary based on extracted resume sections.\n\n**Evidence:**\nProfile Overview & Skills\n\n**Confidence:**\n{confidence_pct}%"
+        elif intent_upper in ["SKILLS", "TECHNOLOGIES"]:
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted technical competencies from the candidate profile.\n\n**Evidence:**\nTechnical Skills section\n\n**Confidence:**\n{confidence_pct}%"
+        elif intent_upper == "EXPERIENCE":
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted work experience timeline from candidate record.\n\n**Evidence:**\nWork Experience section\n\n**Confidence:**\n{confidence_pct}%"
+        elif intent_upper == "EDUCATION":
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted academic qualifications from candidate record.\n\n**Evidence:**\nEducation section\n\n**Confidence:**\n{confidence_pct}%"
+        elif intent_upper == "PROJECTS":
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted key candidate project portfolio items.\n\n**Evidence:**\nProjects section\n\n**Confidence:**\n{confidence_pct}%"
+        elif intent_upper in ["PHONE", "EMAIL", "ADDRESS", "CANDIDATE_NAME", "DESIGNATION", "LINKEDIN", "GITHUB", "PORTFOLIO", "CONTACT"]:
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted contact & personal identity information.\n\n**Evidence:**\nHeader / Contact section\n\n**Confidence:**\n{confidence_pct}%"
         else:
             formatted_answer = answer
 

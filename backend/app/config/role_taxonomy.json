@@ -1,0 +1,148 @@
+{
+  "Finance & Accounts": {
+    "Accountant": {
+      "required": ["tally", "gst", "accounting", "bookkeeping", "balance sheet"],
+      "description": "handling general accounting, Tally ERP, GST returns, bookkeeping, and balance sheets."
+    },
+    "Taxation Consultant": {
+      "required": ["gst", "income tax", "tds", "taxation", "auditing"],
+      "description": "tax planning, GST compliance, TDS filing, and statutory audits."
+    },
+    "Finance Analyst": {
+      "required": ["sap fico", "financial reporting", "financial analysis", "budgeting", "excel"],
+      "description": "financial modeling, SAP FICO, financial statement analysis, and budgeting."
+    },
+    "Accounts Executive": {
+      "required": ["tally", "gst", "invoicing", "accounts payable", "accounts receivable"],
+      "description": "daily voucher posting, GST invoicing, accounts payable, and receivable management."
+    },
+    "Accounts Payable Analyst": {
+      "required": ["accounts payable", "invoicing", "reconciliation", "erp", "vendor payments"],
+      "description": "managing accounts payable, invoice verification, vendor reconciliation, and payment processing."
+    }
+  },
+  "HR & Talent Acquisition": {
+    "HR Executive": {
+      "required": ["hrms", "payroll", "onboarding", "employee relations", "labor laws", "recruitment"],
+      "description": "managing HR operations, HRMS, payroll processing, onboarding, and employee relations."
+    },
+    "Recruiter": {
+      "required": ["recruitment", "sourcing", "staffing", "interviewing", "talent acquisition"],
+      "description": "end-to-end recruitment, candidate sourcing, talent acquisition, and interviewing."
+    },
+    "Talent Acquisition": {
+      "required": ["sourcing", "screening", "headhunting", "portal sourcing", "naukri", "linkedin"],
+      "description": "strategic talent sourcing, executive headhunting, and recruitment analytics."
+    },
+    "Payroll Executive": {
+      "required": ["payroll", "attendance", "pf", "esi", "compliance", "salary processing"],
+      "description": "monthly salary processing, PF/ESI compliance, and attendance management."
+    }
+  },
+  "Civil Engineering": {
+    "Site Engineer": {
+      "required": ["autocad", "site execution", "site supervision", "quality control", "concrete"],
+      "description": "on-site construction supervision, AutoCAD drawing interpretation, and quality checks."
+    },
+    "Civil Engineer": {
+      "required": ["autocad", "boq", "primavera", "site execution", "structural design"],
+      "description": "civil engineering design, AutoCAD modeling, BOQ estimation, and site execution."
+    },
+    "Planning Engineer": {
+      "required": ["primavera", "ms project", "project scheduling", "boq", "cost estimation"],
+      "description": "project timeline scheduling, Primavera P6 planning, and cost estimation."
+    },
+    "Quantity Surveyor": {
+      "required": ["boq", "estimation", "quantity surveying", "bill of quantities"],
+      "description": "bill of quantities (BOQ) preparation, cost estimation, and quantity surveying."
+    }
+  },
+  "Electrical Engineering": {
+    "Electrical Engineer": {
+      "required": ["mv panel", "lv panel", "transformer", "switchgear", "single line diagram"],
+      "description": "electrical system design, MV/LV panel installation, transformers, and switchgear."
+    },
+    "Maintenance Engineer": {
+      "required": ["transformer", "preventive maintenance", "breakdown maintenance", "motors", "cables"],
+      "description": "electrical plant maintenance, transformer servicing, and motor overhauls."
+    },
+    "Automation Engineer": {
+      "required": ["plc", "scada", "automation", "relays"],
+      "description": "industrial automation, PLC programming, SCADA integration, and control panels."
+    }
+  },
+  "Mechanical Engineering": {
+    "Mechanical Engineer": {
+      "required": ["solidworks", "catia", "hvac", "piping", "cad/cam", "maintenance"],
+      "description": "mechanical CAD modeling (SolidWorks/CATIA), HVAC systems, piping design, and maintenance."
+    },
+    "HVAC Engineer": {
+      "required": ["hvac", "chillers", "air conditioning", "duct design", "refrigeration"],
+      "description": "HVAC system layout, chiller plant maintenance, and ducting calculations."
+    }
+  },
+  "Data Analytics": {
+    "Data Analyst": {
+      "required": ["sql", "python", "power bi", "tableau", "excel", "data visualization"],
+      "description": "data analytics, SQL queries, Python data processing, Power BI/Tableau dashboarding."
+    },
+    "BI Analyst": {
+      "required": ["power bi", "tableau", "data warehousing", "etl", "data modeling"],
+      "description": "building business intelligence pipelines, data modeling, ETL, and enterprise dashboards."
+    },
+    "SQL Analyst": {
+      "required": ["sql", "mysql", "postgresql", "stored procedures", "queries"],
+      "description": "writing complex database queries, stored procedures, and data extraction."
+    }
+  },
+  "Software Development": {
+    "Full Stack Developer": {
+      "required": ["react", "node", "mongodb", "express", "javascript", "typescript", "django", "python"],
+      "description": "full-stack web application development across frontend and backend layers."
+    },
+    "Frontend Developer": {
+      "required": ["html", "css", "javascript", "react", "angular", "vue", "typescript"],
+      "description": "modern user interface and frontend web application development."
+    },
+    "Backend Developer": {
+      "required": ["node", "express", "python", "django", "fastapi", "java", "spring boot", ".net"],
+      "description": "backend server architecture, database integration, and microservice development."
+    },
+    "Mobile Developer": {
+      "required": ["flutter", "dart", "react native", "ios", "android", "swift", "kotlin"],
+      "description": "cross-platform or native mobile application development."
+    },
+    "Cloud & DevOps Engineer": {
+      "required": ["aws", "azure", "docker", "kubernetes", "git", "ci/cd"],
+      "description": "cloud infrastructure orchestration, Docker containerization, and CI/CD pipelines."
+    }
+  },
+  "QA & Testing": {
+    "QA Engineer": {
+      "required": ["selenium", "cypress", "automation testing", "test cases", "jira", "postman"],
+      "description": "quality assurance, automated test suite creation, manual testing, and bug tracking."
+    },
+    "Automation QA Engineer": {
+      "required": ["selenium", "automation testing", "cypress", "postman", "junit"],
+      "description": "automated test suite creation, regression testing, and CI test pipeline integration."
+    }
+  },
+  "Healthcare": {
+    "Staff Nurse": {
+      "required": ["patient care", "nursing", "icu", "vitals", "medication", "hospital"],
+      "description": "inpatient nursing care, administering medications, and vital monitoring."
+    },
+    "ICU Nurse": {
+      "required": ["icu", "critical care", "ventilator", "patient monitoring", "emergency"],
+      "description": "critical care unit nursing, ventilator operation, and emergency intervention."
+    },
+    "Clinical Nurse": {
+      "required": ["clinical nursing", "outpatient", "triage", "medical records"],
+      "description": "outpatient clinical assistance, patient triage, and medical documentation."
+    },
+    "Emergency Nurse": {
+      "required": ["emergency care", "trauma", "triage", "cpr", "first aid"],
+      "description": "emergency room trauma response, CPR administration, and triage management."
+    }
+  }
+}

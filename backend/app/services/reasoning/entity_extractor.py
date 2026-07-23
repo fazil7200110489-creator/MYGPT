@@ -167,7 +167,12 @@ class EntityExtractor:
         if not entities["addresses"]:
             addr_text = sections.get("ADDRESS", "")
             if addr_text:
-                addr_lines = [l.strip() for l in addr_text.split('\n') if len(l.strip()) > 3]
+                addr_lines = []
+                for l in addr_text.split('\n'):
+                    l_str = l.strip()
+                    digits = re.sub(r'[^\d]', '', l_str)
+                    if len(l_str) > 3 and "@" not in l_str and "http" not in l_str and len(digits) < 6:
+                        addr_lines.append(l_str)
                 entities["addresses"] = addr_lines[:2]
 
         if not entities["skills"]:
