@@ -179,7 +179,10 @@ class DomainDetector:
                 pattern = r"\b" + re.escape(trig_lower) + r"\b" if " " not in trig_lower else trig_lower
 
                 # Designation match (Weight: 10.0) — highest signal
-                if trig_lower in desig_text or (pattern != trig_lower and re.search(pattern, desig_text)):
+                trig_words = re.findall(r"\b\w+\b", trig_lower)
+                if len(trig_words) > 1 and all(re.search(r'\b' + re.escape(w) + r'\b', desig_text) for w in trig_words):
+                    score += 10.0
+                elif trig_lower in desig_text or (pattern != trig_lower and re.search(pattern, desig_text)):
                     score += 10.0
 
                 # Work Experience & Responsibilities match (Weight: 3.0)

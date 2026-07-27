@@ -107,6 +107,90 @@ class RecruiterQueryPlanner:
                 degree = deg.upper()
                 break
 
+ROLE_ALIAS_MAP = {
+    "developer field": "Software Developer",
+    "developer job": "Software Developer",
+    "frontend job": "Frontend Developer",
+    "frontend field": "Frontend Developer",
+    "mern profile": "MERN Stack Developer",
+    "mern job": "MERN Stack Developer",
+    "backend job": "Backend Developer",
+    "backend field": "Backend Developer",
+    "devops job": "DevOps & Cloud Engineer",
+    "full stack job": "Full Stack Engineer",
+    "data job": "Data Analyst",
+    "hr job": "Human Resources (HR) Executive",
+    "accounts job": "Accountant",
+    "nursing job": "Staff Nurse"
+}
+
+SKILL_STOP_WORDS = {"the", "fies", "and", "with", "for", "this", "that", "from", "all", "both", "me", "show", "give", "resumes", "candidate", "candidates"}
+
+
+def normalize_role_name(raw_role: Optional[str]) -> Optional[str]:
+    """Normalizes raw role string against canonical role taxonomy."""
+    if not raw_role or not isinstance(raw_role, str):
+        return None
+
+    rl = raw_role.lower().strip()
+    if rl in ROLE_ALIAS_MAP:
+        return ROLE_ALIAS_MAP[rl]
+
+    for alias_k, canonical_v in ROLE_ALIAS_MAP.items():
+        if alias_k in rl:
+            return canonical_v
+
+    # Standard clean up (e.g. "frontend job" -> "Frontend Developer")
+    rl_clean = re.sub(r'\b(?:job|field|profile|position|role|opportunity|work)\b', '', rl).strip()
+    if rl_clean == "frontend": return "Frontend Developer"
+    if rl_clean == "backend": return "Backend Developer"
+    if rl_clean == "mern": return "MERN Stack Developer"
+    if rl_clean == "developer": return "Software Developer"
+
+    return raw_role.title().strip()
+
+
+class RecruiterQueryPlanner:
+    """Parses recruiter natural language query into a structured QueryPlan."""
+
+    def plan_query(self, query: str, default_intent: Optional[RecruiterIntent] = None) -> QueryPlan:
+        """Parse query string and return structured QueryPlan."""
+        intent = default_intent or recruiter_intent_classifier.classify(query)
+        q_lower = (query or "").lower().strip()
+
+        # 1. Limit extraction ("top 5", "first 3", "10 best")
+        limit = None
+        limit_match = re.search(r'\b(?:top|first|best)\s*(\d+)\b', q_lower)
+        if limit_match:
+            limit = int(limit_match.group(1))
+
+        # 2. Location extraction ("from chennai", "in bangalore", "chennai")
+        location = None
+        KNOWN_CITIES = ["chennai", "bangalore", "bengaluru", "kochi", "mumbai", "delhi", "hyderabad", "pune", "kolkata"]
+        for city in KNOWN_CITIES:
+            if re.search(r'\b' + city + r'\b', q_lower):
+                location = city.title()
+                break
+
+        # 3. Experience extraction ("3+ years", "5+ years experience", "freshers")
+        min_exp = None
+        is_fresher = False
+        if "fresher" in q_lower or "student" in q_lower or "entry level" in q_lower:
+            is_fresher = True
+            min_exp = 0.0
+        else:
+            exp_match = re.search(r'\b(\d+(?:\.\d+)?)\s*(?:\+|\s*plus)?\s*(?:years?|yrs?)\b', q_lower)
+            if exp_match:
+                min_exp = float(exp_match.group(1))
+
+        # 4. Education extraction ("with mba", "with bca", "b.tech", "m.tech")
+        degree = None
+        DEGREES = ["mba", "bca", "mca", "b.tech", "m.tech", "bba", "b.sc", "m.sc", "mbbs", "nursing", "ca", "cma"]
+        for deg in DEGREES:
+            if re.search(r'\b' + re.escape(deg) + r'\b', q_lower):
+                degree = deg.upper()
+                break
+
         # 5. Role and Department Matching via RecruiterKnowledgeRegistry
         target_role = None
         department = None
@@ -120,6 +204,28 @@ class RecruiterQueryPlanner:
                 department = r.get("department")
                 matched_role_obj = r
                 break
+
+        # Check explicit ROLE_ALIAS_MAP
+        if not target_role:
+            for alias_k, canonical_v in ROLE_ALIAS_MAP.items():
+                if alias_k in q_lower:
+                    target_role = canonical_v
+                    break
+
+        # Fallback Dynamic Role Extraction from NL patterns
+        if not target_role:
+            role_patterns = [
+                r'\b(?:suitable for|matching|suitable|rank candidates for|rank for|shortlist for|candidates for|for)\s+([A-Za-z0-9\s\.\#\+\-]{3,30})\b',
+                r'\b([A-Za-z0-9\s\.\#\+\-]{3,25}\s+(?:developer|engineer|executive|specialist|manager|analyst|architect|lead|consultant|field|job|profile))\b'
+            ]
+            for pat in role_patterns:
+                m = re.search(pat, query, re.IGNORECASE)
+                if m:
+                    extracted = m.group(1).strip()
+                    stop_words = {"candidates", "all candidates", "the best", "best", "top candidates", "top 5", "me"}
+                    if extracted.lower() not in stop_words and len(extracted) >= 3:
+                        target_role = normalize_role_name(extracted)
+                        break
 
         # 6. Skill Extraction
         skills = []

@@ -193,13 +193,6 @@ class DocumentParser:
         logger.info("PARSING END")
         logger.info(f"TOTAL LATENCY (parse): {t_parse_total*1000:.2f} ms")
 
-        # Print extracted text with clear section headers
-        print("\n" + "="*80)
-        print(f"DEBUG: EXTRACTED TEXT FROM '{os.path.basename(filepath)}' (Size: {len(cleaned_text)} chars)")
-        print("="*80)
-        print(cleaned_text)
-        print("="*80 + "\n")
-
         return {
             "text": cleaned_text,
             "pages": cleaned_pages,

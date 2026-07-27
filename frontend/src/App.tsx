@@ -8,12 +8,13 @@ import {
   Download, ArrowRight, Eye, ChevronRight, Settings as SettingsIcon,
   Search, RefreshCw, MessageSquare, Upload, Trash2, Send, Bot, User,
   FileText, CheckCircle2, AlertCircle, GraduationCap, Briefcase,
-  Mail, Phone
+  Mail, Phone, Users
 } from 'lucide-react'
 import { useStore } from './store/useStore'
 import type { DashboardStats, SystemSettings, LossData, ValLossData } from './store/useStore'
 import { api } from './services/api'
 import { CandidateDashboard } from './components/CandidateDashboard'
+import { RecruiterPlatform } from './components/RecruiterPlatform'
 
 // Simple Toast implementation
 interface Toast {
@@ -39,6 +40,7 @@ export default function App() {
   } = useStore()
 
   // Local component states
+  const [activeProduct, setActiveProduct] = useState<'resume_intelligence' | 'recruiter_platform'>('resume_intelligence')
   const [toasts, setToasts] = useState<Toast[]>([])
   const [consoleCollapsed, setConsoleCollapsed] = useState(false)
   const [selectedTensor, setSelectedTensor] = useState<{
@@ -170,6 +172,33 @@ export default function App() {
           </div>
         </div>
 
+        {/* Product Switcher Bar */}
+        <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 shadow-2xs">
+          <button
+            onClick={() => setActiveProduct('resume_intelligence')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeProduct === 'resume_intelligence'
+                ? 'bg-white text-indigo-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <FileText className="h-4 w-4 text-indigo-600" />
+            <span>AI Resume Intelligence</span>
+          </button>
+
+          <button
+            onClick={() => setActiveProduct('recruiter_platform')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeProduct === 'recruiter_platform'
+                ? 'bg-purple-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            <span>Multi-Resume AI</span>
+          </button>
+        </div>
+
         <div className="flex items-center gap-5">
           {/* GPU Status Badge */}
           <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
@@ -197,6 +226,10 @@ export default function App() {
 
       {/* Workspace Frame */}
       <div className="flex flex-1 overflow-hidden">
+        {activeProduct === 'recruiter_platform' ? (
+          <RecruiterPlatform />
+        ) : (
+          <>
         
         {/* 2. Left Sidebar Navigation */}
         <aside className="w-64 glass-panel border-r border-slate-200/80 flex flex-col justify-between p-4 z-10 shrink-0">
@@ -440,6 +473,8 @@ export default function App() {
             </div>
           </div>
         </aside>
+        </>
+      )}
       </div>
 
       {/* Floating Toast Notification Grid */}

@@ -47,6 +47,8 @@ class EntityExtractor:
             k_facts = knowledge.get("facts", {}) if isinstance(knowledge.get("facts"), dict) else {}
             tables = knowledge.get("tables", [])
             entities["tables"] = tables
+            if "candidate_profiles" in knowledge:
+                entities["candidate_profiles"] = knowledge["candidate_profiles"]
 
         if profile:
             entities["candidate_profile"] = profile

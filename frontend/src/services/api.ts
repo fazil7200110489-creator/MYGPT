@@ -236,5 +236,61 @@ export const api = {
       throw new Error(errData.detail?.[0]?.msg || errData.message || 'Failed to save model config')
     }
     return res.json()
+  },
+
+  async queryRecruiterPlatform(query: string, sessionId: string = 'recruiter_session', selectedCandidateIds?: string[]) {
+    const res = await fetch(`${BASE_URL}/api/v2/recruiter/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        session_id: sessionId,
+        selected_candidate_ids: selectedCandidateIds || null
+      })
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Recruiter query failed')
+    }
+    return res.json()
+  },
+
+  async getCandidatePool(domain?: string, skill?: string, location?: string, status?: string) {
+    const params = new URLSearchParams()
+    if (domain) params.append('domain', domain)
+    if (skill) params.append('skill', skill)
+    if (location) params.append('location', location)
+    if (status) params.append('status', status)
+    
+    const res = await fetch(`${BASE_URL}/api/v2/recruiter/candidates?${params.toString()}`)
+    if (!res.ok) throw new Error('Failed to load candidate pool')
+    return res.json()
+  },
+
+  async updateCandidateStage(candidateId: string, stage: string, notes: string = '') {
+    const res = await fetch(`${BASE_URL}/api/v2/recruiter/candidates/${candidateId}/stage`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stage, notes })
+    })
+    if (!res.ok) throw new Error('Failed to update candidate stage')
+    return res.json()
+  },
+
+  async exportRecruiterReport(formatType: string = 'csv') {
+    const res = await fetch(`${BASE_URL}/api/v2/recruiter/export?format=${formatType}`)
+    if (!res.ok) throw new Error('Export report failed')
+    return res.json()
+  },
+
+  async deleteCandidateFromPool(candidateId: string) {
+    const res = await fetch(`${BASE_URL}/api/v2/recruiter/candidates/${candidateId}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Failed to delete candidate from pool')
+    }
+    return res.json()
   }
 }

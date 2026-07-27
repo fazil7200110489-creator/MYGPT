@@ -44,37 +44,63 @@ class CandidateComparisonEngine:
                 "suitability_tier": cand.get("suitability_tier"),
                 "total_experience": profile.get("total_experience", "Not Mentioned"),
                 "education": profile.get("education", [{}])[0].get("degree", "Not Mentioned") if profile.get("education") else "Not Mentioned",
+                "dimension_scores": cand.get("dimension_scores", {}),
                 "matched_skills": cand.get("matched_skills", []),
                 "missing_skills": cand.get("missing_skills", []),
                 "projects_count": len(profile.get("projects", [])),
                 "certifications_count": len(profile.get("certifications", [])),
                 "strengths": explanation.get("strengths", []),
-                "weaknesses": explanation.get("weaknesses", [])
+                "weaknesses": explanation.get("weaknesses", []),
+                "reasons": explanation.get("reasons", [])
             }
             candidate_matrix.append(cand_entry)
 
         winner = candidate_matrix[0]
         runner_up = candidate_matrix[1] if len(candidate_matrix) > 1 else None
 
+        # Build comparison sections matching Step 5 requirement
+        tech_comp = []
+        exp_comp = []
+        proj_comp = []
+        edu_comp = []
+
+        for c in candidate_matrix:
+            dims = c.get("dimension_scores", {})
+            tech_comp.append(f"{c['candidate_name']}: {dims.get('technical_skills', 0)}/100 (Matched: {', '.join(c['matched_skills'][:4]) or 'None'})")
+            exp_comp.append(f"{c['candidate_name']}: {c['total_experience']} (Score: {dims.get('experience', 0)}/100)")
+            proj_comp.append(f"{c['candidate_name']}: {c['projects_count']} project(s) (Score: {dims.get('project_match', dims.get('projects', 0))}/100)")
+            edu_comp.append(f"{c['candidate_name']}: {c['education']} (Score: {dims.get('education', 0)}/100)")
+
         if runner_up:
             margin = round(winner["overall_score"] - runner_up["overall_score"], 1)
-            comparison_rationale = (
-                f"{winner['candidate_name']} is recommended as the top candidate (Score: {winner['overall_score']}%) "
-                f"outperforming {runner_up['candidate_name']} (Score: {runner_up['overall_score']}%) by {margin} points. "
-                f"{winner['candidate_name']} offers higher skill alignment ({len(winner['matched_skills'])} matched skills vs {len(runner_up['matched_skills'])}) "
-                f"and {winner['total_experience']} of relevant experience."
+            reason = (
+                f"{winner['candidate_name']} is recommended as the top candidate (Score: {winner['overall_score']}/100) "
+                f"outperforming {runner_up['candidate_name']} (Score: {runner_up['overall_score']}/100) by {margin} points. "
+                f"{winner['candidate_name']} offers superior technical skill alignment ({len(winner['matched_skills'])} matched skills) "
+                f"and {winner['total_experience']} of experience."
             )
+            confidence = round(min(98.0, 85.0 + (margin * 1.5)), 1)
         else:
-            comparison_rationale = f"{winner['candidate_name']} is the sole candidate evaluated for this role with an overall score of {winner['overall_score']}%."
+            reason = f"{winner['candidate_name']} is the sole evaluated candidate with an overall score of {winner['overall_score']}/100."
+            confidence = 90.0
 
         result = {
             "target_role": requirement_profile.target_role,
             "department": requirement_profile.department,
             "candidates_compared_count": len(candidate_matrix),
-            "winner_candidate_id": winner["candidate_id"],
+            "winner": winner["candidate_name"],
             "winner_candidate_name": winner["candidate_name"],
+            "winner_candidate_id": winner["candidate_id"],
             "winner_score": winner["overall_score"],
-            "comparison_rationale": comparison_rationale,
+            "reason": reason,
+            "comparison_rationale": reason,
+            "confidence": confidence,
+            "comparisons": {
+                "technical_skills_comparison": tech_comp,
+                "experience_comparison": exp_comp,
+                "projects_comparison": proj_comp,
+                "education_comparison": edu_comp
+            },
             "candidate_matrix": candidate_matrix
         }
 

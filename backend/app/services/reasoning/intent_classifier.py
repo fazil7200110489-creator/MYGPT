@@ -98,7 +98,8 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
         "keywords": [
             "address", "location", "city", "residence", "place", "native", "native place",
             "hometown", "permanent location", "current location", "where is candidate from",
-            "where is the candidate from", "residence address", "full address", "district", "state"
+            "where is the candidate from", "residence address", "full address", "district", "state",
+            "give me the address", "give me address", "where is he from", "where is she from", "based in"
         ],
     },
     "COMPANIES": {
@@ -129,7 +130,8 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
         "entities": [QuestionEntity.WORK_EXPERIENCE],
         "keywords": [
             "experience", "experience of candidate", "work history", "employment",
-            "career", "company", "worked", "employment history", "career history"
+            "career", "company", "worked", "employment history", "career history",
+            "experienced"
         ],
     },
     "SKILLS": {
@@ -169,6 +171,7 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
         "keywords": [
             "education", "degree", "college", "university",
             "school", "academic", "graduation", "qualification",
+            "graduated", "graduate"
         ],
     },
     "HUMAN_LANGUAGES": {

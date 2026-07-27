@@ -130,6 +130,19 @@ class CandidatePoolStore:
             return True
         return False
 
+    def remove_candidate(self, identifier: str) -> bool:
+        """Remove a single candidate by candidate_id or doc_id."""
+        to_delete = None
+        for cid, rec in self._pool.items():
+            if cid == identifier or rec.get("doc_id") == identifier or rec.get("candidate_id") == identifier:
+                to_delete = cid
+                break
+        if to_delete and to_delete in self._pool:
+            del self._pool[to_delete]
+            logger.info(f"Removed candidate {to_delete} from CandidatePoolStore. Remaining pool size: {len(self._pool)}")
+            return True
+        return False
+
     def clear(self) -> None:
         """Clear all candidates from store."""
         self._pool.clear()

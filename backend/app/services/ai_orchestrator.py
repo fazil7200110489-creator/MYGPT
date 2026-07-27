@@ -80,6 +80,9 @@ class AIOrchestrator:
         """Runs the remaining chunking, embedding generation, and vector index persistence in a background worker thread."""
         t_total_start = time.time()
         
+        meta = document_manager.get_document(doc_id)
+        fname = meta["filename"] if meta else doc_id
+        
         try:
             # 1. Chunking
             document_manager.update_status(doc_id, "chunking")
@@ -109,6 +112,7 @@ class AIOrchestrator:
             knowledge_store.save_knowledge(doc_id, knowledge)
             logger.info("DOCUMENT UNDERSTANDING END")
             logger.info("Knowledge Built: YES")
+            logger.info(f"DEBUG STAGE: {fname} - Knowledge Saved ✓")
             
             # 2. Embedding Generation
             document_manager.update_status(doc_id, "embedding")
@@ -129,6 +133,7 @@ class AIOrchestrator:
             
             # 4. Ingestion complete
             document_manager.update_status(doc_id, "processed")
+            logger.info(f"DEBUG STAGE: {fname} - Frontend Status Updated ✓")
             t_total = time.time() - t_total_start
             logger.info(f"TOTAL LATENCY: {t_total*1000:.2f} ms")
             
@@ -156,11 +161,14 @@ class AIOrchestrator:
         # Get context summary for follow-up coherence
         context_summary = conversation_memory.get_context_summary(session_id)
 
-        # Auto-restore doc_id from conversation memory on follow-up questions
+        # Auto-restore doc_id from conversation memory on follow-up questions for single resume analysis
         if not doc_id:
             stored_doc_id = conversation_memory.get_active_document(session_id)
             if stored_doc_id:
                 doc_id = stored_doc_id
+
+        # 2.5 Infer user intent first so search can prioritize sections based on it
+        intent = reasoning_service.infer_intent(question)
 
         # 2. Search relevant document chunks locally (hybrid: keyword + semantic)
         retrieved_chunks = search_service.search(
@@ -169,10 +177,8 @@ class AIOrchestrator:
             top_k=top_k,
             similarity_threshold=similarity_threshold,
             context_summary=context_summary,
+            intent=intent,
         )
-
-        # 2.5 Infer user intent
-        intent = reasoning_service.infer_intent(question)
 
         # 3. Construct reasoning context block (de-duplicate & rank)
         logger.info("CONTEXT BUILD")

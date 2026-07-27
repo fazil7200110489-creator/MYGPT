@@ -896,15 +896,51 @@ class ReasoningService:
             # 2. Ingest or Load Knowledge Store Object
             from backend.app.services.knowledge_service import knowledge_store, knowledge_builder
             knowledge = None
-            if doc_id:
-                knowledge = knowledge_store.get_knowledge(doc_id)
+            candidate_profiles = []
+
+            # Determine doc_ids to load
+            target_doc_ids = []
+            if doc_id and doc_id != "all":
+                target_doc_ids = [doc_id]
             elif retrieved_chunks:
-                candidate_doc_id = retrieved_chunks[0].get("doc_id")
-                if candidate_doc_id:
-                    knowledge = knowledge_store.get_knowledge(candidate_doc_id)
-    
+                # Collect unique doc_ids from retrieved chunks, preserving order
+                seen = set()
+                for c in retrieved_chunks:
+                    d_id = c.get("doc_id")
+                    if d_id and d_id not in seen:
+                        seen.add(d_id)
+                        target_doc_ids.append(d_id)
+
+            if target_doc_ids:
+                # Load first one as primary knowledge to maintain backward compatibility
+                knowledge = knowledge_store.get_knowledge(target_doc_ids[0])
+                
+                # Load all candidate profiles
+                for d_id in target_doc_ids:
+                    kn = knowledge_store.get_knowledge(d_id)
+                    if kn:
+                        prof = kn.get("candidate_profile") or (kn.get("facts", {}).get("candidate_profile") if isinstance(kn.get("facts"), dict) else None)
+                        if prof:
+                            candidate_profiles.append(prof)
+
             if not knowledge and context:
                 knowledge = knowledge_builder.build_knowledge(context, ".txt")
+
+            # Attach candidate_profiles list to knowledge dict
+            if knowledge and candidate_profiles:
+                knowledge["candidate_profiles"] = candidate_profiles
+
+            # Temporary debug logging for verification (Phase 4)
+            from backend.app.services.recruiter.candidate_pool_store import candidate_pool_store
+            debug_lines = [
+                f"CandidatePool Count = {candidate_pool_store.count()}",
+                f"Retrieved Document IDs = {target_doc_ids}",
+                f"Loaded CandidateProfiles = {len(candidate_profiles)}",
+                f"Reasoning Candidate Count = {len(candidate_profiles)}"
+            ]
+            for line in debug_lines:
+                logger.info(f"DEBUG: {line}")
+                print(f"DEBUG: {line}")
     
             doc_type = knowledge.get("document_type", "Generic") if knowledge else "Generic"
     

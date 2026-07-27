@@ -108,10 +108,12 @@ class ModelManager:
         # Load last checkpoint if available to prevent starting from raw state
         checkpoint_dir = settings.CHECKPOINT_DIR
         if os.path.exists(checkpoint_dir):
-            files = [f for f in os.listdir(checkpoint_dir) if f.endswith(".pt")]
+            import re
+            files = [f for f in os.listdir(checkpoint_dir) if f.startswith("checkpoint_epoch_") and f.endswith(".pt")]
             if files:
-                last_ckpt = sorted(files)[-1]
                 try:
+                    # Sort files numerically by the epoch number extracted from the filename
+                    last_ckpt = sorted(files, key=lambda x: int(re.findall(r'\d+', x)[0]))[-1]
                     ckpt_path = os.path.join(checkpoint_dir, last_ckpt)
                     checkpoint = torch.load(ckpt_path, map_location="cpu")
                     # Synchronize parameters

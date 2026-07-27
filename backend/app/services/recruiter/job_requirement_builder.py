@@ -107,6 +107,20 @@ class JobRequirementBuilder:
             weights["skill_weight"] = float(role_obj.get("skill_weight", 4.0))
             weights["role_weight"] = float(role_obj.get("role_weight", 2.5))
             weights["domain_weight"] = float(role_obj.get("domain_weight", 2.0))
+        else:
+            # Dynamic inference fallback
+            from backend.app.services.recruiter.role_requirement_analyzer import role_requirement_analyzer
+            inferred = role_requirement_analyzer.analyze_role(target_role, explicit_skills=query_plan.skills)
+            department = inferred.department
+            req_skills = inferred.required_skills
+            pref_skills = inferred.preferred_skills
+            nice_skills = inferred.nice_to_have_skills
+            if not query_plan.min_experience:
+                min_exp = inferred.min_experience_years
+            edu_reqs = inferred.education_requirements
+            tools = inferred.tools
+            tech_stack = inferred.technology_stack
+            weights = inferred.weights
 
         # Merge additional explicit query skills into preferred/required
         if query_plan.skills:

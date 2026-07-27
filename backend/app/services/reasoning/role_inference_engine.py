@@ -63,7 +63,13 @@ class RoleInferenceEngine:
         """
         candidate_domain = domain or domain_detector.detect_domain(entities)
         desig = entities.get("designation") if isinstance(entities, dict) else None
-        candidate_desig = str(desig).strip() if desig else "Professional"
+        
+        # If designation is "Not Mentioned" or empty, infer designation from domain recommendation roles
+        if not desig or str(desig).strip() == "Not Mentioned" or str(desig).strip() == "":
+            recs = self.recommend_roles(entities, candidate_domain)
+            candidate_desig = recs[0] if recs else "Professional"
+        else:
+            candidate_desig = str(desig).strip()
 
         # Collect candidate skills into set
         candidate_skills: Set[str] = set()
@@ -140,6 +146,20 @@ class RoleInferenceEngine:
                 clean_query = re.sub(r'[?\.]', '', clean_query).strip()
                 target_role_name = clean_query.title() if clean_query else "Target Role"
                 target_domain = domain_detector.detect_domain({"designation": target_role_name}, "")
+
+        # Strict check to never return "Not Mentioned" as target role name
+        if not target_role_name or target_role_name == "Not Mentioned":
+            recs = self.recommend_roles(entities, candidate_domain)
+            target_role_name = recs[0] if recs else "Suitable Role"
+            
+            # Lookup role info again
+            target_domain = candidate_domain
+            target_role_info = None
+            for dom, roles in self.role_taxonomy.items():
+                if target_role_name in roles:
+                    target_role_info = roles[target_role_name]
+                    target_domain = dom
+                    break
 
         required_skills = target_role_info.get("required", []) if target_role_info else []
 

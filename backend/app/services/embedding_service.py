@@ -80,33 +80,15 @@ class MyGPTEmbedding(EmbeddingInterface):
                     # Replicate model forward pass layers up to ln_f
                     # 1. Embed tokens
                     x = model.token_embeddings(input_tensor)
-                    t_emb_shape = x.shape
                     # 2. Add positional encoding
                     x = model.pos_embeddings(x)
-                    t_pos_shape = x.shape
                     # 3. Propagate through stacked Transformer Blocks
                     for block in model.blocks:
                         x, _ = block(x)
-                    t_block_shape = x.shape
                     # 4. Apply pre-head normalizer
                     x = model.ln_f(x)
-                    t_ln_shape = x.shape
-                    
                     # Mean-pool along sequence dimension (dim=1) to yield dense sentence vector
                     pooled = x.mean(dim=1).squeeze(0)
-                    
-                    # Print PyTorch tensor shapes of inputs, intermediate hidden state vectors, and outputs
-                    print("\n" + "="*80)
-                    print(f"DEBUG: EMBEDDING TENSOR SHAPES FOR TEXT: '{text[:40]}...'")
-                    print("="*80)
-                    print(f"Input Tokens Tensor:       {input_tensor.shape}")
-                    print(f"Token Embeddings:          {t_emb_shape}")
-                    print(f"Positional Embeddings:     {t_pos_shape}")
-                    print(f"Stacked Transformer Block: {t_block_shape}")
-                    print(f"LayerNorm (ln_f):          {t_ln_shape}")
-                    print(f"Mean-Pooled Output Vector: {pooled.shape}")
-                    print("="*80 + "\n")
-
                     vector = pooled.cpu().numpy().tolist()
                     embeddings.append(vector)
             except Exception as e:
@@ -115,6 +97,7 @@ class MyGPTEmbedding(EmbeddingInterface):
                 embeddings.append([0.0] * embedding_dim)
 
         return embeddings
+
 
 
 # Instantiate MyGPT embedding service

@@ -21,6 +21,7 @@ class SearchService:
         top_k: int = 3,
         similarity_threshold: float = 0.0,
         context_summary: Optional[str] = None,
+        intent: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Searches local vector chunks using word, phrase, semantic, or hybrid models.
         
@@ -31,6 +32,7 @@ class SearchService:
             top_k: Limit returned results.
             similarity_threshold: Cosine similarity cutoff.
             context_summary: Optional trailing dialogue summary to prepend for semantic search coherence.
+            intent: Optional query intent for section-specific boosts.
             
         Returns:
             List of matches: [{"page_number": int, "chunk_id": str, "text": str, "similarity": float}]
@@ -89,6 +91,8 @@ class SearchService:
                 doc_id=doc_id,
                 top_k=top_k,
                 similarity_threshold=similarity_threshold,
+                query=query_lower,
+                intent=intent
             )
             for r in retrieved:
                 r["similarity"] = r.get("score", 0.0)
@@ -102,6 +106,8 @@ class SearchService:
                 doc_id=doc_id,
                 top_k=len(clean_chunks),
                 similarity_threshold=0.0,
+                query=query_lower,
+                intent=intent
             )
             
             for r in retrieved:

@@ -292,18 +292,22 @@ class AnswerFormatter:
         # Check if answer already has Answer / Reason / Evidence format
         if "Answer:" in answer and "Reason:" in answer:
             formatted_answer = answer
-        elif intent_upper == "SUMMARY":
+        elif intent_upper in ["SUMMARY", "PROFILE_SUMMARY"]:
             formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nSynthesized executive profile summary based on extracted resume sections.\n\n**Evidence:**\nProfile Overview & Skills\n\n**Confidence:**\n{confidence_pct}%"
-        elif intent_upper in ["SKILLS", "TECHNOLOGIES"]:
+        elif intent_upper in ["SKILLS", "TECHNOLOGIES", "PROGRAMMING_LANGUAGES", "SKILL_VERIFY"]:
             formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted technical competencies from the candidate profile.\n\n**Evidence:**\nTechnical Skills section\n\n**Confidence:**\n{confidence_pct}%"
-        elif intent_upper == "EXPERIENCE":
+        elif intent_upper in ["EXPERIENCE", "WORK_EXPERIENCE", "DOMAIN_EXPERIENCE", "TIMELINE", "CAREER_TRANSITION", "CURRENT_COMPANY"]:
             formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted work experience timeline from candidate record.\n\n**Evidence:**\nWork Experience section\n\n**Confidence:**\n{confidence_pct}%"
-        elif intent_upper == "EDUCATION":
+        elif intent_upper in ["EDUCATION", "CGPA", "GRADUATION_YEAR"]:
             formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted academic qualifications from candidate record.\n\n**Evidence:**\nEducation section\n\n**Confidence:**\n{confidence_pct}%"
         elif intent_upper == "PROJECTS":
             formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted key candidate project portfolio items.\n\n**Evidence:**\nProjects section\n\n**Confidence:**\n{confidence_pct}%"
-        elif intent_upper in ["PHONE", "EMAIL", "ADDRESS", "CANDIDATE_NAME", "DESIGNATION", "LINKEDIN", "GITHUB", "PORTFOLIO", "CONTACT"]:
+        elif intent_upper in ["CERTIFICATIONS", "AWARDS"]:
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted certifications and achievements from candidate record.\n\n**Evidence:**\nCertifications section\n\n**Confidence:**\n{confidence_pct}%"
+        elif intent_upper in ["PHONE", "EMAIL", "ADDRESS", "CANDIDATE_NAME", "DESIGNATION", "LINKEDIN", "GITHUB", "PORTFOLIO", "CONTACT", "CONTACT_DETAILS", "NAME", "NAMES", "FATHER_NAME", "MOTHER_NAME", "GENDER", "AGE", "DATE_OF_BIRTH", "MARITAL_STATUS", "HUMAN_LANGUAGES"]:
             formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nExtracted contact & personal identity information.\n\n**Evidence:**\nHeader / Contact section\n\n**Confidence:**\n{confidence_pct}%"
+        elif intent_upper in ["ROLE_INFERENCE", "ROLE_MATCH", "ROLE_COMPARE", "SUITABILITY"]:
+            formatted_answer = f"**Answer:**\n{answer}\n\n**Reason:**\nEvaluated role suitability and domain alignment.\n\n**Evidence:**\nSkills & Experience\n\n**Confidence:**\n{confidence_pct}%"
         else:
             formatted_answer = answer
 

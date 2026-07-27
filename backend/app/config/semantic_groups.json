@@ -1,0 +1,22 @@
+{
+  "Cloud Experience": {
+    "keywords": ["aws", "azure", "gcp", "google cloud", "amazon web services", "cloud computing", "lambda", "ec2", "s3", "rds", "cloudfront", "dynamodb"],
+    "description": "cloud infrastructure hosting and serverless application architectures"
+  },
+  "DevOps Experience": {
+    "keywords": ["docker", "kubernetes", "jenkins", "ci/cd", "terraform", "ansible", "pipelines", "actions", "circleci", "monitoring", "prometheus", "grafana", "gitops"],
+    "description": "automation of building, testing, containerizing, and deploying software projects"
+  },
+  "Security Experience": {
+    "keywords": ["owasp", "oauth", "jwt", "ssl", "tls", "cryptography", "encryption", "firewall", "cybersecurity", "penetration testing", "vulnerability", "auth0", "saml", "authorization", "authentication"],
+    "description": "application security design, user authorization flows, and platform hardening"
+  },
+  "AI/ML Experience": {
+    "keywords": ["tensorflow", "pytorch", "scikit-learn", "keras", "hugging face", "openai", "llama", "chatgpt", "machine learning", "deep learning", "nlp", "computer vision", "langchain", "prompt engineering", "embeddings", "vector database"],
+    "description": "developing artificial intelligence, machine learning pipelines, and large language model integrations"
+  },
+  "Leadership": {
+    "keywords": ["team lead", "managed", "led", "mentored", "leadership", "director", "head of", "scrum master", "agile lead", "project manager", "coordinator", "head"],
+    "description": "coordinating developers, mentoring peers, and leading feature release cycles"
+  }
+}

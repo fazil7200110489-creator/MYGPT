@@ -48,6 +48,7 @@ class SearchCoordinator:
             doc_id=doc_id,
             top_k=top_k,
             similarity_threshold=similarity_threshold,
+            query=query
         )
 
         # 3. Optional future step: Re-ranking/Keyword Hybrid blend

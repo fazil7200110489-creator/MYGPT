@@ -5,7 +5,7 @@ import { EducationCard } from './EducationCard'
 import { ProjectsCard } from './ProjectsCard'
 import { ContactCard } from './ContactCard'
 import { SummaryCard } from './SummaryCard'
-import { FileText, Building2, CheckCircle2 } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 
 export interface AnswerRendererProps {
   content: string
@@ -19,8 +19,8 @@ export function AnswerRenderer({ content, question, metadata }: AnswerRendererPr
   const lowerContent = c.toLowerCase()
 
   // 1. Role Suitability / Role Match Card
-  const isRoleMatchQuery = q.includes('suitable') || q.includes('fit') || q.includes('role') || q.includes('work as') || lowerContent.includes('overall match') || lowerContent.includes('candidate belongs to')
-  const hasAnswerYesNo = lowerContent.startsWith('answer:\nyes') || lowerContent.startsWith('answer:\nno') || lowerContent.startsWith('answer:\n') || lowerContent.startsWith('yes') || lowerContent.startsWith('no')
+  const isRoleMatchQuery = q.includes('role suitability') || q.includes('fit for role') || q.includes('suitable for role') || lowerContent.includes('overall match:')
+  const hasAnswerYesNo = lowerContent.startsWith('answer:\nyes') || lowerContent.startsWith('answer:\nno')
 
   if (isRoleMatchQuery && hasAnswerYesNo) {
     const isYes = lowerContent.includes('answer:\nyes') || lowerContent.startsWith('yes')
@@ -191,57 +191,184 @@ export function AnswerRenderer({ content, question, metadata }: AnswerRendererPr
     }
   }
 
-  // 8. Summary Card
-  if (q.includes('summarize') || q.includes('summary') || q.includes('overview') || q.includes('brief')) {
-    const candidateName = metadata?.entities?.name || 'Candidate'
-    const designation = metadata?.entities?.designation || 'Professional Specialist'
+  // 8. Multi-Candidate Summary Cards
+  if (q.includes('summarize') || q.includes('summary') || q.includes('overview') || q.includes('brief') || lowerContent.includes('candidate profile summary')) {
+    const candidateBlocks = c.split(/####\s*👤?\s*\*\*/).filter(b => b.trim().length > 0)
+
+    if (candidateBlocks.length > 1) {
+      return (
+        <div className="flex flex-col gap-4 my-2">
+          {candidateBlocks.map((block, idx) => {
+            const blockContent = '#### **' + block
+            const candidateName = block.split('**')[0]?.trim() || `Candidate ${idx+1}`
+            const designation = blockContent.match(/Current Role:\s*\*?([^\*\n]+)\*?/i)?.[1] || 'Professional Specialist'
+            const experience = blockContent.match(/Experience:\s*([^\n]+)/i)?.[1] || 'Experience Available'
+            const education = blockContent.match(/Education:\s*([^\n]+)/i)?.[1] || 'Credentials Available'
+            const skillsMatch = blockContent.match(/Technical Skills:\s*([^\n]+)/i)?.[1]
+            const skillsList = skillsMatch ? skillsMatch.split(',').map(s => s.trim()) : []
+            const projMatch = blockContent.match(/Projects:\s*([^\n]+)/i)?.[1]
+            const projList = projMatch ? projMatch.split(',').map(p => p.trim()) : []
+            const recMatch = blockContent.match(/Recommended Roles:\s*([^\n]+)/i)?.[1]
+            const recList = recMatch ? recMatch.split(',').map(r => r.trim()) : []
+
+            return (
+              <SummaryCard
+                key={idx}
+                name={candidateName}
+                currentRole={designation}
+                designation={designation}
+                domain="Enterprise Industry"
+                experience={experience}
+                education={education}
+                skills={skillsList}
+                projects={projList}
+                recommendedRoles={recList}
+                confidence={92 - (idx * 2)}
+                summaryText={blockContent}
+              />
+            )
+          })}
+        </div>
+      )
+    }
+
+    const candidateName = c.match(/####\s*👤?\s*\*\*([^\*]+)\*\*/)?.[1] || metadata?.entities?.name || 'Candidate'
+    const designation = c.match(/Current Role:\s*\*?([^\*\n]+)\*?/i)?.[1] || metadata?.entities?.designation || 'Professional Specialist'
     const domain = metadata?.entities?.domain || 'Enterprise Industry'
-    const experience = metadata?.entities?.experience || 'Work Experience Available'
-    const education = metadata?.entities?.education || 'Academic Credentials'
+    const experience = c.match(/Experience:\s*([^\n]+)/i)?.[1] || metadata?.entities?.experience || 'Work Experience Available'
+    const education = c.match(/Education:\s*([^\n]+)/i)?.[1] || metadata?.entities?.education || 'Academic Credentials'
+    const skillsMatch = c.match(/Technical Skills:\s*([^\n]+)/i)?.[1]
+    const skillsList = skillsMatch ? skillsMatch.split(',').map(s => s.trim()) : (metadata?.entities?.skills || [])
+    const projMatch = c.match(/Projects:\s*([^\n]+)/i)?.[1]
+    const projList = projMatch ? projMatch.split(',').map(p => p.trim()) : (metadata?.entities?.projects || [])
+    const recMatch = c.match(/Recommended Roles:\s*([^\n]+)/i)?.[1]
+    const recList = recMatch ? recMatch.split(',').map(r => r.trim()) : (metadata?.insights?.recommended_roles || [])
 
     return (
       <SummaryCard
         name={candidateName}
+        currentRole={designation}
         designation={designation}
         domain={domain}
         experience={experience}
         education={education}
+        skills={skillsList}
+        projects={projList}
+        recommendedRoles={recList}
+        confidence={metadata?.confidence || 92}
         summaryText={c}
       />
     )
   }
 
-  // 9. Structured Markdown Prose Renderer (High Contrast Default)
-  const lines = c.split('\n').map(l => l.trim()).filter(Boolean)
+  // 9. Conversational Markdown & Table Renderer
+  const rawLines = c.split('\n').map(l => l.trim()).filter(Boolean)
+  const isTableLine = (line: string) => line.startsWith('|') && line.endsWith('|')
 
-  return (
-    <div className="flex flex-col gap-3 my-1">
-      <div className="flex items-center gap-2 font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
-        <FileText className="h-4 w-4 text-indigo-600" />
-        <span>Executive Analysis</span>
-      </div>
+  // Check if content contains markdown table
+  const hasTable = rawLines.some(isTableLine)
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2.5">
-        {lines.map((line, idx) => {
-          const isBullet = line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || /^\d+[\.\)]/.test(line)
-          const cleanLine = line.replace(/^[•\-\*\d\.\)\s]+/, '').replace(/\*\*/g, '').trim()
+  if (hasTable) {
+    const tableLines = rawLines.filter(isTableLine)
+    const nonTableLines = rawLines.filter(l => !isTableLine(l))
 
-          if (isBullet) {
+    // Parse header and rows
+    const rows = tableLines
+      .filter(l => !l.includes(':---') && !l.includes('---'))
+      .map(l => l.split('|').map(cell => cell.trim()).filter(Boolean))
+
+    const headers = rows.length > 0 ? rows[0] : []
+    const bodyRows = rows.slice(1)
+
+    return (
+      <div className="flex flex-col gap-3 my-2 text-xs">
+        {/* Render Non-Table Text Header */}
+        {nonTableLines.map((line, idx) => {
+          if (line.startsWith('#')) {
             return (
-              <div key={idx} className="flex items-start gap-2 text-xs font-semibold text-slate-800 leading-relaxed">
-                <CheckCircle2 className="h-3.5 w-3.5 text-indigo-600 shrink-0 mt-0.5" />
-                <span>{cleanLine}</span>
-              </div>
+              <h3 key={idx} className="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-200 pb-1 flex items-center gap-1 text-purple-900">
+                {line.replace(/^#+\s*/, '')}
+              </h3>
             )
           }
-
-          return (
-            <p key={idx} className="text-xs font-semibold text-slate-800 leading-relaxed">
-              {line.replace(/\*\*/g, '')}
-            </p>
-          )
+          return <p key={idx} className="text-slate-800 font-medium">{line.replace(/\*\*/g, '')}</p>
         })}
+
+        {/* Render Styled Table */}
+        {headers.length > 0 && (
+          <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs bg-white">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-100/80 border-b border-slate-200 font-extrabold text-slate-900 text-[11px] uppercase tracking-wider">
+                  {headers.map((h, i) => (
+                    <th key={i} className="p-2.5">{h.replace(/\*\*/g, '')}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                {bodyRows.map((row, rIdx) => (
+                  <tr key={rIdx} className="hover:bg-indigo-50/30 transition-colors">
+                    {row.map((cell, cIdx) => {
+                      const cleanCell = cell.replace(/\*\*/g, '')
+                      const isRank = cleanCell.startsWith('#')
+                      const isScore = cleanCell.includes('/100') || cleanCell.includes('%')
+
+                      return (
+                        <td key={cIdx} className="p-2.5">
+                          {isRank ? (
+                            <span className="bg-purple-100 text-purple-900 border border-purple-300 font-black px-2 py-0.5 rounded-md text-[11px]">
+                              {cleanCell}
+                            </span>
+                          ) : isScore ? (
+                            <span className="bg-emerald-100 text-emerald-900 font-black px-2 py-0.5 rounded-md text-[11px]">
+                              {cleanCell}
+                            </span>
+                          ) : (
+                            cleanCell
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2 my-1 text-xs text-slate-800 font-medium leading-relaxed">
+      {rawLines.map((line, idx) => {
+        if (line.startsWith('### ') || line.startsWith('#### ') || line.startsWith('## ')) {
+          const headingText = line.replace(/^#+\s*/, '')
+          return (
+            <h3 key={idx} className="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-200 pb-1 mt-1 mb-0.5 flex items-center gap-1.5 text-purple-900">
+              {headingText}
+            </h3>
+          )
+        }
+
+        const isBullet = line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || /^\d+[\.\)]/.test(line)
+        const cleanLine = line.replace(/^[•\-\*\d\.\)\s]+/, '').replace(/\*\*/g, '').trim()
+
+        if (isBullet) {
+          return (
+            <div key={idx} className="flex items-start gap-2 text-xs font-medium text-slate-800 leading-relaxed pl-1">
+              <span className="text-purple-600 font-bold">•</span>
+              <span>{cleanLine}</span>
+            </div>
+          )
+        }
+
+        return (
+          <p key={idx} className="text-xs font-medium text-slate-800 leading-relaxed">
+            {line.replace(/\*\*/g, '')}
+          </p>
+        )
+      })}
     </div>
   )
 }

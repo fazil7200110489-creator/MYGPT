@@ -54,7 +54,7 @@ class RetrievalService:
         return len(words_a & words_b) / len(words_a)
 
     def _deduplicate_chunks(
-        self, scored_chunks: List[Dict[str, Any]], overlap_threshold: float = 0.70
+        self, scored_chunks: List[Dict[str, Any]], overlap_threshold: float = 0.65
     ) -> List[Dict[str, Any]]:
         """Removes lower-ranked chunks that are heavily overlapping with higher-ranked ones.
 
@@ -80,20 +80,55 @@ class RetrievalService:
                 kept.append(candidate)
         return kept
 
+    def _compress_context(self, text: str, query: str) -> str:
+        """Compresses a chunk's text by keeping sentences with query keyword overlap,
+        preserving paragraph context if it is already compact.
+        """
+        if not query or len(text) < 150:
+            return text
+            
+        # Clean query words (remove short stop words)
+        stop_words = {"what", "who", "is", "are", "the", "and", "for", "with", "from", "this", "that", "about", "describe", "explain", "summarize", "list", "show"}
+        query_words = [w.lower() for w in re.findall(r'\b\w{3,}\b', query) if w.lower() not in stop_words]
+        if not query_words:
+            return text
+            
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        kept_sentences = []
+        for s in sentences:
+            s_lower = s.lower()
+            # If sentence contains any query keyword, keep it
+            if any(w in s_lower for w in query_words):
+                kept_sentences.append(s)
+            # Also keep if it's very short (headings, dates)
+            elif len(s) < 45 and not any(ch in s for ch in ['.', '!', '?']):
+                kept_sentences.append(s)
+                
+        # If too few sentences kept, fall back to full text
+        if len(kept_sentences) < len(sentences) * 0.3 or len(kept_sentences) < 2:
+            return text
+            
+        return " ".join(kept_sentences)
+
     def retrieve_relevant_chunks(
         self,
         query_embedding: List[float],
         doc_id: Optional[str] = None,
         top_k: int = 3,
         similarity_threshold: float = 0.0,
+        query: Optional[str] = None,
+        intent: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """Retrieves and ranks the top-K non-overlapping chunks by cosine similarity score.
+        Supports resume-aware ranking boosts and semantic compression.
         
         Args:
             query_embedding: Embedding vector of the query.
             doc_id: Specific document ID to filter by. If None, searches all docs.
             top_k: Maximum number of chunks to return.
             similarity_threshold: Minimum similarity score.
+            query: Raw query text for context compression.
+            intent: Optional query intent for section-specific boosts.
             
         Returns:
             List of ranked, deduplicated chunk dictionaries (including score details).
@@ -116,6 +151,50 @@ class RetrievalService:
                 continue
 
             score = self._cosine_similarity(query_embedding, chunk_embedding)
+            
+            # --- Resume-aware ranking boost ---
+            # Prioritize matching sections based on intent
+            sec = str(chunk.get("section", "")).lower()
+            
+            intent_lower = ""
+            if intent:
+                intent_lower = intent.lower()
+            elif query:
+                q_lower = query.lower()
+                if any(k in q_lower for k in ["experience", "work", "employment", "career", "worked", "job", "history"]):
+                    intent_lower = "experience"
+                elif any(k in q_lower for k in ["education", "degree", "university", "college", "school", "graduate", "academic", "qualification"]):
+                    intent_lower = "education"
+                elif any(k in q_lower for k in ["skills", "technolog", "proficien", "language", "tool", "stack", "know"]):
+                    intent_lower = "skills"
+                elif any(k in q_lower for k in ["project", "build", "develop", "portfolio", "system", "app"]):
+                    intent_lower = "projects"
+                elif any(k in q_lower for k in ["certif", "award", "achieve", "training", "license"]):
+                    intent_lower = "certifications"
+
+            boost = 0.0
+            if intent_lower == "experience":
+                if any(kw in sec for kw in ["experience", "work", "employment", "history", "career"]):
+                    boost = 0.15
+            elif intent_lower == "education":
+                if any(kw in sec for kw in ["education", "academic", "qualification", "degree", "schooling"]):
+                    boost = 0.15
+            elif intent_lower == "skills":
+                if any(kw in sec for kw in ["skills", "technical skills", "technologies", "competencies", "expertise"]):
+                    boost = 0.15
+            elif intent_lower == "projects":
+                if any(kw in sec for kw in ["projects", "portfolio", "applications", "built"]):
+                    boost = 0.15
+            elif intent_lower == "certifications":
+                if any(kw in sec for kw in ["certifications", "certificates", "courses", "awards", "achievements"]):
+                    boost = 0.15
+            else:
+                # Default V1 boost
+                if any(kw in sec for kw in ["experience", "employment", "history", "profile", "projects"]):
+                    boost = 0.05
+                    
+            score += boost
+
             if score >= similarity_threshold:
                 # Store score and clean chunk mapping (remove raw float embedding from return payload)
                 clean_chunk = {k: v for k, v in chunk.items() if k != "embedding"}
@@ -126,11 +205,15 @@ class RetrievalService:
         scored_chunks.sort(key=lambda x: x["score"], reverse=True)
 
         # --- Overlap-aware deduplication ---
-        # Remove chunks that are > 70% contained within a higher-ranked chunk to
-        # prevent the reasoning engine from seeing near-identical text twice.
-        deduplicated = self._deduplicate_chunks(scored_chunks, overlap_threshold=0.70)
+        deduplicated = self._deduplicate_chunks(scored_chunks, overlap_threshold=0.65)
 
         results = deduplicated[:top_k]
+
+        # --- Context Compression ---
+        # Clean text sentences if query is provided to prioritize key entities matching the query
+        if query:
+            for r in results:
+                r["text"] = self._compress_context(r["text"], query)
 
         # Print cosine similarity scores and retrieved chunks with clear section headers
         print("\n" + "="*80)

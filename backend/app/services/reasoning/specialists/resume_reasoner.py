@@ -1031,7 +1031,12 @@ class ResumeReasoner:
 
         elif intent_upper in ["SUMMARY", "PROFILE_SUMMARY"]:
             recommended_roles = role_inference_engine.recommend_roles(profile, profile["domain"])
-            roles_str = ", ".join(recommended_roles) if recommended_roles else profile["designation"]
+            
+            display_desig = profile.get("designation")
+            if not display_desig or display_desig == "Not Mentioned":
+                display_desig = recommended_roles[0] if recommended_roles else "Professional"
+                
+            roles_str = ", ".join(recommended_roles) if recommended_roles else display_desig
             edu_list = profile.get("education", [])
             edu_str = edu_list[0]["degree"] if edu_list and edu_list[0].get("degree") != "Not Mentioned" else "Not Mentioned"
             certs = profile.get("certifications", [])
@@ -1046,16 +1051,22 @@ class ResumeReasoner:
             if ct.get("is_transition"):
                 transition_line = f"• **Career Path:** {ct.get('transition_path', '')}\n"
 
+            # Fetch strengths
+            strengths_list = profile.get("insights", {}).get("strengths", [])
+            strengths_str = "\n".join(f"• {s}" for s in strengths_list) if strengths_list else "• Not Mentioned"
+
             highlights = (
                 f"## Candidate Highlights\n\n"
                 f"### Candidate Overview\n"
                 f"• **Name:** {profile['name']}\n"
-                f"• **Designation:** {profile['designation']}\n"
+                f"• **Designation:** {display_desig}\n"
                 f"• **Primary Domain:** {profile['domain']} ({profile.get('primary_domain_confidence', '—')}% confidence)\n"
                 f"{transition_line}"
                 f"• **Total Experience:** {profile['total_experience']}\n"
                 f"• **Current Domain Experience:** {profile.get('current_domain_experience', 'Not Mentioned')}\n"
                 f"• **Recommended Roles:** {roles_str}\n\n"
+                f"### Strengths\n"
+                f"{strengths_str}\n\n"
                 f"### Education\n"
                 f"• {edu_str}\n\n"
                 f"### Technical & Professional Expertise\n"

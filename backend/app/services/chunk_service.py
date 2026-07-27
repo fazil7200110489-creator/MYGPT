@@ -246,16 +246,6 @@ class ChunkService:
                 })
                 chunk_idx += 1
 
-        # Print all generated chunks in terminal with clear headers
-        print("\n" + "="*80)
-        print(f"DEBUG: GENERATED CHUNKS FOR '{doc_id}' (Total: {len(chunks)} chunks)")
-        print("="*80)
-        for i, chunk in enumerate(chunks):
-            print(f"Chunk {i} | ID: {chunk['chunk_id']} | Page: {chunk['page_number']} | Section: {chunk['section']}")
-            print("-" * 40)
-            print(chunk["text"])
-            print("-" * 40)
-        print("="*80 + "\n")
 
         logger.info(f"Completed chunking. Generated {len(chunks)} chunks for document: {doc_id}")
         return chunks

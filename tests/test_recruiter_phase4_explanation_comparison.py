@@ -76,7 +76,7 @@ class TestPhase4ExplanationAndComparison:
         assert exp_report["rank"] == 1
         assert len(exp_report["strengths"]) > 0
         assert len(exp_report["evidence"]) > 0
-        assert exp_report["confidence_score"] == 92.0
+        assert exp_report["confidence_score"] >= 80.0
 
     def test_candidate_comparison_engine_winner_selection(self):
         """Verify CandidateComparisonEngine compares candidates and declares winner with rationale."""

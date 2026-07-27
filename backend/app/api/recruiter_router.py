@@ -10,7 +10,7 @@ Provides APIs for:
 - Dynamic Admin Configuration (/admin/taxonomy, /admin/roles)
 """
 
-from fastapi import APIRouter, HTTPException, Query, Body, File, UploadFile
+from fastapi import APIRouter, HTTPException, Query, Body, File, UploadFile, BackgroundTasks
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
@@ -29,6 +29,7 @@ router = APIRouter(prefix="/api/v2/recruiter", tags=["Recruiter Platform V2"])
 class RecruiterQueryRequest(BaseModel):
     query: str = Field(..., description="Natural language recruiter query")
     session_id: Optional[str] = Field("default_session", description="Conversational session ID")
+    selected_candidate_ids: Optional[List[str]] = Field(default=None, description="Explicit candidate selection IDs defining candidate scope")
 
 
 class BatchIngestRequest(BaseModel):
@@ -57,7 +58,11 @@ class RoleConfigRequest(BaseModel):
 def process_recruiter_query(request: RecruiterQueryRequest):
     """Process natural language recruiter query through Version 2 engine."""
     try:
-        res = recruiter_orchestration_engine.process_query(request.query, session_id=request.session_id)
+        res = recruiter_orchestration_engine.process_query(
+            raw_query=request.query,
+            session_id=request.session_id,
+            selected_candidate_ids=request.selected_candidate_ids
+        )
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -65,6 +70,7 @@ def process_recruiter_query(request: RecruiterQueryRequest):
 
 @router.post("/upload_batch")
 async def upload_batch_resumes(
+    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...)
 ) -> Dict[str, Any]:
     """Batch upload multiple resumes into CandidatePoolStore for Version 2 Recruiter Platform.
@@ -82,12 +88,17 @@ async def upload_batch_resumes(
 
     for file in files:
         try:
+            logger.info(f"DEBUG STAGE: {file.filename} - Upload ✓")
             content = await file.read()
+            
             # 1. Document Manager & Parser (Save & parse document text)
             doc_meta, parsed_doc = ai_orchestrator.process_new_document(
                 filename=file.filename,
                 file_content=content
             )
+            logger.info(f"DEBUG STAGE: {file.filename} - Saved ✓")
+            logger.info(f"DEBUG STAGE: {file.filename} - Text Extracted ✓")
+            
             raw_text = parsed_doc.get("text", "")
 
             # 2. CandidateProfileBuilder (Build structured candidate profile)
@@ -95,12 +106,22 @@ async def upload_batch_resumes(
                 raw_entities={},
                 raw_text=raw_text
             )
+            logger.info(f"DEBUG STAGE: {file.filename} - CandidateProfile Created ✓")
 
             # 3. Add to CandidatePoolStore
             candidate_id = candidate_pool_store.add_candidate(
                 candidate_profile=candidate_profile,
                 doc_id=doc_meta["id"],
                 filename=file.filename
+            )
+            logger.info(f"DEBUG STAGE: {file.filename} - CandidatePool Updated ✓")
+
+            # 4. Async processing: Chunk, Embed & Vector Index in background
+            background_tasks.add_task(
+                ai_orchestrator.index_document_background,
+                doc_meta["id"],
+                parsed_doc,
+                500
             )
 
             processed_count += 1
@@ -137,16 +158,30 @@ def list_candidate_pool(
     location: Optional[str] = None,
     status: Optional[str] = None
 ):
-    """List or filter candidate pool."""
-    cands = candidate_pool_store.filter_candidates(
+    """Retrieve full Candidate Pool or filter by specific attributes."""
+    candidates = candidate_pool_store.filter_candidates(
         domain=domain,
         skill=skill,
         location=location,
         status=status
     )
     return {
-        "count": len(cands),
-        "candidates": cands
+        "count": len(candidates),
+        "total_pool": candidate_pool_store.count(),
+        "candidates": candidates
+    }
+
+
+@router.delete("/candidates/{candidate_id}")
+def delete_candidate_from_pool(candidate_id: str):
+    """Delete a single candidate resume from candidate pool without losing the rest of the pool."""
+    success = candidate_pool_store.remove_candidate(candidate_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Candidate not found in candidate pool")
+    return {
+        "status": "success",
+        "deleted_id": candidate_id,
+        "remaining_pool_count": candidate_pool_store.count()
     }
 
 
