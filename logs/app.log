@@ -94227,3 +94227,881 @@ validated_request: {"department": "GENERAL", "intent": "excel_split", "action": 
 selected_operation: FILTER_AND_EXPORT
 selected_documents: ['sprint final.xlsx']
 final_result: Generated 2 customized sprint file(s) for Fazil, Reka from 3ce56e1c-b50b-4076-807a-4d447232145d.xlsx.
+2026-09-18 16:42:30 | INFO    | app.main:websocket_training:169 - WebSocket client disconnected from training stream.
+2026-09-18 16:42:30 | INFO    | app.main:websocket_training:169 - WebSocket client disconnected from training stream.
+2026-09-18 18:23:29 | INFO    | app.main:websocket_training:169 - WebSocket client disconnected from training stream.
+2026-09-18 18:23:29 | INFO    | app.main:websocket_training:169 - WebSocket client disconnected from training stream.
+2026-09-18 18:25:04 | INFO    | backend.app.services.document_manager:upload_document:73 - Saving uploaded document: I-Net_Secure_Labs_Portal_Menu_Structure.xlsx as 7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+2026-09-18 18:25:05 | INFO    | backend.app.services.document_parser:parse:156 - PARSING START
+2026-09-18 18:25:05 | INFO    | backend.app.services.document_parser:parse:157 - Parsing document: D:\MYGPT\data\uploads\7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+2026-09-18 18:25:05 | INFO    | backend.app.services.document_parser:parse:213 - PARSING END
+2026-09-18 18:25:05 | INFO    | backend.app.services.document_parser:parse:214 - TOTAL LATENCY (parse): 68.56 ms
+2026-09-18 18:25:05 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_yc1b8iw' -> name='I-Net_Secure_Labs_Portal_Menu_Structure.xlsx' id='7a0a56b2-a636-416a-9fd8-750ec1e0b195' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:25:05 | INFO    | backend.app.api.routers.company_ai:_process_single_upload:303 - Successfully processed upload: I-Net_Secure_Labs_Portal_Menu_Structure.xlsx (ID: 7a0a56b2-a636-416a-9fd8-750ec1e0b195, Type: EXCEL) for session company_session_yc1b8iw
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='explain me this'
+conversation_id=company_session_yc1b8iw
+attached_document_id=None
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+active_document_filename=I-Net_Secure_Labs_Portal_Menu_Structure.xlsx
+document_type=EXCEL
+worksheet_names=['Menu Structure', 'Category Tabs']
+owners=[]
+2026-09-18 18:25:05 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'explain me this' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:05 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'explain me this' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:25:05 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:25:05 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'active_doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'filename': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Analysis'}
+target_owners=[]
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:25:05 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+generated_files=[]
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:25:05 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=0.94
+routing_ms=2.81
+rbac_ms=0.01
+excel_ms=33.47
+file_generation_ms=0.0
+total_ms=128.97
+2026-09-18 18:25:05 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_yc1b8iw' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:25:05 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='what are the colunms'
+conversation_id=company_session_yc1b8iw
+attached_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+2026-09-18 18:25:17 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_yc1b8iw' -> name='I-Net_Secure_Labs_Portal_Menu_Structure.xlsx' id='7a0a56b2-a636-416a-9fd8-750ec1e0b195' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+active_document_filename=I-Net_Secure_Labs_Portal_Menu_Structure.xlsx
+document_type=EXCEL
+worksheet_names=['Menu Structure', 'Category Tabs']
+owners=[]
+2026-09-18 18:25:17 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'what are the colunms' -> EXCEL_COLUMN_LIST (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:17 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'what are the colunms' -> GENERAL / excel_column_list (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_column_list)
+2026-09-18 18:25:17 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:25:17 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_column_list
+operation=EXCEL_COLUMN_LIST
+entities={'is_follow_up': True, 'action': 'EXCEL_COLUMN_LIST', 'operation': 'EXCEL_COLUMN_LIST', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'active_doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'filename': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Document Summary'}
+target_owners=[]
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:25:17 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_COLUMN_LIST
+2026-09-18 18:25:17 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:66 - 
+[ExcelProcessor]
+document=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+columns_detected=3
+total_records=35
+
+[CompanyAI]
+verified_result=true
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Column Listing
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+generated_files=[]
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_column_list)
+2026-09-18 18:25:17 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.0
+qwen_ms=0.79
+routing_ms=1.68
+rbac_ms=0.01
+excel_ms=31.54
+file_generation_ms=0.0
+total_ms=103.93
+2026-09-18 18:25:17 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_yc1b8iw' — dept=None last_intent=excel_column_list last_topic='Excel Column Listing' pending_action=None
+2026-09-18 18:25:17 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_column_list
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='what are the mainmenu'
+conversation_id=company_session_yc1b8iw
+attached_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+2026-09-18 18:25:28 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_yc1b8iw' -> name='I-Net_Secure_Labs_Portal_Menu_Structure.xlsx' id='7a0a56b2-a636-416a-9fd8-750ec1e0b195' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+active_document_filename=I-Net_Secure_Labs_Portal_Menu_Structure.xlsx
+document_type=EXCEL
+worksheet_names=['Menu Structure', 'Category Tabs']
+owners=[]
+2026-09-18 18:25:28 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'what are the mainmenu' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:28 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'what are the mainmenu' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:25:28 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:25:28 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'active_doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'filename': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Column Listing'}
+target_owners=[]
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:25:28 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+generated_files=[]
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:25:28 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=0.79
+routing_ms=1.6
+rbac_ms=0.01
+excel_ms=41.09
+file_generation_ms=0.0
+total_ms=77.49
+2026-09-18 18:25:28 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_yc1b8iw' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:25:28 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='what are main menu are there'
+conversation_id=company_session_yc1b8iw
+attached_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+2026-09-18 18:25:40 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_yc1b8iw' -> name='I-Net_Secure_Labs_Portal_Menu_Structure.xlsx' id='7a0a56b2-a636-416a-9fd8-750ec1e0b195' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+active_document_filename=I-Net_Secure_Labs_Portal_Menu_Structure.xlsx
+document_type=EXCEL
+worksheet_names=['Menu Structure', 'Category Tabs']
+owners=[]
+2026-09-18 18:25:40 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'what are main menu are there' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:40 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'what are main menu are there' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:25:40 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:25:40 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'active_doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'filename': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Document Summary'}
+target_owners=[]
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:25:40 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+generated_files=[]
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:25:40 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.0
+qwen_ms=0.75
+routing_ms=1.94
+rbac_ms=0.01
+excel_ms=29.99
+file_generation_ms=0.0
+total_ms=82.16
+2026-09-18 18:25:40 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_yc1b8iw' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:25:40 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='give me the overall suammry'
+conversation_id=company_session_yc1b8iw
+attached_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+2026-09-18 18:25:56 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_yc1b8iw' -> name='I-Net_Secure_Labs_Portal_Menu_Structure.xlsx' id='7a0a56b2-a636-416a-9fd8-750ec1e0b195' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+active_document_filename=I-Net_Secure_Labs_Portal_Menu_Structure.xlsx
+document_type=EXCEL
+worksheet_names=['Menu Structure', 'Category Tabs']
+owners=[]
+2026-09-18 18:25:56 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'give me the overall suammry' -> EXCEL_TOTAL (column=Amount, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:56 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'give me the overall suammry' -> GENERAL / excel_total (column=Amount, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_total)
+2026-09-18 18:25:56 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:25:56 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.005s) — falling back to deterministic router
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_total
+operation=EXCEL_TOTAL
+entities={'is_follow_up': True, 'action': 'EXCEL_TOTAL', 'operation': 'EXCEL_TOTAL', 'source': 'active_document', 'column': 'Amount', 'target_column': 'Amount', 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'active_doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'filename': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Document Summary'}
+target_owners=[]
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:25:56 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_TOTAL
+2026-09-18 18:25:56 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:542 - 
+[ExcelProcessor]
+document=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+sheet=Sheet1
+rows_detected=35
+selected_column=S.No.
+numeric_values=35
+total=534
+
+[CompanyAI]
+verified_result=true
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Total Aggregation
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+generated_files=[]
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_total)
+2026-09-18 18:25:56 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=4.85
+routing_ms=15.84
+rbac_ms=0.01
+excel_ms=45.82
+file_generation_ms=0.0
+total_ms=203.47
+2026-09-18 18:25:56 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_yc1b8iw' — dept=None last_intent=excel_total last_topic='Excel Total Aggregation' pending_action=None
+2026-09-18 18:25:56 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_total
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='this is the amount  this is the s no'
+conversation_id=company_session_yc1b8iw
+attached_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+2026-09-18 18:26:18 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_yc1b8iw' -> name='I-Net_Secure_Labs_Portal_Menu_Structure.xlsx' id='7a0a56b2-a636-416a-9fd8-750ec1e0b195' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=7a0a56b2-a636-416a-9fd8-750ec1e0b195
+active_document_filename=I-Net_Secure_Labs_Portal_Menu_Structure.xlsx
+document_type=EXCEL
+worksheet_names=['Menu Structure', 'Category Tabs']
+owners=[]
+2026-09-18 18:26:18 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'this is the amount  this is the s no' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:26:18 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'this is the amount  this is the s no' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx'
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:26:18 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:26:18 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'active_doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'doc_id': '7a0a56b2-a636-416a-9fd8-750ec1e0b195', 'filename': 'I-Net_Secure_Labs_Portal_Menu_Structure.xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Total Aggregation'}
+target_owners=[]
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:26:18 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=7a0a56b2-a636-416a-9fd8-750ec1e0b195.xlsx
+generated_files=[]
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:26:18 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.0
+qwen_ms=0.82
+routing_ms=2.12
+rbac_ms=0.01
+excel_ms=43.68
+file_generation_ms=0.0
+total_ms=80.57
+2026-09-18 18:26:18 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_yc1b8iw' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:26:18 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:26:23 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'company_session_yc1b8iw'
+2026-09-18 18:26:24 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'test_sprint_compatibility'
+2026-09-18 18:26:24 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'test_upi_session_flow'
+2026-09-18 18:26:24 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'test_e2e_sprint_split_session'
+2026-09-18 18:26:25 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'test_acceptance_session_101'
+2026-09-18 18:26:25 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'test_multi_file_persist_session'
+2026-09-18 18:26:25 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'test_semantic_excel_session_1'
+2026-09-18 18:26:25 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'test_debug_flow'
+2026-09-18 18:26:25 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'company_session_seij6y7'
+2026-09-18 18:26:26 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-unseen-3'
+2026-09-18 18:26:26 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-unseen-2'
+2026-09-18 18:26:26 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-unseen-1'
+2026-09-18 18:26:26 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-20'
+2026-09-18 18:26:27 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-18'
+2026-09-18 18:26:27 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-17'
+2026-09-18 18:26:27 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-16'
+2026-09-18 18:26:27 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-15'
+2026-09-18 18:26:27 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-14'
+2026-09-18 18:26:28 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-13'
+2026-09-18 18:26:28 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-12'
+2026-09-18 18:26:28 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-11'
+2026-09-18 18:26:28 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-10'
+2026-09-18 18:26:29 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-8-9'
+2026-09-18 18:26:29 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-7'
+2026-09-18 18:26:29 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-6'
+2026-09-18 18:26:29 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-5'
+2026-09-18 18:26:30 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-4'
+2026-09-18 18:26:30 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-3'
+2026-09-18 18:26:30 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-2'
+2026-09-18 18:26:30 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-case-1'
+2026-09-18 18:26:31 | INFO    | backend.app.services.conversation_context_manager:clear_state:43 - ConversationContextManager: Cleared state for session 'conv-debug-1'
+2026-09-18 18:27:05 | INFO    | backend.app.services.document_manager:upload_document:73 - Saving uploaded document: TNCSC - AMC 2024 (2).xlsx as 4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+2026-09-18 18:27:05 | INFO    | backend.app.services.document_parser:parse:156 - PARSING START
+2026-09-18 18:27:05 | INFO    | backend.app.services.document_parser:parse:157 - Parsing document: D:\MYGPT\data\uploads\4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+2026-09-18 18:27:05 | INFO    | backend.app.services.document_parser:parse:213 - PARSING END
+2026-09-18 18:27:05 | INFO    | backend.app.services.document_parser:parse:214 - TOTAL LATENCY (parse): 146.83 ms
+2026-09-18 18:27:05 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:27:05 | INFO    | backend.app.api.routers.company_ai:_process_single_upload:303 - Successfully processed upload: TNCSC - AMC 2024 (2).xlsx (ID: 4498758f-8a4e-4ecb-ad40-dc30e14dda9f, Type: EXCEL) for session company_session_6ofmweh
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='explain abouth this document'
+conversation_id=company_session_6ofmweh
+attached_document_id=None
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:27:05 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'explain abouth this document' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:27:05 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'explain abouth this document' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:27:05 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:27:05 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.011s) — falling back to deterministic router
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Analysis'}
+target_owners=[]
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:27:05 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=[]
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:27:05 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=10.93
+routing_ms=2.12
+rbac_ms=0.01
+excel_ms=99.27
+file_generation_ms=0.0
+total_ms=193.32
+2026-09-18 18:27:05 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:27:05 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:27:30 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='give me the colunms avaiable'
+conversation_id=company_session_6ofmweh
+attached_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+2026-09-18 18:27:30 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:27:30 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:27:30 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'give me the colunms avaiable' -> EXCEL_COLUMN_LIST (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:27:30 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'give me the colunms avaiable' -> GENERAL / excel_column_list (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:27:30 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_column_list)
+2026-09-18 18:27:30 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:27:30 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:27:30 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:27:30 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_column_list
+operation=EXCEL_COLUMN_LIST
+entities={'is_follow_up': True, 'action': 'EXCEL_COLUMN_LIST', 'operation': 'EXCEL_COLUMN_LIST', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Document Summary'}
+target_owners=[]
+2026-09-18 18:27:30 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:27:30 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_COLUMN_LIST
+2026-09-18 18:27:31 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:66 - 
+[ExcelProcessor]
+document=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+columns_detected=13
+total_records=90
+
+[CompanyAI]
+verified_result=true
+2026-09-18 18:27:31 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Column Listing
+2026-09-18 18:27:31 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=[]
+2026-09-18 18:27:31 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_column_list)
+2026-09-18 18:27:31 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=1.01
+routing_ms=11.09
+rbac_ms=0.01
+excel_ms=97.03
+file_generation_ms=0.0
+total_ms=261.26
+2026-09-18 18:27:31 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_column_list last_topic='Excel Column Listing' pending_action=None
+2026-09-18 18:27:31 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_column_list
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='give me  the raised by   names as colunms'
+conversation_id=company_session_6ofmweh
+attached_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+2026-09-18 18:28:27 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:28:27 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'give me  the raised by   names as colunms' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:28:27 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'give me  the raised by   names as colunms' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:28:27 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:28:27 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.013s) — falling back to deterministic router
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Column Listing'}
+target_owners=[]
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:28:27 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=[]
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:28:27 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=12.88
+routing_ms=18.55
+rbac_ms=0.02
+excel_ms=84.84
+file_generation_ms=0.0
+total_ms=209.61
+2026-09-18 18:28:27 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:28:27 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:28:31 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='raises by'
+conversation_id=company_session_6ofmweh
+attached_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+2026-09-18 18:28:31 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:28:31 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:28:31 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'raises by' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:28:31 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'raises by' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:28:31 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:28:31 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:28:31 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:28:31 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:28:31 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Document Summary'}
+target_owners=[]
+2026-09-18 18:28:31 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:28:32 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:28:32 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:28:32 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=[]
+2026-09-18 18:28:32 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:28:32 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=1.14
+routing_ms=7.65
+rbac_ms=0.01
+excel_ms=129.52
+file_generation_ms=0.0
+total_ms=189.93
+2026-09-18 18:28:32 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:28:32 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:29:03 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='give me the dates   colunm as exel docuemnt'
+conversation_id=company_session_6ofmweh
+attached_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+2026-09-18 18:29:03 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:29:03 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:29:03 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'give me the dates   colunm as exel docuemnt' -> EXCEL_COLUMN_EXPORT (column=dates   columns, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:29:03 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'give me the dates   colunm as exel docuemnt' -> GENERAL / excel_column_export (column=dates   columns, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:29:03 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_column_export)
+2026-09-18 18:29:03 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:29:03 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:29:03 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:29:03 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_column_export
+operation=EXCEL_COLUMN_EXPORT
+entities={'is_follow_up': True, 'action': 'EXCEL_COLUMN_EXPORT', 'operation': 'EXCEL_COLUMN_EXPORT', 'source': 'active_document', 'column': 'dates   columns', 'target_column': 'dates   columns', 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Document Summary'}
+target_owners=[]
+2026-09-18 18:29:03 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:29:04 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_COLUMN_EXPORT
+2026-09-18 18:29:04 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:137 - 
+[ExcelProcessor]
+document=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+extracted_column=Date
+records=90
+generated_file=Date.xlsx
+
+[CompanyAI]
+verified_result=true
+2026-09-18 18:29:04 | INFO    | backend.app.services.company_ai_service:save_generated_file:140 - Generated and registered file: Date.xlsx -> FILE-682534FE (6.5 KB)
+2026-09-18 18:29:04 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Column Export: Date
+2026-09-18 18:29:04 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=['Date.xlsx']
+2026-09-18 18:29:04 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_column_export)
+2026-09-18 18:29:04 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=1.33
+routing_ms=5.08
+rbac_ms=0.02
+excel_ms=95.0
+file_generation_ms=0.0
+total_ms=479.67
+2026-09-18 18:29:04 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_column_export last_topic='Column Export: Date' pending_action=None
+2026-09-18 18:29:04 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_column_export
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='give me as month wise'
+conversation_id=company_session_6ofmweh
+attached_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+2026-09-18 18:29:23 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:29:23 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'give me as month wise' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:29:23 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'give me as month wise' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:29:23 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:29:23 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.009s) — falling back to deterministic router
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Column Export: Date'}
+target_owners=[]
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:29:23 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=[]
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:29:23 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=8.63
+routing_ms=8.59
+rbac_ms=0.01
+excel_ms=112.5
+file_generation_ms=0.0
+total_ms=189.52
+2026-09-18 18:29:23 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:29:23 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
+2026-09-18 18:31:17 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='give me the d date function as exel'
+conversation_id=company_session_6ofmweh
+attached_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+2026-09-18 18:31:17 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:31:17 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:31:17 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'give me the d date function as exel' -> EXCEL_COLUMN_EXPORT (column=d date function, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:31:17 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'give me the d date function as exel' -> GENERAL / excel_column_export (column=d date function, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:31:17 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_column_export)
+2026-09-18 18:31:17 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:31:17 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.001s) — falling back to deterministic router
+2026-09-18 18:31:17 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:31:17 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_column_export
+operation=EXCEL_COLUMN_EXPORT
+entities={'is_follow_up': True, 'action': 'EXCEL_COLUMN_EXPORT', 'operation': 'EXCEL_COLUMN_EXPORT', 'source': 'active_document', 'column': 'd date function', 'target_column': 'd date function', 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Excel Document Summary'}
+target_owners=[]
+2026-09-18 18:31:17 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:31:17 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_COLUMN_EXPORT
+2026-09-18 18:31:17 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:137 - 
+[ExcelProcessor]
+document=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+extracted_column=Date
+records=90
+generated_file=Date.xlsx
+
+[CompanyAI]
+verified_result=true
+2026-09-18 18:31:18 | INFO    | backend.app.services.company_ai_service:save_generated_file:140 - Generated and registered file: Date.xlsx -> FILE-4F944F2B (6.5 KB)
+2026-09-18 18:31:18 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Column Export: Date
+2026-09-18 18:31:18 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=['Date.xlsx']
+2026-09-18 18:31:18 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_column_export)
+2026-09-18 18:31:18 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=1.0
+routing_ms=2.34
+rbac_ms=0.01
+excel_ms=97.73
+file_generation_ms=0.0
+total_ms=468.77
+2026-09-18 18:31:18 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_column_export last_topic='Column Export: Date' pending_action=None
+2026-09-18 18:31:18 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_column_export
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:172 - 
+[CHAT INPUT]
+message='give em the  june month reports'
+conversation_id=company_session_6ofmweh
+attached_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+2026-09-18 18:31:34 | INFO    | backend.app.services.conversation_context_manager:set_active_document:243 - ContextManager: Set active document for session 'company_session_6ofmweh' -> name='TNCSC - AMC 2024 (2).xlsx' id='4498758f-8a4e-4ecb-ad40-dc30e14dda9f' type='EXCEL' (Total session docs: 1)
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:201 - 
+[CONTEXT]
+active_document_id=4498758f-8a4e-4ecb-ad40-dc30e14dda9f
+active_document_filename=TNCSC - AMC 2024 (2).xlsx
+document_type=EXCEL
+worksheet_names=['Sheet1']
+owners=[]
+2026-09-18 18:31:34 | INFO    | backend.app.services.conversation_context_manager:resolve_follow_up_signals:844 - ContextManager: Resolved Excel operation 'give em the  june month reports' -> EXCEL_SUMMARY (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:31:34 | INFO    | backend.app.services.routing.intent_router:route:733 - Route: Excel operation 'give em the  june month reports' -> GENERAL / excel_summary (column=None, filter=None, owners=[]) referencing 'TNCSC - AMC 2024 (2).xlsx'
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:236 - [PERF] qwen_input_understanding_triggered (conf=0.99 intent=excel_summary)
+2026-09-18 18:31:34 | INFO    | backend.app.services.llm.qwen_answer_model:understand_input:215 - [QWEN] understand_input: model unavailable — returning None
+2026-09-18 18:31:34 | WARNING | backend.app.services.company_ai_service:process_chat:253 - [PERF] qwen_input_understanding=FAILED/UNAVAILABLE (0.016s) — falling back to deterministic router
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:258 - 
+[UNDERSTANDING]
+qwen_called=True
+qwen_result=SKIPPED_FAST_PATH
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:290 - 
+[ROUTING]
+department=GENERAL
+intent=excel_summary
+operation=EXCEL_SUMMARY
+entities={'is_follow_up': True, 'action': 'EXCEL_SUMMARY', 'operation': 'EXCEL_SUMMARY', 'source': 'active_document', 'column': 'Amount', 'target_column': None, 'filter': None, 'sections': None, 'follow_up_action': None, 'values': [], 'target_owners': [], 'referenced_previous_document': 'TNCSC - AMC 2024 (2).xlsx', 'active_doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'doc_id': '4498758f-8a4e-4ecb-ad40-dc30e14dda9f', 'filename': 'TNCSC - AMC 2024 (2).xlsx', 'doc_id_a': None, 'doc_id_b': None, 'filename_a': None, 'filename_b': None, '_multi_doc_summary': None, '_comparison_result': None, 'selected_document_ids': [], 'topic': 'Column Export: Date'}
+target_owners=[]
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:311 - 
+[RBAC]
+authorized=True
+2026-09-18 18:31:34 | INFO    | backend.app.services.excel.excel_service:process_excel_operation:43 - 
+[ExcelRouter]
+workbook_type=GENERIC
+intent=EXCEL_SUMMARY
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:376 - 
+[WORKFLOW]
+workflow=Excel Document Summary
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:387 - 
+[EXCEL]
+processor_called=True
+source_file=4498758f-8a4e-4ecb-ad40-dc30e14dda9f.xlsx
+generated_files=[]
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:416 - [PERF] qwen_output=SKIPPED (deterministic intent=excel_summary)
+2026-09-18 18:31:34 | INFO    | backend.app.services.company_ai_service:process_chat:428 - 
+[TIMING]
+context_ms=0.01
+qwen_ms=16.23
+routing_ms=20.16
+rbac_ms=0.01
+excel_ms=216.85
+file_generation_ms=0.0
+total_ms=430.18
+2026-09-18 18:31:34 | INFO    | backend.app.services.conversation_context_manager:record_turn:1017 - ContextManager: Updated state for session 'company_session_6ofmweh' — dept=None last_intent=excel_summary last_topic='Excel Document Summary' pending_action=None
+2026-09-18 18:31:34 | INFO    | backend.app.services.security.audit_logger:log_event:74 - [AUDIT] ALLOWED | User=user_employee (EMPLOYEE) | Dept=GENERAL | Op=COMPANY_CHAT | Resource=chat_intent:excel_summary
