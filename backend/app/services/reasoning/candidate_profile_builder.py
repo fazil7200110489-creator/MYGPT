@@ -47,6 +47,10 @@ DESIGNATION_DOMAIN_MAP = {
     "doctor": "Healthcare & Medical",
     "physician": "Healthcare & Medical",
     "pharmacist": "Healthcare & Medical",
+    "people operations lead": "Human Resources (HR)",
+    "people operations": "Human Resources (HR)",
+    "hr operations": "Human Resources (HR)",
+    "talent operations": "Human Resources (HR)",
     "hr executive": "Human Resources (HR)",
     "hr manager": "Human Resources (HR)",
     "manager hr": "Human Resources (HR)",
@@ -163,6 +167,7 @@ class CandidateProfileBuilder:
             "mother_name": mother_name,
             "marital_status": personal_attrs["marital_status"],
             "nationality": personal_attrs["nationality"],
+            "languages": personal_attrs["languages"],
             "linkedin": linkedin or "Not Mentioned",
             "github": github or "Not Mentioned",
             "portfolio": portfolio or "Not Mentioned",
@@ -186,12 +191,21 @@ class CandidateProfileBuilder:
         }
 
         # 12. Recommendations & Insights
-        dynamic_roles = role_inference_engine.recommend_roles(entities, domain_data["primary_domain"])
+        top_5_recommended = role_inference_engine.get_top_5_recommended_roles(entities, domain_data["primary_domain"])
+        dynamic_roles = [r["role"] for r in top_5_recommended]
+        
+        # Categorized skills (9 categories)
+        categorized_skills = self.skill_analyzer.get_categorized_skills_dict(
+            skills_data["all_skills"],
+            skills_data["soft_skills"]
+        )
+
         insights = self._generate_insights(
             skills_data["all_skills"],
             experience_data["total_experience"],
             domain_data["primary_domain"],
-            dynamic_roles
+            dynamic_roles,
+            categorized_skills
         )
 
         # 13. Health Score
@@ -252,6 +266,7 @@ class CandidateProfileBuilder:
             "gender": personal_attrs["gender"],
             "date_of_birth": personal_attrs["date_of_birth"],
             "nationality": personal_attrs["nationality"],
+            "languages": personal_attrs["languages"],
             # Domain (Factual)
             "domain": domain_data["primary_domain"],
             "primary_domain": domain_data["primary_domain"],
@@ -268,8 +283,11 @@ class CandidateProfileBuilder:
             "experience_history": experience_data["experience_history"],
             "experience_timeline": timeline,
             "companies": extracted_companies,
-            # Skills (8 buckets - Factual)
+            # Skills (Categorized & Aliased)
             "skills": skills_data["all_skills"],
+            "canonical_skills": skills_data.get("canonical_skills", skills_data["all_skills"]),
+            "categorized_skills": categorized_skills,
+            "skill_aliases": skills_data.get("skill_aliases", {}),
             "programming_languages": skills_data["programming_languages"],
             "ai_tools": skills_data["ai_tools"],
             "erp_platforms": skills_data["erp_platforms"],
@@ -286,9 +304,10 @@ class CandidateProfileBuilder:
             # Awards & Certifications
             "awards": awards_list,
             "certifications": certifications_list,
-            # Projects (Factual)
+            # Projects (Factual & Detailed)
             "projects": projects_list,
             "detailed_projects": detailed_projects,
+            "rich_projects": detailed_projects,
             "has_dedicated_projects": has_dedicated_projects,
             # Contact & Location (Factual)
             "location_sources": location_data["sources"],
@@ -296,12 +315,18 @@ class CandidateProfileBuilder:
             "health_score": health_res["health_score"],
             "health_checklist": health_res["checklist"],
             "validation_flags": validation_flags,
+            # Strengths, Weaknesses, Recommended Roles
+            "strengths": insights["strengths"],
+            "weaknesses": insights["weaknesses"],
+            "top_5_recommended_roles": top_5_recommended,
+            "recommended_roles": dynamic_roles,
             # Insights & Summary
             "summary": summary_prose,
             "recruiter_summary": summary_prose,
+            "overall_assessment": f"{name} is a {display_desig} with {experience_data['total_experience']} of experience in {domain_data['primary_domain']}. Recommended for roles: {', '.join(dynamic_roles[:3]) if dynamic_roles else display_desig}.",
             "insights": insights,
             
-            # Semantic attributes & Evidence Graph (added for intelligence capability improvement)
+            # Semantic attributes & Evidence Graph
             "semantic_features": semantic_data["semantic_features"],
             "evidence_graph": semantic_data["evidence_graph"]
         }
@@ -310,35 +335,99 @@ class CandidateProfileBuilder:
     # Identity & Personal parsing
     # ---------------------------------------------------------------------------
 
-    def _normalize_name(self, entities: Dict[str, Any], text: str) -> str:
-        lines = [l.strip() for l in text.split('\n') if l.strip()]
-        for l in lines[:5]:
-            l_clean = re.sub(r'^(?:candidate\s+name|name)\s*[:\-]?\s*', '', l, flags=re.IGNORECASE).strip()
-            if "@" not in l_clean and not re.search(r'\d+', l_clean) and not any(kw in l_clean.lower() for kw in ["resume", "curriculum", "email", "phone", "address", "summary", "experience", "education", "skills", "projects", "certifications", "statutory", "compliance", "certified", "partner", "mother", "father"]):
-                if len(l_clean.split()) <= 4 and len(l_clean) >= 2:
-                    return l_clean.title()
+    def _is_valid_candidate_name(self, name_str: str) -> bool:
+        if not name_str or not isinstance(name_str, str):
+            return False
 
+        # Reject if string contains family relation headers
+        if re.search(r'(?i)\b(?:father|mother|husband|wife|parent|guardian|spouse|late)\b', name_str):
+            return False
+
+        clean = re.sub(r'^(?:candidate\s+name|resume\s+owner|full\s+name|name)\s*[:\-]?\s*', '', name_str.strip(), flags=re.IGNORECASE).strip()
+        if not clean or len(clean) < 2 or "@" in clean or "/" in clean or "\\" in clean or ":" in clean:
+            return False
+
+        # Ignore obvious resume section headers, titles, certificates, and non-person keywords
+        invalid_keywords = {
+            "certificate", "certificates", "certified", "achievement", "achievements",
+            "resume", "curriculum", "vitae", "cv", "profile", "summary", "overview",
+            "experience", "employment", "history", "career", "education", "academic",
+            "qualification", "qualifications", "schooling", "degree", "diploma",
+            "skills", "technical", "competencies", "technologies", "strengths", "expertise",
+            "projects", "declaration", "details", "contact", "information", "hobbies",
+            "interests", "languages", "references", "passport", "visa", "military",
+            "army", "navy", "airforce", "compliance", "hardware", "software", "training",
+            "university", "college", "school", "company", "services", "management",
+            "developer", "engineer", "analyst", "manager", "executive", "officer", "specialist",
+            "father", "mother", "parent", "spouse", "husband", "wife", "late", "name"
+        }
+
+        clean_lower = clean.lower()
+        words = clean_lower.split()
+
+        # Reject if word count < 1 or > 5
+        if len(words) < 1 or len(words) > 5:
+            return False
+
+        # Reject if any word matches invalid keywords (unless it's part of a valid name context)
+        for w in words:
+            w_strip = re.sub(r'[^a-z]', '', w)
+            # Remove trailing 's if any (e.g. mother's -> mother)
+            if w_strip.endswith('s'):
+                w_strip_base = w_strip[:-1]
+            else:
+                w_strip_base = w_strip
+            if w_strip in invalid_keywords or w_strip_base in invalid_keywords:
+                return False
+
+        # Reject phone numbers or year patterns (4+ continuous digits)
+        if re.search(r'\d{4,}', clean):
+            return False
+
+        # Reject strings with no alphabetic characters
+        if not re.search(r'[A-Za-z]', clean):
+            return False
+
+        return True
+
+    def _normalize_name(self, entities: Dict[str, Any], text: str) -> str:
+        entities = entities or {}
+
+        # 1. Candidate Name / Resume Owner / Name from explicit entities
         candidates = [
             entities.get("candidate_name"),
+            entities.get("resume_owner"),
             entities.get("name"),
         ]
-        if isinstance(entities.get("people"), list) and entities["people"]:
-            candidates.append(entities["people"][0])
-
         for c in candidates:
             if c and isinstance(c, str):
-                c_clean = re.sub(r'^(?:candidate\s+name|name)\s*[:\-]?\s*', '', c.strip(), flags=re.IGNORECASE).strip()
-                if (c_clean and "@" not in c_clean
-                        and not re.search(r'\d+', c_clean)
-                        and len(c_clean.split()) <= 4
-                        and c_clean.lower() not in ["statutory compliance", "hardware knowledge", "software skills"]):
+                c_clean = re.sub(r'^(?:candidate\s+name|resume\s+owner|full\s+name|name)\s*[:\-]?\s*', '', c.strip(), flags=re.IGNORECASE).strip()
+                if self._is_valid_candidate_name(c_clean):
                     return c_clean.title()
 
-        m = re.search(r'(?i)\bname\s*:\s*([A-Za-z\s]{2,40})(?:\n|,|$)', text)
+        # 2. Contact Header explicit regex labels in raw text
+        m = re.search(r'(?i)\b(?:candidate\s+name|resume\s+owner|full\s+name|name)\s*[:\-]\s*([A-Za-z0-9\s\.\'\-]+)(?:\n|,|$)', text)
         if m:
-            return m.group(1).strip().title()
+            c_clean = m.group(1).strip()
+            if self._is_valid_candidate_name(c_clean):
+                return c_clean.title()
+
+        # 3. Contact Header parsing: top lines of raw text adjacent to contact header info
+        lines = [l.strip() for l in (text or "").split('\n') if l.strip()]
+        for l in lines[:8]:
+            l_clean = re.sub(r'^(?:candidate\s+name|resume\s+owner|full\s+name|name)\s*[:\-]?\s*', '', l, flags=re.IGNORECASE).strip()
+            if self._is_valid_candidate_name(l_clean):
+                return l_clean.title()
+
+        # 4. Name Entity Recognition (people list)
+        people = entities.get("people")
+        if isinstance(people, list):
+            for p in people:
+                if isinstance(p, str) and self._is_valid_candidate_name(p):
+                    return p.strip().title()
 
         return "Not Mentioned"
+
 
     def _normalize_designation(self, entities: Dict[str, Any], text: str) -> str:
         desig = entities.get("designation")
@@ -800,11 +889,22 @@ class CandidateProfileBuilder:
             if m:
                 nationality = m.group(1).strip().title()
 
+        languages = entities.get("languages") or entities.get("human_languages")
+        if not languages and text:
+            m = re.search(r'(?i)(?:languages\s*known|languages|mother\s*tongue|spoken\s*languages)\s*:\s*([A-Za-z\s,]{3,60})(?:\n|$)', text)
+            if m:
+                raw_langs = m.group(1).strip()
+                languages = [l.strip().title() for l in re.split(r'[,/]', raw_langs) if l.strip()]
+
+        if isinstance(languages, str):
+            languages = [l.strip().title() for l in re.split(r'[,/]', languages) if l.strip()]
+
         return {
             "date_of_birth": dob or "Not Mentioned",
             "gender": gender or "Not Mentioned",
             "marital_status": marital or "Not Mentioned",
             "nationality": nationality or "Not Mentioned",
+            "languages": languages or ["English"]
         }
 
     def _calculate_health_score(self, profile: Dict[str, Any]) -> Dict[str, Any]:
@@ -823,7 +923,7 @@ class CandidateProfileBuilder:
         return {"health_score": min(100, max(0, score)), "checklist": checklist}
 
     def _generate_insights(
-        self, skills: List[str], exp: str, domain: str, recommended: List[str]
+        self, skills: List[str], exp: str, domain: str, recommended: List[str], categorized_skills: Optional[Dict[str, List[str]]] = None
     ) -> Dict[str, Any]:
         exp_lower = exp.lower()
         if any(str(n) in exp_lower for n in range(7, 25)):
@@ -833,20 +933,62 @@ class CandidateProfileBuilder:
         else:
             career_level = "Early Career Professional"
 
+        skills_lower = {s.lower() for s in skills}
+        
+        # Build automatic strengths
+        strengths = []
+        if any("problem solving" in s or "critical thinking" in s for s in skills_lower):
+            strengths.append("Problem Solving & Technical Reasoning")
+        else:
+            strengths.append("Problem Solving")
+
+        if any("rest api" in s or "api" in s for s in skills_lower):
+            strengths.append("REST API Development & Service Integration")
+
+        if any("jwt" in s or "auth" in s for s in skills_lower):
+            strengths.append("Authentication Systems & Security")
+
+        if any("react" in s for s in skills_lower):
+            strengths.append("React Development & Responsive UI Architecture")
+
+        if any("node" in s or "express" in s or "php" in s for s in skills_lower):
+            strengths.append("Backend Development & Server Logic")
+
+        if any("mongo" in s or "sql" in s for s in skills_lower):
+            strengths.append("Database Design & Schema Management")
+
+        if len(strengths) < 3:
+            strengths.extend([f"Domain Expertise in {domain}", f"{exp} of Demonstrated Hands-on Experience"])
+
+        # Build technology weaknesses (technologies NOT explicitly found)
+        potential_tech_gaps = [
+            ("Docker", "Containerization & Orchestration"),
+            ("Kubernetes", "Container Orchestration"),
+            ("AWS", "Cloud Infrastructure Services"),
+            ("GraphQL", "Modern API Query Language"),
+            ("CI/CD Pipelines", "Automated Build & Deployment"),
+            ("TypeScript", "Static Type System")
+        ]
+
+        weaknesses = []
+        for tech, desc in potential_tech_gaps:
+            if tech.lower() not in skills_lower and not any(tech.lower() in s for s in skills_lower):
+                weaknesses.append(f"{tech} - Not explicitly mentioned in the uploaded resume.")
+            if len(weaknesses) >= 4:
+                break
+
+        if not weaknesses:
+            weaknesses.append("Advanced Cloud DevOps (Kubernetes/Terraform) - Not explicitly mentioned in the uploaded resume.")
+
         return {
             "career_level": career_level,
             "interview_readiness": "High",
-            "strengths": [
-                f"Strong domain expertise in {domain}.",
-                f"Demonstrated {exp} of professional experience.",
-                f"Technical proficiency across {', '.join(skills[:5]) if skills else 'core domain skills'}."
-            ],
+            "strengths": list(dict.fromkeys(strengths)),
+            "weaknesses": weaknesses,
             "recommended_roles": recommended,
-            "improvement_suggestions": [
-                "Consider adding quantifiable project impact metrics.",
-                "Ensure certifications include issuing body and dates."
-            ]
+            "improvement_suggestions": weaknesses
         }
+
 
     def _extract_single_string(self, value: Any) -> Optional[str]:
         if isinstance(value, list) and value:

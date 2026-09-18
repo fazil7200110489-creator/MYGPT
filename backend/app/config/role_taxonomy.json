@@ -22,6 +22,26 @@
     }
   },
   "HR & Talent Acquisition": {
+    "People Operations Lead": {
+      "required": ["hr operations", "employee lifecycle", "jml", "workday", "hr reporting", "people operations"],
+      "description": "leading HR operations, employee lifecycle management (JML), and organizational HR processes."
+    },
+    "HR Operations Manager": {
+      "required": ["hr operations", "leave management", "attendance", "servicenow", "sop documentation", "hr case management"],
+      "description": "managing end-to-end HR operations, ticketing escalation, attendance, and compliance."
+    },
+    "HR Operations Specialist": {
+      "required": ["hr operations", "onboarding", "offboarding", "keka", "greyhr"],
+      "description": "executing daily HR operations, employee onboarding/offboarding, and HR generalist tasks."
+    },
+    "Talent Operations Specialist": {
+      "required": ["talent acquisition", "onboarding", "offboarding", "stakeholder management"],
+      "description": "managing talent operations, recruitment support, and stakeholder communication."
+    },
+    "HRIS Specialist": {
+      "required": ["workday", "servicenow", "keka", "greyhr", "hr reporting"],
+      "description": "managing HRIS platforms, Workday administration, ticketing, and HR analytics."
+    },
     "HR Executive": {
       "required": ["hrms", "payroll", "onboarding", "employee relations", "labor laws", "recruitment"],
       "description": "managing HR operations, HRMS, payroll processing, onboarding, and employee relations."
@@ -41,6 +61,28 @@
     "Payroll Executive": {
       "required": ["payroll", "attendance", "pf", "esi", "compliance", "salary processing"],
       "description": "monthly salary processing, PF/ESI compliance, and attendance management."
+    }
+  },
+  "Human Resources (HR)": {
+    "People Operations Lead": {
+      "required": ["hr operations", "employee lifecycle", "jml", "workday", "hr reporting", "people operations"],
+      "description": "leading HR operations, employee lifecycle management (JML), and organizational HR processes."
+    },
+    "HR Operations Manager": {
+      "required": ["hr operations", "leave management", "attendance", "servicenow", "sop documentation", "hr case management"],
+      "description": "managing end-to-end HR operations, ticketing escalation, attendance, and compliance."
+    },
+    "HR Operations Specialist": {
+      "required": ["hr operations", "onboarding", "offboarding", "keka", "greyhr"],
+      "description": "executing daily HR operations, employee onboarding/offboarding, and HR generalist tasks."
+    },
+    "Talent Operations Specialist": {
+      "required": ["talent acquisition", "onboarding", "offboarding", "stakeholder management"],
+      "description": "managing talent operations, recruitment support, and stakeholder communication."
+    },
+    "HRIS Specialist": {
+      "required": ["workday", "servicenow", "keka", "greyhr", "hr reporting"],
+      "description": "managing HRIS platforms, Workday administration, ticketing, and HR analytics."
     }
   },
   "Civil Engineering": {

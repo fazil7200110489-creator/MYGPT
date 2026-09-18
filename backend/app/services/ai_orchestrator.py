@@ -155,7 +155,13 @@ class AIOrchestrator:
             if hasattr(plugin, "on_before_retrieve"):
                 question = plugin.on_before_retrieve(question)
 
-        # 1. Update session active document state
+        # 1. Update session active document state & clear memory on document switch
+        prev_doc_id = conversation_memory.get_active_document(session_id)
+        if doc_id and doc_id != prev_doc_id:
+            from backend.app.services.reasoning.conversational_memory import conversational_memory
+            conversational_memory.clear(session_id)
+            if prev_doc_id:
+                conversational_memory.clear(prev_doc_id)
         conversation_memory.set_active_document(session_id, doc_id)
 
         # Get context summary for follow-up coherence

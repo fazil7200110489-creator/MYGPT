@@ -11,45 +11,6 @@ from loguru import logger
 from backend.app.services.recruiter.job_requirement_builder import RequirementProfile
 
 
-class MultiCandidateRanking:
-    """Scores and ranks candidate pool against a RequirementProfile."""
-
-    def rank_candidates(
-        self,
-        candidate_pool: List[Dict[str, Any]],
-        requirement_profile: RequirementProfile
-    ) -> List[Dict[str, Any]]:
-        """Rank candidates against RequirementProfile across 10 evaluation dimensions."""
-        if not candidate_pool:
-            logger.warning("MultiCandidateRanking: Candidate pool is empty.")
-            return []
-
-        ranked_results = []
-
-        for candidate_record in candidate_pool:
-            scorecard = self.evaluate_candidate(candidate_record, requirement_profile)
-            ranked_results.append(scorecard)
-
-        # Sort descending by overall_score
-        ranked_results.sort(key=lambda x: x["overall_score"], reverse=True)
-
-        # Assign rank positions
-        for idx, item in enumerate(ranked_results):
-            item["rank"] = idx + 1
-
-        logger.info(f"MultiCandidateRanking: Ranked {len(ranked_results)} candidates for role '{requirement_profile.target_role}'. Top score: {ranked_results[0]['overall_score'] if ranked_results else 0}%")
-        return ranked_results
-
-    def evaluate_candidate(
-        self,
-        candidate_record: Dict[str, Any],
-        req: RequirementProfile
-    ) -> Dict[str, Any]:
-        """Evaluate a single candidate against RequirementProfile across 7 weighted dimensions."""
-        profile = candidate_record.get("candidate_profile") or candidate_record
-        cid = candidate_record.get("candidate_id") or "UNKNOWN"
-        cname = candidate_record.get("name") or profile.get("name", "Candidate")
-
 CANONICAL_SKILL_MAP = {
     "react.js": "React.js", "react": "React.js", "reactjs": "React.js",
     "node.js": "Node.js", "node": "Node.js", "nodejs": "Node.js",
@@ -138,6 +99,7 @@ def extract_all_candidate_skills(candidate_record: Dict[str, Any]) -> List[str]:
 class MultiCandidateRanking:
     """Scores and ranks candidate pool against a RequirementProfile."""
 
+
     def rank_candidates(
         self,
         candidate_pool: List[Dict[str, Any]],
@@ -148,9 +110,26 @@ class MultiCandidateRanking:
             logger.warning("MultiCandidateRanking: Candidate pool is empty.")
             return []
 
+        from backend.app.services.reasoning.candidate_profile_builder import candidate_profile_builder
+
         ranked_results = []
+        invalid_keywords = {"certificate", "certificates", "resume", "curriculum", "vitae", "army certificate", "experience", "education", "skills", "projects", "declaration"}
 
         for candidate_record in candidate_pool:
+            profile = candidate_record.get("candidate_profile") or candidate_record
+            cname = candidate_record.get("name") or profile.get("name") or candidate_record.get("candidate_name") or ""
+            cname_lower = cname.lower().strip()
+
+            # Ignore invalid candidate identities, empty names, or section headings
+            if not cname or cname in ("Not Mentioned", "Candidate"):
+                continue
+            if any(re.search(r'\b' + re.escape(kw) + r'\b', cname_lower) for kw in invalid_keywords):
+                logger.warning(f"MultiCandidateRanking: Excluding invalid candidate identity '{cname}' from ranking.")
+                continue
+            if not candidate_profile_builder._is_valid_candidate_name(cname):
+                logger.warning(f"MultiCandidateRanking: Excluding invalid candidate identity name '{cname}' from ranking.")
+                continue
+
             scorecard = self.evaluate_candidate(candidate_record, requirement_profile)
             ranked_results.append(scorecard)
 
@@ -161,8 +140,9 @@ class MultiCandidateRanking:
         for idx, item in enumerate(ranked_results):
             item["rank"] = idx + 1
 
-        logger.info(f"MultiCandidateRanking: Ranked {len(ranked_results)} candidates for role '{requirement_profile.target_role}'. Top score: {ranked_results[0]['overall_score'] if ranked_results else 0}%")
+        logger.info(f"MultiCandidateRanking: Ranked {len(ranked_results)} valid candidates for role '{requirement_profile.target_role}'. Top score: {ranked_results[0]['overall_score'] if ranked_results else 0}%")
         return ranked_results
+
 
     def evaluate_candidate(
         self,

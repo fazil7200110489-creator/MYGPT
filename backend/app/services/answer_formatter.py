@@ -147,10 +147,11 @@ class AnswerFormatter:
         if doc_type == "resume":
             name_ref = candidate_name if candidate_name else "the candidate"
             return [
-                f"What is {name_ref}'s work experience?",
-                f"What technical skills does {name_ref} possess?",
                 f"What projects has {name_ref} worked on?",
-                f"Can you summarize {name_ref}'s educational background and certifications?"
+                f"What backend technologies does {name_ref} know?",
+                f"Does {name_ref} know REST API?",
+                f"Would you hire {name_ref}?",
+                f"Is {name_ref} suitable for Frontend Developer?"
             ]
 
         if confidence == 0.0:

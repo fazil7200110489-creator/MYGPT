@@ -8,12 +8,32 @@ import re
 from typing import Dict, Any, List
 from loguru import logger
 
-# Import third-party parsers
-from pypdf import PdfReader
-import docx
-import openpyxl
-from pptx import Presentation
-from bs4 import BeautifulSoup
+# Import third-party parsers with safe fallbacks
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
+
+try:
+    import docx
+except ImportError:
+    docx = None
+
+try:
+    import openpyxl
+except ImportError:
+    openpyxl = None
+
+try:
+    from pptx import Presentation
+except ImportError:
+    Presentation = None
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
+
 import xml.etree.ElementTree as ET
 
 from .ocr_service import ocr_service
@@ -180,7 +200,7 @@ class DocumentParser:
         is_val_target = ext in [".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".txt", ".docx", ".doc"]
         if is_val_target:
             words = cleaned_text.split()
-            if len(words) < 30 or "ocr_failed" in cleaned_text.lower() or "no readable text" in cleaned_text.lower():
+            if len(words) < 2 or "ocr_failed" in cleaned_text.lower() or "no readable text" in cleaned_text.lower():
                 logger.error(f"Validation failed: text too short ({len(words)} words) or invalid.")
                 raise ValueError("Unable to extract readable text from the uploaded document.")
 

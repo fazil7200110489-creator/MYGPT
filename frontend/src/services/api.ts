@@ -292,5 +292,186 @@ export const api = {
       throw new Error(errData.detail || 'Failed to delete candidate from pool')
     }
     return res.json()
+  },
+
+  // --- Company AI Central Platform Endpoints ---
+  async getAIStatus() {
+    const res = await fetch(`${BASE_URL}/api/company/ai/status`)
+    if (!res.ok) throw new Error('Failed to get AI status')
+    return res.json()
+  },
+
+  async sendCompanyChat(params: {
+    message: string
+    sessionId?: string
+    conversationId?: string
+    userRole?: string
+    userId?: string
+    departmentOverride?: string
+    attachedDocId?: string
+    documentId?: string
+  }) {
+    const convId = params.conversationId || params.sessionId || 'company_session'
+    const docId = params.documentId || params.attachedDocId || null
+
+    const res = await fetch(`${BASE_URL}/api/company/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: params.message,
+        conversation_id: convId,
+        session_id: convId,
+        document_id: docId,
+        attached_doc_id: docId,
+        attached_file_id: docId,
+        user_role: params.userRole || 'EMPLOYEE',
+        user_id: params.userId || 'current_user',
+        department_override: params.departmentOverride || null
+      })
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Company AI chat request failed')
+    }
+    return res.json()
+  },
+
+  async uploadCompanyDocument(
+    file: File,
+    sessionId: string = 'company_session',
+    userRole: string = 'EMPLOYEE',
+    userId: string = 'current_user'
+  ) {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('session_id', sessionId)
+    formData.append('conversation_id', sessionId)
+    formData.append('user_role', userRole)
+    formData.append('user_id', userId)
+    const res = await fetch(`${BASE_URL}/api/company/upload`, {
+      method: 'POST',
+      body: formData
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Document upload failed')
+    }
+    return res.json()
+  },
+
+  async uploadMultipleCompanyDocuments(
+    files: File[],
+    sessionId: string = 'company_session',
+    userRole: string = 'EMPLOYEE',
+    userId: string = 'current_user'
+  ) {
+    const formData = new FormData()
+    files.forEach(f => formData.append('files', f))
+    formData.append('session_id', sessionId)
+    formData.append('conversation_id', sessionId)
+    formData.append('user_role', userRole)
+    formData.append('user_id', userId)
+
+    const res = await fetch(`${BASE_URL}/api/company/upload-multiple`, {
+      method: 'POST',
+      body: formData
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Multiple document upload failed')
+    }
+    return res.json()
+  },
+
+  async getConversations() {
+    const res = await fetch(`${BASE_URL}/api/company/conversations`)
+    if (!res.ok) throw new Error('Failed to load conversations')
+    return res.json()
+  },
+
+  async getConversation(conversationId: string) {
+    const res = await fetch(`${BASE_URL}/api/company/conversations/${conversationId}`)
+    if (!res.ok) throw new Error('Failed to load conversation')
+    return res.json()
+  },
+
+  async deleteConversation(conversationId: string) {
+    const res = await fetch(`${BASE_URL}/api/company/conversations/${conversationId}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) throw new Error('Failed to delete conversation')
+    return res.json()
+  },
+
+  getCompanyFileDownloadUrl(fileId: string, userRole: string = 'EMPLOYEE', userId: string = 'current_user') {
+    return `${BASE_URL}/api/company/files/${fileId}/download?user_role=${userRole}&user_id=${userId}`
+  },
+
+  async getCompanyFilePreview(fileId: string, userRole: string = 'EMPLOYEE', userId: string = 'current_user', maxRows: number = 25) {
+    const url = `${BASE_URL}/api/company/files/${fileId}/preview?user_role=${userRole}&user_id=${userId}&max_rows=${maxRows}`
+    const res = await fetch(url)
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Failed to load file preview')
+    }
+    return res.json()
+  },
+
+  async downloadCompanyFile(fileId: string, filename: string, userRole: string = 'EMPLOYEE', userId: string = 'current_user', dataBase64?: string) {
+    if (dataBase64) {
+      const byteCharacters = atob(dataBase64)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const mimeType = filename.endsWith('.xlsx') ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/octet-stream'
+      const blob = new Blob([byteArray], { type: mimeType })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      return
+    }
+
+    const url = `${BASE_URL}/api/company/files/${fileId}/download?user_role=${userRole}&user_id=${userId}`
+    const res = await fetch(url)
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Download failed')
+    }
+    const blob = await res.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(blobUrl)
+    document.body.removeChild(a)
+  },
+
+  async getCompanyChatHistory(sessionId: string = 'company_session') {
+    const res = await fetch(`${BASE_URL}/api/company/chat/history?session_id=${sessionId}`)
+    if (!res.ok) throw new Error('Failed to get Company AI chat history')
+    return res.json()
+  },
+
+  async resetCompanyChat(sessionId: string = 'company_session') {
+    const res = await fetch(`${BASE_URL}/api/company/chat/reset?session_id=${sessionId}`, {
+      method: 'POST'
+    })
+    if (!res.ok) throw new Error('Failed to reset Company AI chat')
+    return res.json()
+  },
+
+  async listCompanyDepartments() {
+    const res = await fetch(`${BASE_URL}/api/company/departments`)
+    if (!res.ok) throw new Error('Failed to list departments')
+    return res.json()
   }
 }

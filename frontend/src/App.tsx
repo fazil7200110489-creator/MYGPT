@@ -15,15 +15,7 @@ import type { DashboardStats, SystemSettings, LossData, ValLossData } from './st
 import { api } from './services/api'
 import { CandidateDashboard } from './components/CandidateDashboard'
 import { RecruiterPlatform } from './components/RecruiterPlatform'
-
-// Simple Toast implementation
-interface Toast {
-  id: string
-  msg: string
-  type: 'success' | 'error' | 'info'
-}
-
-
+import { CompanyAIChat } from './components/CompanyAIChat'
 
 // Simple Toast implementation
 interface Toast {
@@ -40,7 +32,7 @@ export default function App() {
   } = useStore()
 
   // Local component states
-  const [activeProduct, setActiveProduct] = useState<'resume_intelligence' | 'recruiter_platform'>('resume_intelligence')
+  const [activeProduct, setActiveProduct] = useState<'company_ai' | 'resume_intelligence' | 'recruiter_platform'>('company_ai')
   const [toasts, setToasts] = useState<Toast[]>([])
   const [consoleCollapsed, setConsoleCollapsed] = useState(false)
   const [selectedTensor, setSelectedTensor] = useState<{
@@ -87,9 +79,10 @@ export default function App() {
   useEffect(() => {
     fetchStats()
     fetchSettings()
-    const interval = setInterval(fetchStats, 3000)
+    const interval = setInterval(fetchStats, 30000) // Poll every 30s (was 3s — reduced to avoid interfering with chat)
     return () => clearInterval(interval)
   }, [])
+
 
   // 3. WebSockets Training Stream handler
   useEffect(() => {
@@ -175,6 +168,18 @@ export default function App() {
         {/* Product Switcher Bar */}
         <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 shadow-2xs">
           <button
+            onClick={() => setActiveProduct('company_ai')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeProduct === 'company_ai'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>MYGPT Company AI</span>
+          </button>
+
+          <button
             onClick={() => setActiveProduct('resume_intelligence')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeProduct === 'resume_intelligence'
@@ -202,7 +207,7 @@ export default function App() {
         <div className="flex items-center gap-5">
           {/* GPU Status Badge */}
           <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
-            <Cpu className={`h-4 w-4 ${stats?.device.includes('cuda') ? 'text-green-500 animate-pulse' : 'text-slate-400'}`} />
+            <Cpu className={`h-4 w-4 ${stats?.device?.includes('cuda') ? 'text-green-500 animate-pulse' : 'text-slate-400'}`} />
             <span className="text-slate-500">Device:</span>
             <span className="font-semibold text-slate-700 uppercase">{stats?.device || 'CPU'}</span>
           </div>
@@ -226,7 +231,11 @@ export default function App() {
 
       {/* Workspace Frame */}
       <div className="flex flex-1 overflow-hidden">
-        {activeProduct === 'recruiter_platform' ? (
+        {activeProduct === 'company_ai' ? (
+          <div className="flex-1 w-full h-full overflow-hidden flex bg-[#090d16]">
+            <CompanyAIChat />
+          </div>
+        ) : activeProduct === 'recruiter_platform' ? (
           <RecruiterPlatform />
         ) : (
           <>

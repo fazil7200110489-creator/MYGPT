@@ -16,8 +16,8 @@ _NOT_MENTIONED_MESSAGES: dict = {
     "CERTIFICATIONS": "No certifications were found in the resume.",
 }
 
-_RESUME_FALLBACK = "The uploaded resume does not mention this information."
-_GENERIC_FALLBACK = "I couldn't find that information in the uploaded document."
+_RESUME_FALLBACK = "This information is not explicitly mentioned in the uploaded resume."
+_GENERIC_FALLBACK = "This information is not explicitly mentioned in the uploaded resume."
 
 
 class AnswerBuilder:

@@ -87,7 +87,7 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
     },
     "EMAIL": {
         "entities": [QuestionEntity.EMAIL],
-        "keywords": ["email", "gmail", "e-mail", "mail"],
+        "keywords": ["email", "gmail", "e-mail", "mail", "mail id", "email id", "email address"],
     },
     "CONTACT": {
         "entities": [QuestionEntity.CONTACT],
@@ -99,7 +99,8 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
             "address", "location", "city", "residence", "place", "native", "native place",
             "hometown", "permanent location", "current location", "where is candidate from",
             "where is the candidate from", "residence address", "full address", "district", "state",
-            "give me the address", "give me address", "where is he from", "where is she from", "based in"
+            "give me the address", "give me address", "where is he from", "where is she from", "based in",
+            "is she from", "is he from", "is candidate from", "is candidate located", "located in", "living in", "belong to"
         ],
     },
     "COMPANIES": {
@@ -130,7 +131,7 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
         "entities": [QuestionEntity.WORK_EXPERIENCE],
         "keywords": [
             "experience", "experience of candidate", "work history", "employment",
-            "career", "company", "worked", "employment history", "career history",
+            "career", "company", "worked in", "worked at", "employment history", "career history",
             "experienced"
         ],
     },
@@ -141,6 +142,14 @@ INTENT_DEFINITIONS: Dict[str, Dict] = {
             "technologies", "frameworks", "tools", "libraries", "tech stack",
             "software", "expertise", "competencies", "programming language",
             "programming languages",
+        ],
+    },
+    "SKILL_VERIFY": {
+        "entities": [QuestionEntity.SKILL_VERIFY],
+        "keywords": [
+            "does he know", "does she know", "does candidate know", "does person know",
+            "know", "familiar with", "experienced in", "proficient in", "knowledge of",
+            "has experience with", "worked with"
         ],
     },
     "ERP_PLATFORMS": {
@@ -396,6 +405,9 @@ class IntentClassifier:
         merged = self._merge_unique(entity_intents, kw_intents)
 
         # Disambiguate overlapping intents
+        if "PROJECTS" in merged and "EXPERIENCE" in merged:
+            merged = [i for i in merged if i != "EXPERIENCE"]
+
         if "CONTACT" in merged and any(i in merged for i in ["PHONE", "EMAIL", "ADDRESS"]):
             merged = [i for i in merged if i != "CONTACT"]
 
@@ -408,13 +420,9 @@ class IntentClassifier:
         if "CERTIFICATIONS" in merged and any(w in normalized for w in ["certification", "certifications", "certificate"]):
             merged = [i for i in merged if i != "AWARDS"]
 
-        # If explicit skill-category keywords present (frameworks/libraries), strip SKILL_VERIFY
-        if "SKILLS" in merged and "SKILL_VERIFY" in merged:
-            if any(w in normalized for w in ["framework", "library", "libraries", "tech stack", "tools", "technologies"]):
-                merged = [i for i in merged if i != "SKILL_VERIFY"]
-            else:
-                # Otherwise SKILL_VERIFY takes priority for "does she know X" type queries
-                merged = [i for i in merged if i != "SKILLS"]
+        # If explicit skill-category keywords present (frameworks/libraries), replace SKILL_VERIFY with SKILLS
+        if "SKILL_VERIFY" in merged and any(w in normalized for w in ["framework", "frameworks", "library", "libraries", "tech stack", "tools", "technologies"]):
+            merged = self._merge_unique(["SKILLS" if i == "SKILL_VERIFY" else i for i in merged])
 
         if merged:
             return merged

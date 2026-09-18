@@ -6,17 +6,19 @@ import os
 import re
 from PIL import Image, ImageEnhance
 from loguru import logger
-import pytesseract
-
-# Configure default pytesseract path if common Windows locations exist
-TESSERACT_CMD_CANDIDATES = [
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-    r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
-]
-for candidate in TESSERACT_CMD_CANDIDATES:
-    if os.path.exists(candidate):
-        pytesseract.pytesseract.tesseract_cmd = candidate
-        break
+try:
+    import pytesseract
+    # Configure default pytesseract path if common Windows locations exist
+    TESSERACT_CMD_CANDIDATES = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    ]
+    for candidate in TESSERACT_CMD_CANDIDATES:
+        if os.path.exists(candidate):
+            pytesseract.pytesseract.tesseract_cmd = candidate
+            break
+except ImportError:
+    pytesseract = None
 
 
 class OCRService:

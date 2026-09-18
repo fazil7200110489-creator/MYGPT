@@ -11,7 +11,14 @@ env/
 # Data & checkpoints
 data/
 checkpoints/
+models/local_llm/
+*.gguf
+*.pt
+*.bin
 
-# IDEs
+# IDEs & caches
 .vscode/
 .idea/
+.pytest_cache/
+frontend/dist/
+frontend/node_modules/

@@ -53,7 +53,7 @@ class CandidateReferenceResolver:
             return pool, False
 
         # ----------------------------------------------------------------------------------------
-        # 3. Direct & Fuzzy Candidate Name / Alias Matching ("Mohamed", "Fazil", "Mohd", "Umamahesh", "Sanjay")
+        # 3. Direct & Fuzzy Candidate Name / Alias Matching ("Mohamed", "Fazil", "Ravi Kumar", "Shekhar", "Komal")
         # ----------------------------------------------------------------------------------------
         COMMON_NAME_ALIASES = {
             "mohd": "mohamed",
@@ -64,9 +64,8 @@ class CandidateReferenceResolver:
             "umamaheshwar": "uma mahesh"
         }
 
-        matched_candidates = []
-        matched_candidate_ids = set()
-
+        # Step 3a: Tier 1 - Full Name Exact / Substring Phrase Match
+        tier1_matches = []
         for cand in pool:
             profile = cand.get("candidate_profile", {})
             cname = cand.get("candidate_name") or profile.get("name") or cand.get("name") or ""
@@ -75,37 +74,70 @@ class CandidateReferenceResolver:
 
             cname_lower = cname.lower().strip()
             cname_no_space = cname_lower.replace(" ", "")
-            name_parts = [p for p in re.split(r'\s+', cname_lower) if len(p) >= 3]
 
-            # Space-insensitive fuzzy match (e.g. "umamahesh" in "show umamahesh skills" -> "Uma Mahesh")
+            # Exact multi-word phrase or space-insensitive match (e.g. "ravi kumar", "komal kumari")
             q_no_space = q_lower.replace(" ", "")
-            if cname_no_space in q_no_space or cname_lower in q_lower:
-                if cand.get("candidate_id") not in matched_candidate_ids:
-                    matched_candidates.append(cand)
-                    matched_candidate_ids.add(cand.get("candidate_id"))
+            if len(cname_lower.split()) > 1:
+                pattern = r'\b' + re.escape(cname_lower) + r'(?:s|\'s)?\b'
+                if re.search(pattern, q_lower) or cname_no_space in q_no_space:
+                    tier1_matches.append(cand)
+            elif cname_lower in q_lower or cname_no_space in q_no_space:
+                tier1_matches.append(cand)
+
+        if tier1_matches:
+            logger.info(f"CandidateReferenceResolver: Tier 1 Matched explicit full name(s) -> {[c.get('candidate_name') or c.get('name') for c in tier1_matches]}")
+            return tier1_matches, False
+
+        # Step 3b: Tier 2 - Unique First/Last Name & Alias Match
+        tier2_matches = []
+        tier2_ids = set()
+        GENERIC_SURNAMES = {"kumar", "kumari", "singh", "sharma", "patel", "kaur", "devi"}
+
+        for cand in pool:
+            profile = cand.get("candidate_profile", {})
+            cname = cand.get("candidate_name") or profile.get("name") or cand.get("name") or ""
+            if not cname or cname in ("Not Mentioned", "Candidate"):
                 continue
 
-            # Alias lookup matching (e.g. "Mohd" -> "Mohamed", "Sanjay" -> "Sanjaya")
+            cname_lower = cname.lower().strip()
+            name_parts = [p for p in re.split(r'\s+', cname_lower) if len(p) >= 3]
+
+            # Alias lookup matching
+            alias_matched = False
             for alias_k, canonical_v in COMMON_NAME_ALIASES.items():
                 if re.search(r'\b' + re.escape(alias_k) + r'\b', q_lower):
                     if canonical_v in cname_lower:
-                        if cand.get("candidate_id") not in matched_candidate_ids:
-                            matched_candidates.append(cand)
-                            matched_candidate_ids.add(cand.get("candidate_id"))
+                        if cand.get("candidate_id") not in tier2_ids:
+                            tier2_matches.append(cand)
+                            tier2_ids.add(cand.get("candidate_id"))
+                        alias_matched = True
                         break
 
-            # Part/alias name match (e.g. "Mohamed", "Fazil", "Sanjaya", "Sridhar")
+            if alias_matched:
+                continue
+
+            # Unique part matching
             for part in name_parts:
                 alias_pattern = r'\b' + re.escape(part) + r'(?:a|s|\'s)?\b'
                 if re.search(alias_pattern, q_lower):
-                    if cand.get("candidate_id") not in matched_candidate_ids:
-                        matched_candidates.append(cand)
-                        matched_candidate_ids.add(cand.get("candidate_id"))
+                    # Skip generic surnames matching if query contains other words and surname is generic
+                    if part in GENERIC_SURNAMES and len(name_parts) > 1 and len(q_lower.split()) > 2:
+                        # Check if any candidate has a stronger non-generic match
+                        has_first_name_match = any(
+                            re.search(r'\b' + re.escape(p) + r'(?:a|s|\'s)?\b', q_lower)
+                            for p in name_parts if p not in GENERIC_SURNAMES
+                        )
+                        if not has_first_name_match:
+                            continue
+                    if cand.get("candidate_id") not in tier2_ids:
+                        tier2_matches.append(cand)
+                        tier2_ids.add(cand.get("candidate_id"))
                     break
 
-        if matched_candidates:
-            logger.info(f"CandidateReferenceResolver: Matched explicit name/alias -> {[c.get('candidate_name') or c.get('name') for c in matched_candidates]}")
-            return matched_candidates, False
+        if tier2_matches:
+            logger.info(f"CandidateReferenceResolver: Tier 2 Matched name part/alias -> {[c.get('candidate_name') or c.get('name') for c in tier2_matches]}")
+            return tier2_matches, False
+
 
         # ----------------------------------------------------------------------------------------
         # 4. Ordinal Keywords ("first", "second", "third", "last", "top candidate", "rank 1")

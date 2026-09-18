@@ -2,6 +2,7 @@
 """
 
 import os
+import json
 import torch
 from loguru import logger
 from typing import Dict, Any, Optional, List
@@ -25,10 +26,11 @@ class ModelManager:
             return
             
         self.model: Optional[GPT] = None
+        self._total_params: Optional[int] = None
         self.config_dict: Dict[str, Any] = {
             "learning_rate": 0.001,
             "batch_size": 4,
-            "seq_len": 32,
+            "seq_len": 256,
             "num_layers": 2,
             "num_heads": 2,
             "embedding_dim": 32,
@@ -39,15 +41,30 @@ class ModelManager:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self._initialized = True
         logger.info(f"ModelManager singleton initialized. CPU/GPU Device: {self.device}")
-        
-        # Load and apply persistent config on initialization
-        persistent_cfg = self.load_persistent_config()
-        self.config_dict["seq_len"] = persistent_cfg["max_sequence_length"]
-        self.config_dict["embedding_dim"] = persistent_cfg["embedding_dimension"]
+
+    def get_total_params(self) -> int:
+        """Returns cached total parameters count without expensive iteration."""
+        if self._total_params is not None:
+            return self._total_params
+        if self.model is not None:
+            self._total_params = sum(p.numel() for p in self.model.parameters())
+            return self._total_params
+        return 0
+
+
+        # Check if saved config exists to sync initial defaults
+        checkpoint_dir = settings.CHECKPOINT_DIR
+        config_path = os.path.join(checkpoint_dir, "config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    saved_cfg = json.load(f)
+                self.config_dict.update(saved_cfg)
+            except Exception as e:
+                logger.warning(f"Could not read config.json on init: {e}")
 
     def load_persistent_config(self) -> Dict[str, int]:
         """Loads max_sequence_length and embedding_dimension from persistent config file."""
-        import json
         config_path = os.path.join(settings.CHECKPOINT_DIR, "model_config.json")
         defaults = {
             "max_sequence_length": 16,
@@ -68,7 +85,6 @@ class ModelManager:
 
     def save_persistent_config(self, max_sequence_length: int, embedding_dimension: int) -> None:
         """Saves max_sequence_length and embedding_dimension to persistent config file."""
-        import json
         os.makedirs(settings.CHECKPOINT_DIR, exist_ok=True)
         config_path = os.path.join(settings.CHECKPOINT_DIR, "model_config.json")
         try:
@@ -85,11 +101,62 @@ class ModelManager:
         """Instantiates and returns the GPT model weights.
 
         If model is already loaded and force_rebuild is False, returns the active instance.
+        Authoritatively uses authentic checkpoint configuration as source of truth.
         """
         if self.model is not None and not force_rebuild:
             return self.model
 
-        logger.info("Initializing new GPT instance in ModelManager...")
+        checkpoint_dir = settings.CHECKPOINT_DIR
+        latest_model = os.path.join(checkpoint_dir, "model_latest.pt")
+        latest_config = os.path.join(checkpoint_dir, "config.json")
+
+        # 1. Primary path: Load production model_latest.pt if available
+        if os.path.exists(latest_model) and os.path.exists(latest_config):
+            success = self.load_latest_checkpoint()
+            if success and self.model is not None:
+                return self.model
+
+        # 2. Secondary / legacy path: Load from epoch checkpoint if model_latest is not present
+        if os.path.exists(checkpoint_dir):
+            import re
+            files = [f for f in os.listdir(checkpoint_dir) if f.startswith("checkpoint_epoch_") and f.endswith(".pt")]
+            if files:
+                try:
+                    last_ckpt = sorted(files, key=lambda x: int(re.findall(r'\d+', x)[0]))[-1]
+                    ckpt_path = os.path.join(checkpoint_dir, last_ckpt)
+                    checkpoint = torch.load(ckpt_path, map_location="cpu")
+                    ckpt_config = checkpoint.get("config", {})
+                    state_dict = checkpoint.get("model_state_dict", {})
+                    
+                    # Deduce vocab size from checkpoint tensor weights
+                    ckpt_vocab_size = state_dict.get("token_embeddings.weight", None)
+                    vocab_size = ckpt_vocab_size.shape[0] if ckpt_vocab_size is not None else 100
+                    
+                    gpt_config = GPTConfig(
+                        vocab_size=vocab_size,
+                        context_len=int(ckpt_config.get("seq_len", 32)),
+                        embedding_dim=int(ckpt_config.get("embedding_dim", 32)),
+                        num_heads=int(ckpt_config.get("num_heads", 2)),
+                        hidden_dim=int(ckpt_config.get("hidden_dim", 128)),
+                        num_layers=int(ckpt_config.get("num_layers", 2)),
+                        dropout=float(ckpt_config.get("dropout", 0.1))
+                    )
+                    
+                    self.config_dict.update(ckpt_config)
+                    self.model = GPT(gpt_config)
+                    self.model.load_state_dict(state_dict, strict=True)
+                    self.model = self.model.to(self.device)
+                    self.model.eval()
+                    logger.info(
+                        f"Loaded legacy checkpoint: {last_ckpt} | "
+                        f"vocab={vocab_size}, dim={gpt_config.embedding_dim}, seq={gpt_config.context_len}"
+                    )
+                    return self.model
+                except Exception as e:
+                    logger.error(f"Failed to load epoch checkpoint: {str(e)}")
+
+        # 3. Fallback path: Instantiate raw model from current config_dict
+        logger.info("Initializing baseline GPT instance in ModelManager...")
         from backend.app.services.tokenizer_service import tokenizer
         vocab_size = len(tokenizer.w2i) if hasattr(tokenizer, 'w2i') and tokenizer.w2i else 80
 
@@ -102,28 +169,7 @@ class ModelManager:
             num_layers=int(self.config_dict["num_layers"]),
             dropout=float(self.config_dict["dropout"])
         )
-        
-        self.model = GPT(gpt_config)
-        
-        # Load last checkpoint if available to prevent starting from raw state
-        checkpoint_dir = settings.CHECKPOINT_DIR
-        if os.path.exists(checkpoint_dir):
-            import re
-            files = [f for f in os.listdir(checkpoint_dir) if f.startswith("checkpoint_epoch_") and f.endswith(".pt")]
-            if files:
-                try:
-                    # Sort files numerically by the epoch number extracted from the filename
-                    last_ckpt = sorted(files, key=lambda x: int(re.findall(r'\d+', x)[0]))[-1]
-                    ckpt_path = os.path.join(checkpoint_dir, last_ckpt)
-                    checkpoint = torch.load(ckpt_path, map_location="cpu")
-                    # Synchronize parameters
-                    self.config_dict.update(checkpoint["config"])
-                    self.model.load_state_dict(checkpoint["model_state_dict"])
-                    logger.info(f"Automatically loaded last checkpoint in ModelManager: {last_ckpt}")
-                except Exception as e:
-                    logger.error(f"Failed to auto-load checkpoint on startup: {str(e)}")
-
-        self.model = self.model.to(self.device)
+        self.model = GPT(gpt_config).to(self.device)
         self.model.eval()
         return self.model
 
@@ -176,9 +222,13 @@ class ModelManager:
         }
 
     def load_latest_checkpoint(self) -> bool:
-        """Restores tokenizer vocabulary, configuration settings, model weights, and training step states from the checkpoints directory."""
+        """Restores tokenizer vocabulary, configuration settings, model weights, and training step states from the checkpoints directory.
+        
+        The authentic checkpoint file and saved config.json serve as authoritative source of truth.
+        """
         checkpoint_dir = settings.CHECKPOINT_DIR
         if not os.path.exists(checkpoint_dir):
+            logger.warning(f"Checkpoint directory does not exist: {checkpoint_dir}")
             return False
 
         latest_model = os.path.join(checkpoint_dir, "model_latest.pt")
@@ -186,64 +236,88 @@ class ModelManager:
         latest_vocab = os.path.join(checkpoint_dir, "vocab.json")
         latest_state = os.path.join(checkpoint_dir, "training_state.json")
 
-        # 1. Load Vocab
+        if not os.path.exists(latest_model):
+            logger.warning(f"model_latest.pt not found at: {latest_model}")
+            return False
+
+        # 1. Restore Tokenizer Vocabulary
         if os.path.exists(latest_vocab):
             try:
                 from backend.app.services.tokenizer_service import tokenizer
                 tokenizer.load(latest_vocab)
-                logger.info("Successfully restored BPETokenizer vocabulary.")
+                logger.info(f"Successfully restored BPETokenizer vocabulary ({len(tokenizer.w2i)} tokens).")
             except Exception as e:
-                logger.error(f"Failed to restore vocab: {e}")
+                logger.error(f"Failed to restore vocab from {latest_vocab}: {e}")
+                return False
+        else:
+            logger.warning(f"vocab.json not found at {latest_vocab}")
 
-        # 2. Load Config
+        from backend.app.services.tokenizer_service import tokenizer
+        vocab_size = len(tokenizer.w2i) if hasattr(tokenizer, 'w2i') and tokenizer.w2i else 1113
+
+        # 2. Restore Model Configuration from config.json (Authoritative)
         if os.path.exists(latest_config):
             try:
-                import json
                 with open(latest_config, "r", encoding="utf-8") as f:
                     cfg = json.load(f)
                 self.config_dict.update(cfg)
                 from backend.app.services.trainer_service import trainer_service
                 trainer_service.config.update(cfg)
-                logger.info("Successfully restored model configuration.")
             except Exception as e:
-                logger.error(f"Failed to restore config: {e}")
+                logger.error(f"Failed to restore config from {latest_config}: {e}")
+                return False
 
-        # Override sequence positions context and embedding dimension with persistent configuration if saved
-        persistent_cfg = self.load_persistent_config()
-        self.config_dict["seq_len"] = persistent_cfg["max_sequence_length"]
-        self.config_dict["embedding_dim"] = persistent_cfg["embedding_dimension"]
-        from backend.app.services.trainer_service import trainer_service
-        trainer_service.config["seq_len"] = persistent_cfg["max_sequence_length"]
-        trainer_service.config["embedding_dim"] = persistent_cfg["embedding_dimension"]
+        # Read authentic parameters from config_dict
+        context_len = int(self.config_dict.get("seq_len", 256))
+        embedding_dim = int(self.config_dict.get("embedding_dim", 32))
+        num_heads = int(self.config_dict.get("num_heads", 2))
+        hidden_dim = int(self.config_dict.get("hidden_dim", 128))
+        num_layers = int(self.config_dict.get("num_layers", 2))
+        dropout = float(self.config_dict.get("dropout", 0.1))
 
-        # 3. Load Model weights
-        if os.path.exists(latest_model):
-            try:
-                from backend.app.services.tokenizer_service import tokenizer
-                vocab_size = len(tokenizer.w2i) if hasattr(tokenizer, 'w2i') and tokenizer.w2i else 80
-                gpt_config = GPTConfig(
-                    vocab_size=vocab_size,
-                    context_len=int(self.config_dict["seq_len"]),
-                    embedding_dim=int(self.config_dict["embedding_dim"]),
-                    num_heads=int(self.config_dict["num_heads"]),
-                    hidden_dim=int(self.config_dict["hidden_dim"]),
-                    num_layers=int(self.config_dict["num_layers"]),
-                    dropout=float(self.config_dict["dropout"])
+        # 3. Construct GPT model with authentic checkpoint configuration
+        gpt_config = GPTConfig(
+            vocab_size=vocab_size,
+            context_len=context_len,
+            embedding_dim=embedding_dim,
+            num_heads=num_heads,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+            dropout=dropout
+        )
+
+        try:
+            state_dict = torch.load(latest_model, map_location=self.device)
+            
+            # Verify vocab size compatibility before loading
+            ckpt_vocab_size = state_dict.get("token_embeddings.weight", None)
+            if ckpt_vocab_size is not None and ckpt_vocab_size.shape[0] != vocab_size:
+                logger.error(
+                    f"Tokenizer vocab size ({vocab_size}) does not match checkpoint vocab size ({ckpt_vocab_size.shape[0]})."
                 )
-                self.model = GPT(gpt_config).to(self.device)
-                self.model.load_state_dict(torch.load(latest_model, map_location=self.device))
-                self.model.eval()
+                return False
 
-                from backend.app.services.trainer_service import trainer_service
-                trainer_service.model = self.model
-                logger.info("Successfully restored model weights.")
-            except Exception as e:
-                logger.error(f"Failed to restore model weights: {e}")
+            new_model = GPT(gpt_config).to(self.device)
+            new_model.load_state_dict(state_dict, strict=True)
+            new_model.eval()
+            self.model = new_model
+
+            from backend.app.services.trainer_service import trainer_service
+            trainer_service.model = self.model
+
+            logger.info(
+                f"Loaded checkpoint: model_latest.pt\n"
+                f"Model configuration: vocab={vocab_size}, embedding_dim={embedding_dim}, "
+                f"layers={num_layers}, heads={num_heads}, context={context_len}, hidden_dim={hidden_dim}\n"
+                f"Model weights restored successfully (0 tensor shape mismatches)."
+            )
+        except Exception as e:
+            logger.error(f"Failed to restore model weights from {latest_model}: {e}")
+            return False
 
         # 4. Load Training history and state
         if os.path.exists(latest_state):
             try:
-                import json
                 with open(latest_state, "r", encoding="utf-8") as f:
                     state = json.load(f)
                 from backend.app.services.trainer_service import trainer_service

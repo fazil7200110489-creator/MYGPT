@@ -23,7 +23,7 @@ configure_logging()
 
 # Import routers
 from backend.app.api.routers import (
-    attention, checkpoints, dataset, embedding, inference, logs, model, tokenizer as tokenizer_router, train, transformer, document
+    attention, checkpoints, dataset, embedding, inference, logs, model, tokenizer as tokenizer_router, train, transformer, document, company_ai
 )
 from backend.app.api import recruiter_router
 
@@ -55,6 +55,7 @@ app.include_router(tokenizer_router.router, prefix="/api")
 app.include_router(train.router, prefix="/api")
 app.include_router(transformer.router, prefix="/api")
 app.include_router(document.router, prefix="/api")
+app.include_router(company_ai.router, prefix="/api")
 app.include_router(recruiter_router.router)
 
 
@@ -82,6 +83,14 @@ async def startup_event():
         logger.info("MyGPT model successfully pre-loaded on boot.")
     except Exception as e:
         logger.error(f"Failed to pre-load model on startup: {e}")
+
+    # Pre-load Qwen local answer model into memory on boot
+    logger.info("Pre-loading local Qwen answer model into memory...")
+    try:
+        from backend.app.services.llm.answer_model_service import answer_model_service
+        answer_model_service.pre_load()
+    except Exception as e:
+        logger.error(f"Failed to pre-load Qwen answer model on startup: {e}")
     
     # 2. If not restored (fresh start), pre-train tokenizer on combined dataset
     if not restored:

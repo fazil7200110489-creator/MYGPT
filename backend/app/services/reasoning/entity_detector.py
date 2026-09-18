@@ -48,6 +48,7 @@ class QuestionEntity(str, Enum):
     DESIGNATION      = "DESIGNATION"
     WORK_EXPERIENCE  = "WORK_EXPERIENCE"
     SKILLS           = "SKILLS"
+    SKILL_VERIFY     = "SKILL_VERIFY"
     PROJECTS         = "PROJECTS"
     CERTIFICATIONS   = "CERTIFICATIONS"
     EDUCATION        = "EDUCATION"
@@ -131,9 +132,11 @@ ENTITY_TRIGGERS: List[Tuple[QuestionEntity, List[str]]] = [
     (QuestionEntity.PHONE,            ["phone", "mobile", "cell", "telephone", "phone number", "mobile number", "contact no", "phone no"]),
     (QuestionEntity.BASIC_PROFILE,    ["basic details", "basic profile", "basic info", "basic information"]),
     (QuestionEntity.ADDRESS,          [
-        "address", "location", "city", "residence", "place", "native", "native place",
+        "is she from", "is he from", "is candidate from", "is candidate located",
+        "where is candidate from", "where is the candidate from", "based in", "located in", "living in",
+        "from", "address", "location", "city", "residence", "place", "native", "native place",
         "hometown", "permanent location", "current location", "residence address",
-        "full address", "district", "state", "where is candidate from", "where is the candidate from"
+        "full address", "district", "state"
     ]),
     (QuestionEntity.LINKEDIN,         ["linkedin"]),
     (QuestionEntity.GITHUB,           ["github"]),
@@ -143,6 +146,10 @@ ENTITY_TRIGGERS: List[Tuple[QuestionEntity, List[str]]] = [
     (QuestionEntity.WORK_EXPERIENCE,  [
         "experience", "work history", "employment", "career",
         "company", "worked", "employment history", "experience of candidate", "career history"
+    ]),
+    (QuestionEntity.SKILL_VERIFY,     [
+        "does he know", "does she know", "does candidate know", "know",
+        "familiar with", "experienced in", "proficient in", "knowledge of"
     ]),
     (QuestionEntity.SKILLS,           [
         "skills", "technical skills", "professional skills", "core skills",

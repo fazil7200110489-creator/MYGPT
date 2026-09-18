@@ -78,21 +78,36 @@ ABBREVIATION_MAP: Dict[str, str] = {
 # 2. Phrase normalizations — multi-word equivalents → canonical word
 #    Used after abbreviation expansion.
 PHRASE_MAP: Dict[str, str] = {
+    # Requirement 7 Synonym Normalizations
+    "mobile":                       "phone",
+    "contact number":               "phone",
+    "cell":                         "phone",
+    "mail":                         "email",
+    "gmail":                        "email",
+    "location":                     "address",
+    "where does he live":           "address",
+    "where does she live":          "address",
+    "where is he located":          "address",
+    "where is she located":         "address",
+    "career":                       "experience",
+    "employment":                   "experience",
+    "work experience":              "experience",
+    "career history":               "experience",
+    "job history":                  "experience",
+    "technology":                   "skills",
+    "technical skills":             "skills",
+    "technical expertise":          "skills",
+    "technologies":                 "skills",
     # Experience phrases
     "professional experience":      "experience",
-    "work experience":              "experience",
     "working experience":           "experience",
     "employment history":           "experience",
-    "career history":               "experience",
     "career details":               "experience",
-    "job history":                  "experience",
     "work history":                 "experience",
     "industry experience":          "experience",
     "professional background":      "experience",
     "years of experience":          "experience",
     # Skills phrases
-    "technical skills":             "skills",
-    "technical expertise":          "skills",
     "technologies used":            "skills",
     "technology stack":             "skills",
     "software skills":              "skills",
@@ -108,7 +123,10 @@ PHRASE_MAP: Dict[str, str] = {
     "educational qualification":    "education",
     "schooling":                    "education",
     # Contact phrases
-    "contact number":               "phone",
+    "mail id":                      "email",
+    "mail address":                 "email",
+    "email id":                     "email",
+    "email address":                "email",
     "mobile number":                "phone",
     "cell number":                  "phone",
     "phone number":                 "phone",
@@ -323,6 +341,6 @@ class QuestionNormalizer:
     def _apply_phrases(self, q: str) -> str:
         """Normalizes multi-word equivalents to canonical single terms (longest-first)."""
         for phrase, canonical in _PHRASE_SORTED:
-            if phrase in q:
-                q = q.replace(phrase, canonical)
+            pattern = r"\b" + re.escape(phrase) + r"\b"
+            q = re.sub(pattern, canonical, q)
         return q

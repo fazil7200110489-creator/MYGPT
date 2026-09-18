@@ -1803,3 +1803,982 @@
 2026-07-27 14:52:04 | Saved training sample for doc_id 05e312cf-9b5d-4479-9793-03887678e9a7 to D:\MYGPT\data\training_samples.jsonl
 2026-07-27 15:10:50 | WebSocket client disconnected from training stream.
 2026-07-27 15:10:50 | WebSocket client disconnected from training stream.
+2026-07-27 15:15:09 | Successfully restored training history.
+2026-07-27 15:15:14 | WebSocket client disconnected from training stream.
+2026-07-27 15:15:14 | WebSocket client disconnected from training stream.
+2026-07-27 15:34:29 | WebSocket client disconnected from training stream.
+2026-07-27 15:34:29 | WebSocket client disconnected from training stream.
+2026-07-27 15:45:03 | WebSocket client disconnected from training stream.
+2026-07-27 15:45:03 | WebSocket client disconnected from training stream.
+2026-07-27 15:49:05 | WebSocket client disconnected from training stream.
+2026-07-27 15:49:05 | WebSocket client disconnected from training stream.
+2026-07-27 15:54:58 | WebSocket client disconnected from training stream.
+2026-07-27 15:54:58 | WebSocket client disconnected from training stream.
+2026-07-27 16:00:10 | WebSocket client disconnected from training stream.
+2026-07-27 16:00:11 | WebSocket client disconnected from training stream.
+2026-07-27 16:06:12 | WebSocket client disconnected from training stream.
+2026-07-27 16:06:12 | WebSocket client disconnected from training stream.
+2026-07-27 16:06:38 | WebSocket client disconnected from training stream.
+2026-07-27 16:06:39 | WebSocket client disconnected from training stream.
+2026-07-27 16:20:52 | WebSocket client disconnected from training stream.
+2026-07-27 16:20:53 | WebSocket client disconnected from training stream.
+2026-07-27 16:20:53 | WebSocket client disconnected from training stream.
+2026-07-27 19:01:32 | WebSocket client disconnected from training stream.
+2026-07-27 19:01:32 | WebSocket client disconnected from training stream.
+2026-08-04 14:40:52 | Successfully restored training history.
+2026-08-04 14:40:53 | WebSocket client disconnected from training stream.
+2026-08-04 14:41:01 | WebSocket client disconnected from training stream.
+2026-08-04 14:41:01 | WebSocket client disconnected from training stream.
+2026-08-04 14:43:38 | Saved training sample for doc_id add7a9e1-c165-4019-8780-6fad3bb48a76 to D:\MYGPT\data\training_samples.jsonl
+2026-08-04 14:43:47 | Saved training sample for doc_id add7a9e1-c165-4019-8780-6fad3bb48a76 to D:\MYGPT\data\training_samples.jsonl
+2026-08-04 14:43:54 | Saved training sample for doc_id add7a9e1-c165-4019-8780-6fad3bb48a76 to D:\MYGPT\data\training_samples.jsonl
+2026-08-04 14:44:10 | Saved training sample for doc_id add7a9e1-c165-4019-8780-6fad3bb48a76 to D:\MYGPT\data\training_samples.jsonl
+2026-08-04 14:45:55 | WebSocket client disconnected from training stream.
+2026-08-04 14:45:55 | WebSocket client disconnected from training stream.
+2026-08-04 15:10:23 | WebSocket client disconnected from training stream.
+2026-08-04 15:10:23 | WebSocket client disconnected from training stream.
+2026-08-04 16:21:27 | Successfully restored training history.
+2026-08-04 17:53:53 | Saved training sample for doc_id add7a9e1-c165-4019-8780-6fad3bb48a76 to D:\MYGPT\data\training_samples.jsonl
+2026-08-04 17:58:45 | WebSocket client disconnected from training stream.
+2026-08-04 17:58:47 | WebSocket client disconnected from training stream.
+2026-08-06 10:39:40 | Successfully restored training history.
+2026-08-06 10:39:56 | WebSocket client disconnected from training stream.
+2026-08-06 10:39:56 | WebSocket client disconnected from training stream.
+2026-08-06 10:40:45 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:41:00 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:41:11 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:41:33 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:41:45 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:42:09 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:42:23 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:42:29 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:42:53 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:43:07 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:48:40 | WebSocket client disconnected from training stream.
+2026-08-06 10:48:40 | WebSocket client disconnected from training stream.
+2026-08-06 10:55:14 | Successfully restored training history.
+2026-08-06 10:55:31 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:55:47 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:55:59 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:56:04 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:56:24 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:57:05 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:58:54 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 10:59:29 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:00:12 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:01:22 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:02:12 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:02:55 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:04:07 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:05:47 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:06:11 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:06:31 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:07:36 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:08:20 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:09:12 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:11:56 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:12:20 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 11:13:55 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 14:38:05 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-06 14:39:05 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-06 17:37:56 | WebSocket client disconnected from training stream.
+2026-08-06 17:37:56 | WebSocket client disconnected from training stream.
+2026-08-06 17:39:24 | Successfully restored training history.
+2026-08-06 17:39:25 | WebSocket client disconnected from training stream.
+2026-08-06 17:39:42 | Successfully restored training history.
+2026-08-06 17:40:10 | WebSocket client disconnected from training stream.
+2026-08-06 17:40:10 | WebSocket client disconnected from training stream.
+2026-08-06 17:40:34 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 17:41:16 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 17:41:29 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 17:45:30 | WebSocket client disconnected from training stream.
+2026-08-06 17:45:30 | WebSocket client disconnected from training stream.
+2026-08-06 18:22:59 | Successfully restored training history.
+2026-08-06 18:23:00 | WebSocket client disconnected from training stream.
+2026-08-06 18:23:12 | WebSocket client disconnected from training stream.
+2026-08-06 18:23:12 | WebSocket client disconnected from training stream.
+2026-08-06 18:23:12 | WebSocket client disconnected from training stream.
+2026-08-06 18:23:21 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:23:34 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:24:16 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:24:37 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:24:52 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:25:28 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:26:58 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:27:20 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:27:38 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:28:06 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:28:43 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:29:09 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:29:45 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-06 18:54:16 | WebSocket client disconnected from training stream.
+2026-08-06 18:54:16 | WebSocket client disconnected from training stream.
+2026-08-07 11:05:31 | Successfully restored training history.
+2026-08-07 11:07:15 | WebSocket client disconnected from training stream.
+2026-08-07 11:07:16 | WebSocket client disconnected from training stream.
+2026-08-07 11:26:16 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-07 12:55:59 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-07 12:56:05 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-07 13:00:43 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:03:47 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:04:21 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:05:10 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:07:48 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:07:58 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:08:42 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:16:46 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:19:49 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:20:29 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:20:47 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:20:54 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:21:10 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:21:29 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:21:54 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:22:38 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 13:23:08 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:40:51 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:42:26 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:42:36 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:44:43 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:45:32 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:46:38 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:46:49 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:50:18 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:51:44 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:52:14 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:52:31 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:52:41 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:52:46 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:53:00 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 14:53:09 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:19:26 | WebSocket client disconnected from training stream.
+2026-08-07 15:19:26 | WebSocket client disconnected from training stream.
+2026-08-07 15:29:21 | Successfully restored training history.
+2026-08-07 15:30:23 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:30:42 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:30:47 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:31:05 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:31:18 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:31:53 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:32:06 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:33:16 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:33:33 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:34:12 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:35:02 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:49:43 | WebSocket client disconnected from training stream.
+2026-08-07 15:49:43 | WebSocket client disconnected from training stream.
+2026-08-07 15:49:44 | WebSocket client disconnected from training stream.
+2026-08-07 15:49:58 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:50:14 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:50:19 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:50:24 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:50:35 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 15:50:48 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:04:39 | WebSocket client disconnected from training stream.
+2026-08-07 16:04:39 | WebSocket client disconnected from training stream.
+2026-08-07 16:04:49 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:05:39 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:05:55 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:06:14 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:07:50 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:23:23 | WebSocket client disconnected from training stream.
+2026-08-07 16:23:23 | WebSocket client disconnected from training stream.
+2026-08-07 16:23:31 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:23:55 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:24:12 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:24:25 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:24:35 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:24:43 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:24:56 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:25:15 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:25:54 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 16:26:13 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-07 18:51:25 | WebSocket client disconnected from training stream.
+2026-08-12 11:14:02 | Successfully restored training history.
+2026-08-12 11:16:28 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:16:37 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:16:56 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:17:08 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:17:38 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:18:04 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:18:18 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:18:47 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:19:55 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:20:34 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:21:14 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:21:23 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:21:28 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 11:23:49 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 11:27:49 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 11:28:05 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 11:53:13 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 12:09:25 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 12:09:34 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 12:11:28 | WebSocket client disconnected from training stream.
+2026-08-12 12:11:54 | Successfully restored training history.
+2026-08-12 12:13:13 | WebSocket client disconnected from training stream.
+2026-08-12 12:13:13 | WebSocket client disconnected from training stream.
+2026-08-12 12:13:34 | Successfully restored training history.
+2026-08-12 12:15:04 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 12:15:36 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 12:17:17 | Successfully restored training history.
+2026-08-12 12:25:12 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 12:25:14 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 12:31:32 | WebSocket client disconnected from training stream.
+2026-08-12 12:31:32 | WebSocket client disconnected from training stream.
+2026-08-12 12:33:37 | Saved training sample for doc_id dd39b8ec-2328-42b5-9275-6a126ff22e84 to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:35:16 | WebSocket client disconnected from training stream.
+2026-08-12 12:35:17 | WebSocket client disconnected from training stream.
+2026-08-12 12:35:29 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:35:37 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:37:23 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:37:42 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:37:57 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:38:06 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:38:19 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:38:39 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:38:50 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:39:27 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:39:41 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:40:48 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:41:28 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:41:39 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 12:53:39 | WebSocket client disconnected from training stream.
+2026-08-12 12:53:39 | WebSocket client disconnected from training stream.
+2026-08-12 14:14:51 | Successfully restored training history.
+2026-08-12 14:15:11 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:15:37 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:16:06 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:16:37 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:16:49 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:17:11 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:17:42 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:17:51 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:19:10 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:32:26 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:32:47 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 14:53:33 | WebSocket client disconnected from training stream.
+2026-08-12 14:53:33 | WebSocket client disconnected from training stream.
+2026-08-12 14:53:46 | Successfully restored training history.
+2026-08-12 14:53:53 | WebSocket client disconnected from training stream.
+2026-08-12 14:53:53 | WebSocket client disconnected from training stream.
+2026-08-12 14:54:07 | Successfully restored training history.
+2026-08-12 14:54:22 | WebSocket client disconnected from training stream.
+2026-08-12 14:54:22 | WebSocket client disconnected from training stream.
+2026-08-12 14:54:34 | Successfully restored training history.
+2026-08-12 14:54:42 | WebSocket client disconnected from training stream.
+2026-08-12 14:54:42 | WebSocket client disconnected from training stream.
+2026-08-12 14:54:55 | Successfully restored training history.
+2026-08-12 14:55:04 | WebSocket client disconnected from training stream.
+2026-08-12 14:55:04 | WebSocket client disconnected from training stream.
+2026-08-12 14:55:17 | Successfully restored training history.
+2026-08-12 15:19:49 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 15:20:00 | Saved training sample for doc_id b4a9683a-52e9-4de5-b9d1-e39c50d69f2f to D:\MYGPT\data\training_samples.jsonl
+2026-08-12 15:23:58 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 15:23:58 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 18:04:45 | WebSocket client disconnected from training stream.
+2026-08-12 18:04:45 | WebSocket client disconnected from training stream.
+2026-08-12 18:17:14 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-08-12 18:17:27 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-15 19:00:34 | Successfully restored training history.
+2026-09-16 10:44:12 | Successfully restored training history.
+2026-09-16 10:46:56 | WebSocket client disconnected from training stream.
+2026-09-16 10:46:56 | WebSocket client disconnected from training stream.
+2026-09-16 10:47:04 | Successfully restored training history.
+2026-09-16 10:47:20 | WebSocket client disconnected from training stream.
+2026-09-16 10:47:20 | WebSocket client disconnected from training stream.
+2026-09-16 10:47:27 | Successfully restored training history.
+2026-09-16 10:47:28 | Successfully restored training history.
+2026-09-16 10:49:47 | WebSocket client disconnected from training stream.
+2026-09-16 10:49:47 | WebSocket client disconnected from training stream.
+2026-09-16 10:49:57 | Successfully restored training history.
+2026-09-16 10:49:58 | Successfully restored training history.
+2026-09-16 10:50:02 | Successfully restored training history.
+2026-09-16 10:50:26 | Successfully restored training history.
+2026-09-16 10:55:42 | Successfully restored training history.
+2026-09-16 10:55:46 | Successfully restored training history.
+2026-09-16 10:56:10 | Successfully restored training history.
+2026-09-16 10:56:20 | WebSocket client disconnected from training stream.
+2026-09-16 10:56:20 | WebSocket client disconnected from training stream.
+2026-09-16 10:56:21 | WebSocket client disconnected from training stream.
+2026-09-16 10:56:54 | WebSocket client disconnected from training stream.
+2026-09-16 10:59:58 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 11:00:01 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 11:19:38 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 11:19:38 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 11:38:57 | Successfully restored training history.
+2026-09-16 11:39:41 | WebSocket client disconnected from training stream.
+2026-09-16 11:39:41 | WebSocket client disconnected from training stream.
+2026-09-16 11:50:49 | Successfully restored training history.
+2026-09-16 11:50:50 | Successfully restored training history.
+2026-09-16 11:51:20 | Successfully restored training history.
+2026-09-16 11:51:21 | Successfully restored training history.
+2026-09-16 12:14:06 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 12:14:47 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 12:15:07 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 12:15:07 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 12:39:25 | Successfully restored training history.
+2026-09-16 12:39:27 | Successfully restored training history.
+2026-09-16 12:50:07 | WebSocket client disconnected from training stream.
+2026-09-16 12:50:07 | WebSocket client disconnected from training stream.
+2026-09-16 13:19:59 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 13:19:59 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 14:10:30 | Successfully restored training history.
+2026-09-16 14:10:32 | Successfully restored training history.
+2026-09-16 14:19:29 | WebSocket client disconnected from training stream.
+2026-09-16 14:19:29 | WebSocket client disconnected from training stream.
+2026-09-16 14:19:31 | WebSocket client disconnected from training stream.
+2026-09-16 14:21:15 | Successfully restored training history.
+2026-09-16 14:21:17 | Successfully restored training history.
+2026-09-16 14:23:08 | WebSocket client disconnected from training stream.
+2026-09-16 14:23:08 | WebSocket client disconnected from training stream.
+2026-09-16 14:24:15 | WebSocket client disconnected from training stream.
+2026-09-16 14:25:56 | Successfully restored training history.
+2026-09-16 14:25:58 | Successfully restored training history.
+2026-09-16 14:25:59 | WebSocket client disconnected from training stream.
+2026-09-16 14:26:10 | WebSocket client disconnected from training stream.
+2026-09-16 14:26:10 | WebSocket client disconnected from training stream.
+2026-09-16 14:37:20 | WebSocket client disconnected from training stream.
+2026-09-16 14:37:20 | WebSocket client disconnected from training stream.
+2026-09-16 14:41:43 | WebSocket client disconnected from training stream.
+2026-09-16 14:41:43 | WebSocket client disconnected from training stream.
+2026-09-16 14:57:43 | Successfully restored training history.
+2026-09-16 14:57:45 | Successfully restored training history.
+2026-09-16 14:58:11 | WebSocket client disconnected from training stream.
+2026-09-16 14:58:11 | WebSocket client disconnected from training stream.
+2026-09-16 14:59:17 | Successfully restored training history.
+2026-09-16 14:59:19 | Successfully restored training history.
+2026-09-16 14:59:24 | WebSocket client disconnected from training stream.
+2026-09-16 14:59:24 | WebSocket client disconnected from training stream.
+2026-09-16 15:13:37 | Successfully restored training history.
+2026-09-16 15:16:41 | Successfully restored training history.
+2026-09-16 15:16:50 | Successfully restored training history.
+2026-09-16 15:17:54 | WebSocket client disconnected from training stream.
+2026-09-16 15:17:54 | WebSocket client disconnected from training stream.
+2026-09-16 15:18:01 | WebSocket client disconnected from training stream.
+2026-09-16 15:20:07 | WebSocket client disconnected from training stream.
+2026-09-16 15:20:07 | WebSocket client disconnected from training stream.
+2026-09-16 15:20:14 | Successfully restored training history.
+2026-09-16 15:20:15 | Successfully restored training history.
+2026-09-16 15:20:31 | WebSocket client disconnected from training stream.
+2026-09-16 15:20:31 | WebSocket client disconnected from training stream.
+2026-09-16 15:20:38 | Successfully restored training history.
+2026-09-16 15:20:39 | Successfully restored training history.
+2026-09-16 15:20:50 | WebSocket client disconnected from training stream.
+2026-09-16 15:20:51 | WebSocket client disconnected from training stream.
+2026-09-16 15:20:58 | Successfully restored training history.
+2026-09-16 15:20:59 | Successfully restored training history.
+2026-09-16 15:21:26 | WebSocket client disconnected from training stream.
+2026-09-16 15:21:26 | WebSocket client disconnected from training stream.
+2026-09-16 15:21:32 | Successfully restored training history.
+2026-09-16 15:21:33 | Successfully restored training history.
+2026-09-16 15:21:40 | WebSocket client disconnected from training stream.
+2026-09-16 15:21:40 | WebSocket client disconnected from training stream.
+2026-09-16 15:21:46 | Successfully restored training history.
+2026-09-16 15:21:47 | Successfully restored training history.
+2026-09-16 15:21:53 | WebSocket client disconnected from training stream.
+2026-09-16 15:21:53 | WebSocket client disconnected from training stream.
+2026-09-16 15:22:00 | Successfully restored training history.
+2026-09-16 15:22:01 | Successfully restored training history.
+2026-09-16 15:23:31 | WebSocket client disconnected from training stream.
+2026-09-16 15:23:31 | WebSocket client disconnected from training stream.
+2026-09-16 15:23:38 | Successfully restored training history.
+2026-09-16 15:23:39 | Successfully restored training history.
+2026-09-16 15:23:51 | WebSocket client disconnected from training stream.
+2026-09-16 15:23:51 | WebSocket client disconnected from training stream.
+2026-09-16 15:24:00 | Successfully restored training history.
+2026-09-16 15:24:01 | Successfully restored training history.
+2026-09-16 15:24:38 | WebSocket client disconnected from training stream.
+2026-09-16 15:24:38 | WebSocket client disconnected from training stream.
+2026-09-16 15:24:45 | Successfully restored training history.
+2026-09-16 15:24:46 | Successfully restored training history.
+2026-09-16 15:24:59 | WebSocket client disconnected from training stream.
+2026-09-16 15:24:59 | WebSocket client disconnected from training stream.
+2026-09-16 15:25:05 | Successfully restored training history.
+2026-09-16 15:25:07 | Successfully restored training history.
+2026-09-16 15:25:45 | WebSocket client disconnected from training stream.
+2026-09-16 15:25:45 | WebSocket client disconnected from training stream.
+2026-09-16 15:26:01 | WebSocket client disconnected from training stream.
+2026-09-16 15:26:01 | WebSocket client disconnected from training stream.
+2026-09-16 15:26:02 | WebSocket client disconnected from training stream.
+2026-09-16 15:26:02 | WebSocket client disconnected from training stream.
+2026-09-16 15:27:23 | Successfully restored training history.
+2026-09-16 15:27:51 | Successfully restored training history.
+2026-09-16 15:28:48 | Successfully restored training history.
+2026-09-16 15:29:54 | Successfully restored training history.
+2026-09-16 15:30:57 | Successfully restored training history.
+2026-09-16 15:31:31 | Successfully restored training history.
+2026-09-16 15:31:47 | Successfully restored training history.
+2026-09-16 15:33:29 | Successfully restored training history.
+2026-09-16 15:33:32 | Successfully restored training history.
+2026-09-16 15:33:40 | WebSocket client disconnected from training stream.
+2026-09-16 15:35:34 | WebSocket client disconnected from training stream.
+2026-09-16 15:35:34 | WebSocket client disconnected from training stream.
+2026-09-16 15:39:40 | WebSocket client disconnected from training stream.
+2026-09-16 15:39:40 | WebSocket client disconnected from training stream.
+2026-09-16 15:40:12 | Successfully restored training history.
+2026-09-16 15:42:01 | Successfully restored training history.
+2026-09-16 15:42:38 | Successfully restored training history.
+2026-09-16 15:43:48 | Successfully restored training history.
+2026-09-16 15:47:23 | Successfully restored training history.
+2026-09-16 15:47:25 | Successfully restored training history.
+2026-09-16 15:47:31 | WebSocket client disconnected from training stream.
+2026-09-16 15:48:48 | WebSocket client disconnected from training stream.
+2026-09-16 15:48:48 | WebSocket client disconnected from training stream.
+2026-09-16 15:48:49 | WebSocket client disconnected from training stream.
+2026-09-16 15:56:08 | Successfully restored training history.
+2026-09-16 15:56:51 | WebSocket client disconnected from training stream.
+2026-09-16 15:56:52 | WebSocket client disconnected from training stream.
+2026-09-16 16:00:20 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 16:00:33 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 16:20:41 | WebSocket client disconnected from training stream.
+2026-09-16 16:20:41 | WebSocket client disconnected from training stream.
+2026-09-16 16:29:33 | Successfully restored training history.
+2026-09-16 16:33:03 | Successfully restored training history.
+2026-09-16 16:33:48 | Successfully restored training history.
+2026-09-16 16:36:26 | Successfully restored training history.
+2026-09-16 16:46:41 | Successfully restored training history.
+2026-09-16 16:53:43 | Successfully restored training history.
+2026-09-16 16:53:45 | Successfully restored training history.
+2026-09-16 16:53:48 | WebSocket client disconnected from training stream.
+2026-09-16 16:53:50 | WebSocket client disconnected from training stream.
+2026-09-16 16:53:51 | WebSocket client disconnected from training stream.
+2026-09-16 17:01:31 | WebSocket client disconnected from training stream.
+2026-09-16 17:01:32 | WebSocket client disconnected from training stream.
+2026-09-16 17:11:18 | Successfully restored training history.
+2026-09-16 17:14:17 | Successfully restored training history.
+2026-09-16 17:14:23 | Successfully restored training history.
+2026-09-16 17:15:09 | Successfully restored training history.
+2026-09-16 17:15:11 | Successfully restored training history.
+2026-09-16 17:16:02 | Successfully restored training history.
+2026-09-16 17:16:04 | Successfully restored training history.
+2026-09-16 17:18:23 | WebSocket client disconnected from training stream.
+2026-09-16 17:18:40 | WebSocket client disconnected from training stream.
+2026-09-16 17:18:40 | WebSocket client disconnected from training stream.
+2026-09-16 17:19:38 | WebSocket client disconnected from training stream.
+2026-09-16 17:19:39 | WebSocket client disconnected from training stream.
+2026-09-16 17:20:09 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:20:11 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:20:17 | WebSocket client disconnected from training stream.
+2026-09-16 17:21:22 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:21:24 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:21:45 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:21:49 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:22:38 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:23:03 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:25:44 | WebSocket client disconnected from training stream.
+2026-09-16 17:25:44 | WebSocket client disconnected from training stream.
+2026-09-16 17:25:45 | WebSocket client disconnected from training stream.
+2026-09-16 17:25:46 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:01 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:01 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:02 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:05 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:15 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:15 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:16 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:16 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:27 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:43 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:44 | WebSocket client disconnected from training stream.
+2026-09-16 17:26:44 | WebSocket client disconnected from training stream.
+2026-09-16 17:28:51 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:28:51 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:29:29 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:29:29 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 17:42:59 | WebSocket client disconnected from training stream.
+2026-09-16 17:42:59 | WebSocket client disconnected from training stream.
+2026-09-16 17:42:59 | WebSocket client disconnected from training stream.
+2026-09-16 17:42:59 | WebSocket client disconnected from training stream.
+2026-09-16 17:45:31 | WebSocket client disconnected from training stream.
+2026-09-16 17:45:31 | WebSocket client disconnected from training stream.
+2026-09-16 17:51:43 | WebSocket client disconnected from training stream.
+2026-09-16 17:51:43 | WebSocket client disconnected from training stream.
+2026-09-16 17:51:44 | WebSocket client disconnected from training stream.
+2026-09-16 18:09:36 | Successfully restored training history.
+2026-09-16 18:10:05 | Successfully restored training history.
+2026-09-16 18:11:14 | Successfully restored training history.
+2026-09-16 18:11:16 | Successfully restored training history.
+2026-09-16 18:19:22 | WebSocket client disconnected from training stream.
+2026-09-16 18:19:22 | WebSocket client disconnected from training stream.
+2026-09-16 18:30:33 | Successfully restored training history.
+2026-09-16 18:30:54 | Successfully restored training history.
+2026-09-16 18:31:29 | WebSocket client disconnected from training stream.
+2026-09-16 18:31:29 | WebSocket client disconnected from training stream.
+2026-09-16 18:31:30 | WebSocket client disconnected from training stream.
+2026-09-16 18:33:09 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:33:18 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:34:00 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:34:00 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:36:35 | WebSocket client disconnected from training stream.
+2026-09-16 18:36:36 | WebSocket client disconnected from training stream.
+2026-09-16 18:36:36 | WebSocket client disconnected from training stream.
+2026-09-16 18:36:37 | WebSocket client disconnected from training stream.
+2026-09-16 18:36:53 | WebSocket client disconnected from training stream.
+2026-09-16 18:36:54 | WebSocket client disconnected from training stream.
+2026-09-16 18:36:55 | WebSocket client disconnected from training stream.
+2026-09-16 18:38:37 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:39:02 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:40:01 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:40:21 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-16 18:50:35 | WebSocket client disconnected from training stream.
+2026-09-16 18:50:36 | WebSocket client disconnected from training stream.
+2026-09-16 18:50:37 | WebSocket client disconnected from training stream.
+2026-09-16 18:50:37 | WebSocket client disconnected from training stream.
+2026-09-16 18:50:40 | WebSocket client disconnected from training stream.
+2026-09-16 18:50:59 | WebSocket client disconnected from training stream.
+2026-09-16 18:50:59 | WebSocket client disconnected from training stream.
+2026-09-16 18:51:00 | WebSocket client disconnected from training stream.
+2026-09-16 18:51:00 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:17 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:17 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:18 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:18 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:18 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:18 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:19 | WebSocket client disconnected from training stream.
+2026-09-16 19:06:19 | WebSocket client disconnected from training stream.
+2026-09-17 10:30:27 | Successfully restored training history.
+2026-09-17 10:30:30 | Successfully restored training history.
+2026-09-17 10:30:38 | WebSocket client disconnected from training stream.
+2026-09-17 10:30:38 | WebSocket client disconnected from training stream.
+2026-09-17 10:38:23 | Successfully restored training history.
+2026-09-17 10:39:04 | Successfully restored training history.
+2026-09-17 10:48:08 | WebSocket client disconnected from training stream.
+2026-09-17 10:48:08 | WebSocket client disconnected from training stream.
+2026-09-17 10:52:03 | Successfully restored training history.
+2026-09-17 10:52:34 | Successfully restored training history.
+2026-09-17 10:53:30 | Successfully restored training history.
+2026-09-17 10:55:27 | Successfully restored training history.
+2026-09-17 10:55:34 | Successfully restored training history.
+2026-09-17 10:56:00 | Successfully restored training history.
+2026-09-17 10:56:01 | Successfully restored training history.
+2026-09-17 10:57:29 | WebSocket client disconnected from training stream.
+2026-09-17 10:58:26 | WebSocket client disconnected from training stream.
+2026-09-17 10:58:26 | WebSocket client disconnected from training stream.
+2026-09-17 11:01:31 | WebSocket client disconnected from training stream.
+2026-09-17 11:01:31 | WebSocket client disconnected from training stream.
+2026-09-17 11:01:33 | WebSocket client disconnected from training stream.
+2026-09-17 11:01:33 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:06 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:06 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:07 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:07 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:29 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:29 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:31 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:31 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:45 | WebSocket client disconnected from training stream.
+2026-09-17 11:02:45 | WebSocket client disconnected from training stream.
+2026-09-17 11:03:49 | WebSocket client disconnected from training stream.
+2026-09-17 11:03:49 | WebSocket client disconnected from training stream.
+2026-09-17 11:04:08 | WebSocket client disconnected from training stream.
+2026-09-17 11:04:09 | WebSocket client disconnected from training stream.
+2026-09-17 11:04:11 | WebSocket client disconnected from training stream.
+2026-09-17 11:05:33 | WebSocket client disconnected from training stream.
+2026-09-17 11:05:34 | WebSocket client disconnected from training stream.
+2026-09-17 11:05:50 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 11:05:51 | WebSocket client disconnected from training stream.
+2026-09-17 11:06:18 | WebSocket client disconnected from training stream.
+2026-09-17 11:06:18 | WebSocket client disconnected from training stream.
+2026-09-17 11:06:20 | WebSocket client disconnected from training stream.
+2026-09-17 11:06:28 | WebSocket client disconnected from training stream.
+2026-09-17 11:06:31 | WebSocket client disconnected from training stream.
+2026-09-17 11:06:36 | WebSocket client disconnected from training stream.
+2026-09-17 11:08:58 | WebSocket client disconnected from training stream.
+2026-09-17 11:08:58 | WebSocket client disconnected from training stream.
+2026-09-17 11:09:35 | WebSocket client disconnected from training stream.
+2026-09-17 11:09:35 | WebSocket client disconnected from training stream.
+2026-09-17 11:09:36 | WebSocket client disconnected from training stream.
+2026-09-17 11:09:36 | WebSocket client disconnected from training stream.
+2026-09-17 11:09:43 | WebSocket client disconnected from training stream.
+2026-09-17 11:09:53 | WebSocket client disconnected from training stream.
+2026-09-17 11:10:09 | WebSocket client disconnected from training stream.
+2026-09-17 11:10:38 | WebSocket client disconnected from training stream.
+2026-09-17 11:11:10 | WebSocket client disconnected from training stream.
+2026-09-17 11:11:12 | WebSocket client disconnected from training stream.
+2026-09-17 11:11:15 | WebSocket client disconnected from training stream.
+2026-09-17 11:11:21 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:18 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:18 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:20 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:20 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:20 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:20 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:20 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:21 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:22 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:22 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:29 | WebSocket client disconnected from training stream.
+2026-09-17 11:12:29 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:52 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:52 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:53 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:53 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:56 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:56 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:59 | WebSocket client disconnected from training stream.
+2026-09-17 11:13:59 | WebSocket client disconnected from training stream.
+2026-09-17 11:14:00 | WebSocket client disconnected from training stream.
+2026-09-17 11:55:23 | Successfully restored training history.
+2026-09-17 11:56:11 | Successfully restored training history.
+2026-09-17 11:57:27 | Successfully restored training history.
+2026-09-17 12:01:03 | Successfully restored training history.
+2026-09-17 12:02:55 | Successfully restored training history.
+2026-09-17 12:04:15 | Successfully restored training history.
+2026-09-17 12:05:28 | Successfully restored training history.
+2026-09-17 12:06:47 | Successfully restored training history.
+2026-09-17 12:06:50 | Successfully restored training history.
+2026-09-17 12:07:18 | WebSocket client disconnected from training stream.
+2026-09-17 12:07:18 | WebSocket client disconnected from training stream.
+2026-09-17 12:07:22 | WebSocket client disconnected from training stream.
+2026-09-17 12:07:26 | WebSocket client disconnected from training stream.
+2026-09-17 12:07:51 | WebSocket client disconnected from training stream.
+2026-09-17 12:07:51 | WebSocket client disconnected from training stream.
+2026-09-17 12:07:54 | WebSocket client disconnected from training stream.
+2026-09-17 12:07:58 | WebSocket client disconnected from training stream.
+2026-09-17 12:08:02 | WebSocket client disconnected from training stream.
+2026-09-17 12:08:35 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 12:08:55 | WebSocket client disconnected from training stream.
+2026-09-17 12:08:59 | WebSocket client disconnected from training stream.
+2026-09-17 12:09:05 | WebSocket client disconnected from training stream.
+2026-09-17 12:09:40 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:27 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:28 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:34 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:34 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:35 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:38 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:47 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:47 | WebSocket client disconnected from training stream.
+2026-09-17 12:13:48 | WebSocket client disconnected from training stream.
+2026-09-17 12:14:05 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:20 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:20 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:21 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:21 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:21 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:21 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:26 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:28 | WebSocket client disconnected from training stream.
+2026-09-17 12:15:29 | WebSocket client disconnected from training stream.
+2026-09-17 12:16:02 | WebSocket client disconnected from training stream.
+2026-09-17 12:16:02 | WebSocket client disconnected from training stream.
+2026-09-17 12:44:24 | WebSocket client disconnected from training stream.
+2026-09-17 12:45:05 | Successfully restored training history.
+2026-09-17 12:45:18 | Successfully restored training history.
+2026-09-17 12:54:48 | WebSocket client disconnected from training stream.
+2026-09-17 12:55:08 | WebSocket client disconnected from training stream.
+2026-09-17 12:55:43 | Successfully restored training history.
+2026-09-17 12:56:35 | Successfully restored training history.
+2026-09-17 12:56:48 | WebSocket client disconnected from training stream.
+2026-09-17 13:01:29 | WebSocket client disconnected from training stream.
+2026-09-17 13:01:30 | WebSocket client disconnected from training stream.
+2026-09-17 13:01:30 | WebSocket client disconnected from training stream.
+2026-09-17 13:06:37 | WebSocket client disconnected from training stream.
+2026-09-17 13:06:38 | WebSocket client disconnected from training stream.
+2026-09-17 13:06:38 | WebSocket client disconnected from training stream.
+2026-09-17 13:06:41 | WebSocket client disconnected from training stream.
+2026-09-17 13:06:41 | WebSocket client disconnected from training stream.
+2026-09-17 13:06:42 | WebSocket client disconnected from training stream.
+2026-09-17 13:06:42 | WebSocket client disconnected from training stream.
+2026-09-17 13:09:07 | WebSocket client disconnected from training stream.
+2026-09-17 13:09:08 | WebSocket client disconnected from training stream.
+2026-09-17 13:09:08 | WebSocket client disconnected from training stream.
+2026-09-17 13:15:32 | Successfully restored training history.
+2026-09-17 13:15:35 | Successfully restored training history.
+2026-09-17 13:21:25 | Successfully restored training history.
+2026-09-17 13:21:26 | Successfully restored training history.
+2026-09-17 13:22:44 | Successfully restored training history.
+2026-09-17 13:22:45 | Successfully restored training history.
+2026-09-17 13:23:02 | WebSocket client disconnected from training stream.
+2026-09-17 13:23:02 | WebSocket client disconnected from training stream.
+2026-09-17 13:23:03 | WebSocket client disconnected from training stream.
+2026-09-17 13:23:25 | WebSocket client disconnected from training stream.
+2026-09-17 13:23:25 | WebSocket client disconnected from training stream.
+2026-09-17 13:23:25 | WebSocket client disconnected from training stream.
+2026-09-17 13:23:26 | WebSocket client disconnected from training stream.
+2026-09-17 13:24:31 | WebSocket client disconnected from training stream.
+2026-09-17 13:24:31 | WebSocket client disconnected from training stream.
+2026-09-17 13:24:51 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:24:51 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:25:16 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:25:21 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:26:15 | WebSocket client disconnected from training stream.
+2026-09-17 13:26:16 | WebSocket client disconnected from training stream.
+2026-09-17 13:26:16 | WebSocket client disconnected from training stream.
+2026-09-17 13:26:36 | WebSocket client disconnected from training stream.
+2026-09-17 13:26:36 | WebSocket client disconnected from training stream.
+2026-09-17 13:26:37 | WebSocket client disconnected from training stream.
+2026-09-17 13:28:02 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:28:02 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:28:17 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:28:37 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:32:04 | WebSocket client disconnected from training stream.
+2026-09-17 13:32:21 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:32:40 | WebSocket client disconnected from training stream.
+2026-09-17 13:33:04 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:33:09 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:34:03 | WebSocket client disconnected from training stream.
+2026-09-17 13:34:03 | WebSocket client disconnected from training stream.
+2026-09-17 13:34:03 | WebSocket client disconnected from training stream.
+2026-09-17 13:34:04 | WebSocket client disconnected from training stream.
+2026-09-17 13:34:21 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:34:47 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:40:34 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:40:54 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 13:52:43 | WebSocket client disconnected from training stream.
+2026-09-17 13:52:43 | WebSocket client disconnected from training stream.
+2026-09-17 14:19:02 | WebSocket client disconnected from training stream.
+2026-09-17 14:19:02 | WebSocket client disconnected from training stream.
+2026-09-17 14:20:02 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:20:21 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:20:25 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:20:44 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:26:15 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:26:31 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:33:39 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:33:39 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:35:19 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:35:31 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:40:23 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:40:43 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:41:41 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:41:45 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:47:07 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:47:47 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:50:07 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:50:31 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:51:07 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:51:46 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:52:30 | Successfully restored training history.
+2026-09-17 14:54:20 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:54:59 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:55:03 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:56:13 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 14:56:26 | Successfully restored training history.
+2026-09-17 14:59:56 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:00:45 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:01:58 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:01:59 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:06:46 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:06:46 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:11:07 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:11:35 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:13:01 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:13:20 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:13:30 | Successfully restored training history.
+2026-09-17 15:18:11 | Successfully restored training history.
+2026-09-17 15:19:37 | Successfully restored training history.
+2026-09-17 15:20:32 | Successfully restored training history.
+2026-09-17 15:21:31 | Successfully restored training history.
+2026-09-17 15:22:26 | Successfully restored training history.
+2026-09-17 15:24:09 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:24:09 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:24:46 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:25:20 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:26:59 | Successfully restored training history.
+2026-09-17 15:27:51 | Successfully restored training history.
+2026-09-17 15:31:27 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:31:27 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:31:35 | WebSocket client disconnected from training stream.
+2026-09-17 15:41:07 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:41:21 | WebSocket client disconnected from training stream.
+2026-09-17 15:41:21 | WebSocket client disconnected from training stream.
+2026-09-17 15:41:22 | WebSocket client disconnected from training stream.
+2026-09-17 15:41:47 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:47:06 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:47:26 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:48:01 | WebSocket client disconnected from training stream.
+2026-09-17 15:48:45 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:48:55 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:54:10 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:54:25 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:55:01 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 15:55:26 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:00:22 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:00:23 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:00:24 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:00:46 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:10:28 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:11:08 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:11:15 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:11:22 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:14:49 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:15:23 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:16:13 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:16:33 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:18:39 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:20:59 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:20:59 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:22:01 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:22:40 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:26:16 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:27:08 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:28:37 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:29:17 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:33:03 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:33:20 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:36:51 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:37:18 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:39:42 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:39:44 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:43:02 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:43:39 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:47:44 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:47:49 | Successfully restored training history.
+2026-09-17 16:47:50 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:48:05 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:48:25 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-17 16:49:56 | Successfully restored training history.
+2026-09-17 16:50:51 | Successfully restored training history.
+2026-09-17 16:58:00 | Successfully restored training history.
+2026-09-17 17:04:28 | Successfully restored training history.
+2026-09-17 17:04:52 | Successfully restored training history.
+2026-09-17 17:05:05 | Successfully restored training history.
+2026-09-17 17:10:41 | Successfully restored training history.
+2026-09-17 17:10:43 | Successfully restored training history.
+2026-09-17 17:38:32 | WebSocket client disconnected from training stream.
+2026-09-17 17:38:32 | WebSocket client disconnected from training stream.
+2026-09-17 17:38:41 | Successfully restored training history.
+2026-09-17 17:38:42 | Successfully restored training history.
+2026-09-17 17:38:51 | WebSocket client disconnected from training stream.
+2026-09-17 17:38:51 | WebSocket client disconnected from training stream.
+2026-09-17 17:39:00 | Successfully restored training history.
+2026-09-17 17:39:02 | Successfully restored training history.
+2026-09-17 17:39:35 | WebSocket client disconnected from training stream.
+2026-09-17 17:39:35 | WebSocket client disconnected from training stream.
+2026-09-17 17:39:49 | Successfully restored training history.
+2026-09-17 17:39:51 | Successfully restored training history.
+2026-09-17 17:40:33 | WebSocket client disconnected from training stream.
+2026-09-17 17:40:33 | WebSocket client disconnected from training stream.
+2026-09-17 17:40:47 | Successfully restored training history.
+2026-09-17 17:40:50 | Successfully restored training history.
+2026-09-17 17:41:06 | WebSocket client disconnected from training stream.
+2026-09-17 17:41:06 | WebSocket client disconnected from training stream.
+2026-09-17 17:41:20 | Successfully restored training history.
+2026-09-17 17:41:23 | Successfully restored training history.
+2026-09-17 17:41:39 | WebSocket client disconnected from training stream.
+2026-09-17 17:41:39 | WebSocket client disconnected from training stream.
+2026-09-17 17:41:53 | Successfully restored training history.
+2026-09-17 17:41:58 | Successfully restored training history.
+2026-09-17 17:43:02 | WebSocket client disconnected from training stream.
+2026-09-17 17:43:02 | WebSocket client disconnected from training stream.
+2026-09-17 17:43:04 | Successfully restored training history.
+2026-09-17 17:43:29 | Successfully restored training history.
+2026-09-17 17:44:58 | WebSocket client disconnected from training stream.
+2026-09-17 17:44:58 | WebSocket client disconnected from training stream.
+2026-09-17 17:45:15 | Successfully restored training history.
+2026-09-17 17:46:18 | Successfully restored training history.
+2026-09-17 17:46:58 | Successfully restored training history.
+2026-09-17 17:49:56 | Successfully restored training history.
+2026-09-17 17:49:58 | Successfully restored training history.
+2026-09-17 18:13:51 | WebSocket client disconnected from training stream.
+2026-09-17 18:13:51 | WebSocket client disconnected from training stream.
+2026-09-17 18:19:22 | Successfully restored training history.
+2026-09-17 18:20:13 | Successfully restored training history.
+2026-09-17 18:21:36 | Successfully restored training history.
+2026-09-17 18:22:06 | Successfully restored training history.
+2026-09-17 18:22:33 | Successfully restored training history.
+2026-09-17 18:23:07 | Successfully restored training history.
+2026-09-17 18:24:08 | Successfully restored training history.
+2026-09-17 18:25:16 | Successfully restored training history.
+2026-09-17 18:26:05 | Successfully restored training history.
+2026-09-17 18:26:35 | Successfully restored training history.
+2026-09-17 18:27:51 | Successfully restored training history.
+2026-09-17 18:27:52 | Successfully restored training history.
+2026-09-17 18:33:08 | WebSocket client disconnected from training stream.
+2026-09-17 18:33:08 | WebSocket client disconnected from training stream.
+2026-09-17 18:35:23 | WebSocket client disconnected from training stream.
+2026-09-17 18:35:23 | WebSocket client disconnected from training stream.
+2026-09-17 18:37:48 | WebSocket client disconnected from training stream.
+2026-09-17 18:37:48 | WebSocket client disconnected from training stream.
+2026-09-17 18:37:49 | WebSocket client disconnected from training stream.
+2026-09-17 18:41:36 | WebSocket client disconnected from training stream.
+2026-09-17 18:41:36 | WebSocket client disconnected from training stream.
+2026-09-17 18:42:29 | Successfully restored training history.
+2026-09-17 18:54:32 | Successfully restored training history.
+2026-09-17 18:55:11 | Successfully restored training history.
+2026-09-17 18:56:12 | Successfully restored training history.
+2026-09-17 18:57:06 | Successfully restored training history.
+2026-09-17 18:58:02 | Successfully restored training history.
+2026-09-17 18:58:43 | Successfully restored training history.
+2026-09-17 18:59:10 | WebSocket client disconnected from training stream.
+2026-09-17 18:59:10 | WebSocket client disconnected from training stream.
+2026-09-17 18:59:21 | WebSocket client disconnected from training stream.
+2026-09-17 19:21:29 | Successfully restored training history.
+2026-09-17 19:22:24 | Successfully restored training history.
+2026-09-17 19:23:22 | Successfully restored training history.
+2026-09-17 19:23:30 | WebSocket client disconnected from training stream.
+2026-09-17 19:23:30 | WebSocket client disconnected from training stream.
+2026-09-18 10:30:21 | Successfully restored training history.
+2026-09-18 10:30:23 | Successfully restored training history.
+2026-09-18 10:31:14 | Successfully restored training history.
+2026-09-18 10:35:55 | Successfully restored training history.
+2026-09-18 10:53:44 | Successfully restored training history.
+2026-09-18 10:54:51 | Successfully restored training history.
+2026-09-18 11:01:17 | Successfully restored training history.
+2026-09-18 11:01:26 | Successfully restored training history.
+2026-09-18 11:01:38 | Successfully restored training history.
+2026-09-18 11:01:58 | WebSocket client disconnected from training stream.
+2026-09-18 11:02:04 | WebSocket client disconnected from training stream.
+2026-09-18 11:03:44 | WebSocket client disconnected from training stream.
+2026-09-18 11:03:44 | WebSocket client disconnected from training stream.
+2026-09-18 11:03:58 | Successfully restored training history.
+2026-09-18 11:08:52 | Successfully restored training history.
+2026-09-18 11:08:55 | Successfully restored training history.
+2026-09-18 11:21:16 | WebSocket client disconnected from training stream.
+2026-09-18 11:21:16 | WebSocket client disconnected from training stream.
+2026-09-18 11:34:46 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 11:35:06 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 11:47:54 | WebSocket client disconnected from training stream.
+2026-09-18 11:47:54 | WebSocket client disconnected from training stream.
+2026-09-18 11:49:24 | Successfully restored training history.
+2026-09-18 12:10:00 | Successfully restored training history.
+2026-09-18 12:19:49 | Successfully restored training history.
+2026-09-18 12:20:00 | WebSocket client disconnected from training stream.
+2026-09-18 12:20:00 | WebSocket client disconnected from training stream.
+2026-09-18 12:29:14 | Successfully restored training history.
+2026-09-18 12:50:12 | WebSocket client disconnected from training stream.
+2026-09-18 12:50:12 | WebSocket client disconnected from training stream.
+2026-09-18 12:52:49 | WebSocket client disconnected from training stream.
+2026-09-18 12:52:49 | WebSocket client disconnected from training stream.
+2026-09-18 14:19:13 | WebSocket client disconnected from training stream.
+2026-09-18 14:19:13 | WebSocket client disconnected from training stream.
+2026-09-18 15:26:15 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 15:33:31 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 15:33:41 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 15:36:42 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 15:36:42 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 15:52:20 | Successfully restored training history.
+2026-09-18 15:53:41 | Successfully restored training history.
+2026-09-18 15:54:03 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 15:54:11 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 15:54:23 | Successfully restored training history.
+2026-09-18 15:55:30 | Successfully restored training history.
+2026-09-18 15:56:15 | Successfully restored training history.
+2026-09-18 15:57:45 | WebSocket client disconnected from training stream.
+2026-09-18 15:57:45 | WebSocket client disconnected from training stream.
+2026-09-18 15:59:20 | Successfully restored training history.
+2026-09-18 16:01:49 | Successfully restored training history.
+2026-09-18 16:02:49 | Successfully restored training history.
+2026-09-18 16:03:26 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 16:03:31 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 16:03:39 | Successfully restored training history.
+2026-09-18 16:04:22 | Successfully restored training history.
+2026-09-18 16:07:08 | Successfully restored training history.
+2026-09-18 16:12:22 | Successfully restored training history.
+2026-09-18 16:13:22 | Successfully restored training history.
+2026-09-18 16:14:35 | Successfully restored training history.
+2026-09-18 16:15:16 | Successfully restored training history.
+2026-09-18 16:16:50 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 16:17:10 | WebSocket training error: Unexpected ASGI message 'websocket.send', after sending 'websocket.close'.
+2026-09-18 16:19:56 | Successfully restored training history.
+2026-09-18 16:21:30 | Successfully restored training history.
+2026-09-18 16:22:47 | Successfully restored training history.
+2026-09-18 16:23:41 | Successfully restored training history.
+2026-09-18 16:25:36 | Successfully restored training history.
+2026-09-18 16:26:52 | Successfully restored training history.
+2026-09-18 16:28:17 | Successfully restored training history.
+2026-09-18 16:29:45 | Successfully restored training history.
+2026-09-18 16:30:35 | Successfully restored training history.

@@ -62,7 +62,7 @@ class TimelineAnalyzer:
                     return None
 
         years_match = re.search(
-            r'\b((?:19|20)\d{2})\s*[-–to]+\s*((?:19|20)\d{2}|present|current|till date)\b',
+            r'(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|[a-z]+)?\s*\b((?:19|20)\d{2})\b\s*[-–—to]+\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|[a-z]+)?\s*\b((?:19|20)\d{2}|present|current|till date)\b',
             text, re.IGNORECASE
         )
         if not years_match:
@@ -146,11 +146,11 @@ class TimelineAnalyzer:
         summary_exp = None
         if summary_text:
             m = re.search(
-                r'(?i)\b(?:over|around|more than|with|\+)?\s*(\d+(?:\.\d+)?)\s*\+?\s*(?:years?|yrs?)\b(?:\s+of)?\s+(?:experience|work|industry)',
+                r'(?i)\b(?:over|around|more than|with|\+)?\s*(\d+(?:\.\d+)?)\s*\+?\s*(?:years?|yrs?)\b.*?\b(?:experience|exp|work|industry)\b',
                 summary_text
             )
             if m:
-                summary_exp = f"{m.group(1)} Years"
+                summary_exp = f"{m.group(1)}+ Years"
 
         per_domain: Dict[str, int] = {}
         total_months = 0
@@ -175,9 +175,9 @@ class TimelineAnalyzer:
             return "Not Mentioned"
 
         total_exp = (
-            summary_exp if summary_exp and total_months == 0
+            summary_exp if summary_exp
             else fmt_months(total_months) if total_months > 0
-            else (summary_exp or "Not Mentioned")
+            else "Not Mentioned"
         )
 
         current_domain = timeline[-1].get("domain", "") if timeline else ""

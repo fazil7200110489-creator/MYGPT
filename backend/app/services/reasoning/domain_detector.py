@@ -30,7 +30,7 @@ Supported Domains:
 import os
 import json
 import re
-from typing import Dict, Any, List, Set, Tuple
+from typing import Dict, Any, List, Set, Tuple, Optional
 from loguru import logger
 
 def _load_domain_taxonomy_from_json() -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
@@ -64,7 +64,10 @@ DOMAIN_TAXONOMY: Dict[str, List[str]] = {
         "talent acquisition", "hr generalist", "performance management", "labor laws",
         "hr compliance", "hr policies", "hr operations", "attendance", "compensation",
         "benefits", "staffing", "sourcing", "human resources", "hr executive",
-        "exit interview", "hr analytics", "workforce planning"
+        "exit interview", "hr analytics", "workforce planning", "people operations",
+        "workday", "greyhr", "keka", "servicenow", "jml", "leave of absence", "loa",
+        "absence management", "timesheet management", "hr case management",
+        "onboarding & offboarding", "talent management", "hr manager", "people operations lead"
     ],
     "Civil Engineering": [
         "autocad", "boq", "primavera", "site execution", "structural design",

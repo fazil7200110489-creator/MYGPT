@@ -888,20 +888,22 @@ class ReasoningService:
                     logger.info("Intercepted formatting instruction query. Re-formatting previous response.")
                     return formatted_ans, 99.0, True
     
-            # 1. Pronoun and Reference Resolution (EntityRelationshipResolver)
+            # 1. Pronoun and Reference Resolution (EntityRelationshipResolver & SingleResumeConversationalMemory)
             resolved_question = question
             if session_id:
                 resolved_question = self.relationship_resolver.resolve(question, session_id, doc_id)
-    
+
             # 2. Ingest or Load Knowledge Store Object
             from backend.app.services.knowledge_service import knowledge_store, knowledge_builder
             knowledge = None
             candidate_profiles = []
 
-            # Determine doc_ids to load
+            # Determine doc_ids to load and strictly filter retrieved chunks by active doc_id
             target_doc_ids = []
             if doc_id and doc_id != "all":
                 target_doc_ids = [doc_id]
+                if retrieved_chunks:
+                    retrieved_chunks = [c for c in retrieved_chunks if c.get("doc_id") == doc_id or not c.get("doc_id")]
             elif retrieved_chunks:
                 # Collect unique doc_ids from retrieved chunks, preserving order
                 seen = set()
@@ -925,27 +927,65 @@ class ReasoningService:
 
             if not knowledge and context:
                 knowledge = knowledge_builder.build_knowledge(context, ".txt")
+                if doc_id:
+                    knowledge_store.save_knowledge(doc_id, knowledge)
+                    if isinstance(knowledge.get("candidate_profile"), dict):
+                        candidate_profiles = [knowledge["candidate_profile"]]
 
             # Attach candidate_profiles list to knowledge dict
             if knowledge and candidate_profiles:
                 knowledge["candidate_profiles"] = candidate_profiles
 
-            # Temporary debug logging for verification (Phase 4)
-            from backend.app.services.recruiter.candidate_pool_store import candidate_pool_store
-            debug_lines = [
-                f"CandidatePool Count = {candidate_pool_store.count()}",
-                f"Retrieved Document IDs = {target_doc_ids}",
-                f"Loaded CandidateProfiles = {len(candidate_profiles)}",
-                f"Reasoning Candidate Count = {len(candidate_profiles)}"
-            ]
-            for line in debug_lines:
-                logger.info(f"DEBUG: {line}")
-                print(f"DEBUG: {line}")
-    
             doc_type = knowledge.get("document_type", "Generic") if knowledge else "Generic"
-    
+
+            # Single Resume Conversational Memory Resolution
+            session_key = doc_id or session_id or "default_single_resume_session"
+            c_name = ""
+            if candidate_profiles and isinstance(candidate_profiles[0], dict):
+                c_name = candidate_profiles[0].get("name", "")
+            elif knowledge and isinstance(knowledge.get("candidate_profile"), dict):
+                c_name = knowledge["candidate_profile"].get("name", "")
+
+            from backend.app.services.reasoning.conversational_memory import conversational_memory
+            if doc_type.lower() == "resume":
+                res_q, intent_override = conversational_memory.resolve_context(resolved_question, session_key, c_name)
+                resolved_question = res_q
+            else:
+                intent_override = ""
+
+            # Single-Resume Data Isolation & Verification Debug Log
+            curr_doc_id = doc_id or (target_doc_ids[0] if target_doc_ids else "N/A")
+            curr_prof = candidate_profiles[0] if candidate_profiles and isinstance(candidate_profiles[0], dict) else (knowledge.get("candidate_profile") if knowledge and isinstance(knowledge.get("candidate_profile"), dict) else {})
+            curr_cand_name = curr_prof.get("name") or c_name or "Unknown Candidate"
+            curr_skills = curr_prof.get("canonical_skills") or curr_prof.get("skills", [])
+            curr_exp = curr_prof.get("total_experience", "Not specified")
+            curr_projs = [p.get("name") if isinstance(p, dict) else str(p) for p in curr_prof.get("projects", [])]
+            curr_domain = curr_prof.get("domain", "General")
+            curr_desig = curr_prof.get("designation", "Not specified")
+
+            debug_isolation_block = [
+                "=" * 80,
+                "SINGLE-RESUME KNOWLEDGE ISOLATION & VERIFICATION TRACE",
+                "=" * 80,
+                f"1. Current Document ID:     {curr_doc_id}",
+                f"2. Current Candidate ID:    {curr_doc_id}",
+                f"3. Candidate Name:          {curr_cand_name}",
+                f"4. Retrieved Chunk Doc IDs: {target_doc_ids}",
+                f"5. Extracted Profile ID:    {curr_doc_id}",
+                f"6. Normalized Skills:       {curr_skills}",
+                f"7. Experience:              {curr_exp}",
+                f"8. Projects:                {curr_projs}",
+                f"9. Role Inference Input:    Domain='{curr_domain}', Designation='{curr_desig}', Question='{resolved_question}'",
+                "=" * 80
+            ]
+            for d_line in debug_isolation_block:
+                logger.info(d_line)
+                print(d_line)
+
             # 3. Intent Classification — now receives doc_type for smarter fallback
             detected_intents = self.intent_classifier.classify_multi(resolved_question, doc_type=doc_type)
+            if intent_override and intent_override not in detected_intents:
+                detected_intents = [intent_override]
             logger.info(f"Classified Intents: {detected_intents}")
     
             # 4. Entity Extraction (EntityExtractor)
@@ -1172,7 +1212,15 @@ class ReasoningService:
             print(f"Execution Time:     {execution_time_ms:.2f} ms")
             print("-" * 80)
             print(trace.format_debug_summary())
-            print("="*80 + "\n")
+            if doc_type.lower() == "resume":
+                conversational_memory.record_turn(
+                    session_key=session_key,
+                    user_query=question,
+                    resolved_query=resolved_question,
+                    classified_intent=classified_intent,
+                    candidate_name=c_name,
+                    system_response=cleaned_ans
+                )
 
             return cleaned_ans, confidence, knowledge_used
         except Exception as e:

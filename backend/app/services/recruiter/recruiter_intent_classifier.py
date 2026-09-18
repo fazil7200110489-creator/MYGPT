@@ -15,6 +15,8 @@ class RecruiterIntent(str, Enum):
     SKILL_SEARCH = "SKILL_SEARCH"
     PROJECT_EXTRACTION = "PROJECT_EXTRACTION"
     BASIC_DETAILS = "BASIC_DETAILS"
+    CANDIDATE_DETAILS = "CANDIDATE_DETAILS"
+    DOMAIN_RECOMMENDATION = "DOMAIN_RECOMMENDATION"
     CANDIDATE_LIST = "CANDIDATE_LIST"
     CANDIDATE_SUMMARY = "CANDIDATE_SUMMARY"
     CANDIDATE_COMPARISON = "CANDIDATE_COMPARISON"
@@ -36,7 +38,30 @@ class RecruiterIntentClassifier:
 
     def __init__(self):
         self._intent_rules = [
-            # 1. Contact / Address / Basic Details / Candidate List Extraction (Highest Priority)
+            # 1. Candidate Search (High Priority for Search / Find queries)
+            (RecruiterIntent.CANDIDATE_SEARCH, [
+                r'\bfind\b', r'\bsearch\b', r'\bsearch candidates\b', r'\bfind candidates\b', r'\blook for\b'
+            ]),
+
+            # 2. Candidate Profile / Details (Give me details, Show profile, Tell me about)
+            (RecruiterIntent.CANDIDATE_PROFILE, [
+                r'\bcomplete profile\b', r'\bfull profile\b', r'\bshow candidate profile\b', r'\bcandidate profile\b',
+                r'\'s complete profile\b', r'\'s profile\b', r'\'s details\b', r'\bprofile of\b', r'\bdetails of\b',
+                r'\bgive me\s+[a-zA-Z0-9_\s]+\s+details\b', r'\bgive me only\b', r'\bshow\s+[a-zA-Z0-9_\s]+\s+profile\b',
+                r'\btell me about\b', r'\bselected candidate\b', r'\bgive me the selected candidate\b'
+            ]),
+            (RecruiterIntent.CANDIDATE_DETAILS, [
+                r'\bdetails of\b', r'\bprofile of\b', r'\bshow profile\b', r'\bgive me details\b'
+            ]),
+
+            # 3. Domain Recommendation Engine
+            (RecruiterIntent.DOMAIN_RECOMMENDATION, [
+                r'\bwhich domain do these resumes fit\b', r'\bwhich domain do these candidates fit\b',
+                r'\bwhich domain\b', r'\bwhat domain\b', r'\bdomain recommendation\b', r'\bdomain fit\b',
+                r'\bdomains fit\b', r'\bbest domain\b'
+            ]),
+
+            # 4. Contact / Address / Basic Details / Candidate List Extraction
             (RecruiterIntent.BASIC_DETAILS, [
                 r'\bbasic details\b', r'\bgive me the basic details\b', r'\bbasic info\b', r'\bbasic information\b',
                 r'\bkey details\b', r'\bquick info\b'
@@ -52,15 +77,21 @@ class RecruiterIntentClassifier:
                 r'\bphone,\s*email,\s*address\b', r'\bphone\s+email\s+address\b',
                 r'\bgive me the same for\b', r'\bsame for\b', r'\'s contact details\b', r'\'s contact\b'
             ]),
+            (RecruiterIntent.CANDIDATE_FILTERING, [
+                r'\bshow only candidates\b', r'\bonly candidates\b', r'\bfilter candidates\b', r'\bshow candidates with\b'
+            ]),
             (RecruiterIntent.ADDRESS_EXTRACTION, [
-                r'\baddress\b', r'\baddresses\b', r'\blocation\b', r'\bwhere (?:does|do|is)\b', r'\blive\b', r'\bliving\b', r'\bcity\b',
-                r'\bis\s+[a-zA-Z0-9_\s]+\s+from\b', r'\bfrom\s+(?:chennai|bangalore|bengaluru|kochi|mumbai|delhi|hyderabad|pune|kolkata)\b',
-                r'\bwhere is he from\b', r'\bwhere is she from\b', r'\blocation of\b', r'\bwhere is\b', r'\bbased in\b',
+                r'^address$', r'^location$', r'\baddress\b', r'\baddresses\b', r'\blocation\b', r'\bwhere (?:does|do|is)\b', r'\blive\b', r'\bliving\b',
+                r'\bis\s+[a-zA-Z0-9_\s]+\s+from\b', r'\bwhere is he from\b', r'\bwhere is she from\b', r'\blocation of\b', r'\bwhere is\b', r'\bbased in\b',
                 r'\bgive me the address\b', r'\bgive me address\b', r'\baddress of\b'
             ]),
 
+
+
+
             # 2. Role Recommendation
             (RecruiterIntent.ROLE_RECOMMENDATION, [
+                r'^frontend developer$', r'^backend developer$', r'^full stack developer$', r'^software engineer$', r'^data analyst$',
                 r'\bwhich role do these resumes fit\b', r'\bwhich role do these candidates fit\b',
                 r'\bwhat roles are these candidates suitable for\b', r'\bwhat roles are these resumes suitable for\b',
                 r'\brecommend suitable roles\b', r'\bsuitable roles\b', r'\bbest suited roles\b',
@@ -73,6 +104,7 @@ class RecruiterIntentClassifier:
 
             # 3. Skills & Technical Extraction
             (RecruiterIntent.SKILL_SEARCH, [
+                r'^rest api$', r'^docker$', r'^react$', r'^angular$', r'^python$', r'^java$', r'^aws$', r'^technical skills$', r'^skills$',
                 r'\bgive me the skills\b', r'\bshow skills\b', r'\bskills\b', r'\bskill list\b',
                 r'\bskills of\b', r'\'s skills\b', r'\bshow\s+[a-zA-Z0-9_\s]+\s+skills\b',
                 r'\bwho knows\b', r'\bwho knows\s+[a-zA-Z0-9\+\#\.\-\s]{2,30}\b',
@@ -94,6 +126,7 @@ class RecruiterIntentClassifier:
 
             # 5. Experience Comparison / Extraction
             (RecruiterIntent.EXPERIENCE_EXTRACTION, [
+                r'^experience$', r'^work experience$', r'^career history$', r'^employment$',
                 r'\bwho has better experience\b', r'\bwho has more frontend experience\b', r'\bwho has more backend experience\b',
                 r'\bwho has more experience\b', r'\bwho has the most experience\b', r'\bmost experience\b',
                 r'\bhighest experience\b', r'\byears of experience\b', r'\bexperience level\b', r'\bcompare experience\b',
@@ -112,10 +145,10 @@ class RecruiterIntentClassifier:
                 r'\bprofile summary\b', r'\bcandidate summary\b', r'\bresume summary\b'
             ]),
 
-            # 9. Explicit Candidate Comparison
+            # 9. Explicit Candidate Comparison (Requires explicit comparison keywords)
             (RecruiterIntent.CANDIDATE_COMPARISON, [
-                r'\bcompare all resumes\b', r'\bcompare all\b', r'\bcompare candidates\b', r'\bcompare these resumes\b', r'\bcompare\b',
-                r'\bversus\b', r'\bvs\.?\b', r'\bbetter than\b', r'\bwho is better\b', r'\bcomparison\b', r'\bcompare them\b'
+                r'\bcompare\b', r'\bcompare\s+(?:all|candidates|resumes|them|profiles)\b', r'\bcompare\s+candidate\b', r'\bcompare\s+resume\b',
+                r'\bversus\b', r'\bvs\.?\b', r'\bbetter than\b', r'\bwho is better\b', r'\bcomparison of\b'
             ]),
 
             # 10. Candidate Profile / Selected Candidate Details

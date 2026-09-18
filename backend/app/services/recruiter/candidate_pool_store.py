@@ -84,6 +84,18 @@ class CandidatePoolStore:
         """List all candidate records in the pool."""
         return list(self._pool.values())
 
+    def list_all_candidates(self) -> List[Any]:
+        """List all candidate records with attribute and dictionary access."""
+        class _CandidateWrapper(dict):
+            def __init__(self, data):
+                super().__init__(data)
+                self.__dict__ = self
+            @property
+            def candidate_name(self):
+                return self.get("name") or self.get("candidate_name") or "Candidate"
+
+        return [_CandidateWrapper(rec) for rec in self._pool.values()]
+
     def filter_candidates(
         self,
         domain: Optional[str] = None,

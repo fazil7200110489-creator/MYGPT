@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/theme.css";
 
 @layer base {
   body {
@@ -122,4 +123,14 @@
 /* Timeline Components */
 .timeline-border {
   border-left: 2px dashed rgba(99, 102, 241, 0.4);
+}
+
+/* SVG Icon Isolation & Zero Text Leakage */
+svg {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  display: inline-block;
+  vertical-align: middle;
 }

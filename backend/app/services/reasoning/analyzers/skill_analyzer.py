@@ -1,5 +1,6 @@
 import re
 from typing import Dict, Any, List, Set, Tuple
+from backend.app.services.reasoning.skill_normalizer import skill_normalizer
 
 # Constants matching candidate_profile_builder.py
 KNOWN_ERP_PLATFORMS = [
@@ -155,7 +156,7 @@ class SkillAnalyzer:
             "EXCEL", "WORD", "POWERPOINT", "POSTMAN", "JIRA", "GIT", "DOCKER", "KUBERNETES"
         ]
 
-        excluded_companies = {"apollo", "hospitals", "hospital", "leela", "palace", "sindoori", "management", "solutions", "healthcare", "medical center", "google", "techcorp", "abc"}
+        excluded_companies = {"apollo", "hospitals", "hospital", "leela", "palace", "sindoori", "management", "solutions", "healthcare", "medical center", "google", "techcorp", "abc", "labs", "pvt", "limited", "ltd", "inc", "corp", "present"}
         DEGREE_NOISE = {
             "btech", "b.tech", "mtech", "m.tech", "mba", "bcom", "b.com", "mcom", "bsc", "b.sc",
             "msc", "bba", "ba", "diploma", "iti", "gnm", "anm", "hsc", "sslc", "phd", "degree",
@@ -167,10 +168,18 @@ class SkillAnalyzer:
             "physician", "pharmacist", "recruiter", "lead", "head", "director", "intern"
         }
 
+        # Common noise phrases/prefixes to clean or reject
+        FRAG_NOISE_PREFIXES = ["ed in ", "ing in ", "contributing to ", "worked on ", "experienced in ", "proficient in ", "well versed in ", "hands on in "]
+
         for s in split_items:
             s_str = str(s).strip()
             s_clean = re.sub(r'^(?:[•\-*]|\d+[\.\)]|\s)+', '', s_str).strip()
             s_clean = re.sub(r'^[^\w+#]+|[^\w+#]+$', '', s_clean).strip()
+
+            # Clean leading noise prefixes
+            for pfx in FRAG_NOISE_PREFIXES:
+                if s_clean.lower().startswith(pfx):
+                    s_clean = s_clean[len(pfx):].strip()
 
             if not s_clean or len(s_clean) < 2 or len(s_clean) > 40:
                 continue
@@ -189,10 +198,20 @@ class SkillAnalyzer:
             if any(noise in s_lower for noise in ["page", "expert", "proficient in", "well versed", "tracking system"]):
                 continue
 
-            if any(comp_kw in s_lower for comp_kw in ["apollo hospital", "sindoori management", "leela palace", "abc healthcare", "xyz medical"]):
+            # Reject company names, experience descriptions, text fragments
+            if any(comp_kw in s_lower for comp_kw in ["apollo hospital", "sindoori management", "leela palace", "abc healthcare", "xyz medical", "pvt limited", "private limited", "labs pvt", "pvt ltd"]):
                 continue
-            if len(s_clean.split()) > 1 and any(cw in excluded_companies for cw in s_lower.split()) and any(cw in s_lower.split() for cw in ["hospital", "hospitals", "palace", "solutions", "ltd", "inc"]):
-                continue
+            if any(cw in s_lower.split() for cw in ["pvt", "limited", "ltd", "inc", "corp", "present", "hospitals", "hospital", "palace", "labs"]):
+                if not any(sw in s_lower for sw in ["gitlab", "docker", "vs code"]):
+                    continue
+            if any(frag in s_lower for frag in ["contributing to", "worked on", "present", "responsible for", "ed in restful"]):
+                # Extract normalized technical term if present
+                if "restful api" in s_lower or "rest api" in s_lower:
+                    s_clean = "REST API"
+                    s_lower = "rest api"
+                    s_upper = "REST API"
+                else:
+                    continue
 
             if s_lower.endswith("ing") and s_lower not in ALLOWED_GERUND_SKILLS:
                 last_word = s_lower.split()[-1]
@@ -248,8 +267,19 @@ class SkillAnalyzer:
                     seen_tech.add(s.lower())
                     final_tech_skills.append(s)
 
+        # Canonical normalization and alias dict construction
+        canonical_skills = []
+        skill_aliases = {}
+        for skill_item in all_clean:
+            norm, aliases = self.normalize_skill(skill_item)
+            if norm not in canonical_skills:
+                canonical_skills.append(norm)
+                skill_aliases[norm] = aliases
+
         return {
             "all_skills": all_clean,
+            "canonical_skills": canonical_skills,
+            "skill_aliases": skill_aliases,
             "programming_languages": prog_langs,
             "ai_tools": ai_tools,
             "erp_platforms": erp_platforms,
@@ -262,6 +292,10 @@ class SkillAnalyzer:
             "technical_skills": final_tech_skills
         }
 
+    def normalize_skill(self, raw_skill: str) -> Tuple[str, List[str]]:
+        """Normalize skill string to canonical name and return alias variations."""
+        return skill_normalizer.normalize_skill(raw_skill)
+
     def _infer_modern_groups(self, all_skills: List[str], text: str) -> List[str]:
         """Infers aggregate modern stack groups by analyzing skills and raw context."""
         inferred = []
@@ -270,11 +304,9 @@ class SkillAnalyzer:
 
         # 1. MERN Stack Developer
         mern_kws = {"react", "mongodb", "node", "express"}
-        # Check if at least 3 of 4 are present in skills or raw text
         mern_matches = sum(1 for kw in mern_kws if kw in skills_lower or kw in text_lower)
         if mern_matches >= 3:
             inferred.append("MERN Stack Developer")
-            inferred.append("Modern JavaScript Ecosystem")
 
         # 2. Full Stack Engineer
         frontend_kws = {"react", "angular", "vue", "html", "css", "javascript", "typescript", "frontend"}
@@ -290,3 +322,83 @@ class SkillAnalyzer:
             inferred.append("REST API Development")
 
         return inferred
+
+    def get_categorized_skills_dict(self, skills: List[str], soft_skills_extracted: Optional[List[str]] = None) -> Dict[str, List[str]]:
+        """Categorizes normalized skills strictly into the 9 specified categories."""
+        categories: Dict[str, List[str]] = {
+            "Frontend": [],
+            "Backend": [],
+            "Database": [],
+            "Cloud": [],
+            "DevOps": [],
+            "Programming Languages": [],
+            "Frameworks": [],
+            "Tools": [],
+            "Soft Skills": []
+        }
+
+        PROG_SET = {"javascript", "js", "typescript", "ts", "python", "java", "php", "php 8", "c++", "c#", "golang", "go", "rust", "ruby", "sql", "swift", "kotlin", "dart", "r", "scala", "perl", "bash", "shell"}
+        FE_SET = {"html", "css", "responsive ui", "responsive design", "web design"}
+        FRAMEWORKS_SET = {"react", "react.js", "reactjs", "angular", "angular.js", "vue", "vue.js", "tailwind", "tailwind css", "bootstrap", "redux", "next.js", "nuxt", "jquery", "sass", "less", "express", "express.js", "django", "flask", "fastapi", "spring", "spring boot", "laravel", "symfony", "codeigniter", "rails"}
+        BE_SET = {"node", "node.js", "nodejs", "rest api", "restful api", "api development", "api integration", "jwt authentication", "jwt", "backend apis", "microservices", "graphql", "web api"}
+        DB_SET = {"mongodb", "mongo", "mysql", "postgresql", "postgres", "redis", "oracle", "sqlite", "sql server", "dynamodb", "cassandra", "mariadb", "firebase"}
+        DEVOPS_SET = {"docker", "kubernetes", "k8s", "jenkins", "ci/cd", "terraform", "ansible"}
+        CLOUD_SET = {"aws", "azure", "gcp", "google cloud", "heroku", "firebase", "netlify", "vercel", "cloudflare"}
+        TOOLS_SET = {"git", "github", "vs code", "vscode", "jira", "postman", "webpack", "vite", "npm", "yarn", "linux", "tally", "solidworks", "autocad"}
+
+        seen = set()
+        for s in skills:
+            norm_name, _ = self.normalize_skill(s)
+            s_lower = norm_name.lower()
+            if not norm_name or s_lower in seen:
+                continue
+            seen.add(s_lower)
+
+            # Categorize
+            if any(sf in s_lower for sf in ["communication", "problem solving", "time management", "leadership", "teamwork", "adaptability", "critical thinking", "collaboration", "interpersonal"]):
+                categories["Soft Skills"].append(norm_name)
+            elif s_lower in PROG_SET or any(p in s_lower for p in ["javascript", "typescript", "python", "java", "php", "c++", "c#"]):
+                categories["Programming Languages"].append(norm_name)
+            elif s_lower in FE_SET or any(fe in s_lower for fe in ["responsive ui", "html", "css"]):
+                categories["Frontend"].append(norm_name)
+            elif s_lower in FRAMEWORKS_SET or any(fw in s_lower for fw in ["react", "angular", "vue", "tailwind", "express", "django", "flask", "spring", "laravel"]):
+                categories["Frameworks"].append(norm_name)
+            elif s_lower in BE_SET or any(be in s_lower for be in ["node", "rest api", "jwt", "graphql", "api"]):
+                categories["Backend"].append(norm_name)
+            elif s_lower in DB_SET or any(db in s_lower for db in ["mongo", "sql", "postgres", "redis"]):
+                categories["Database"].append(norm_name)
+            elif s_lower in DEVOPS_SET or any(dev in s_lower for dev in ["docker", "kubernetes", "jenkins", "ci/cd"]):
+                categories["DevOps"].append(norm_name)
+            elif s_lower in CLOUD_SET or any(c in s_lower for c in ["aws", "azure", "gcp", "cloud"]):
+                categories["Cloud"].append(norm_name)
+            else:
+                categories["Tools"].append(norm_name)
+
+        if soft_skills_extracted:
+            for sf in soft_skills_extracted:
+                norm_sf, _ = self.normalize_skill(sf)
+                if norm_sf and norm_sf.lower() not in seen:
+                    seen.add(norm_sf.lower())
+                    categories["Soft Skills"].append(norm_sf)
+
+        return categories
+
+    def categorize_and_format_skills(self, skills: List[str]) -> str:
+        """Formats clean normalized technical skills into standard categories."""
+        if not skills:
+            return "Not available in the uploaded resume."
+
+        categories = self.get_categorized_skills_dict(skills)
+        out_blocks = []
+        for cat, items in categories.items():
+            if items:
+                dedup_items = list(dict.fromkeys(items))
+                item_lines = "\n".join(f"- {it}" for it in dedup_items)
+                out_blocks.append(f"**{cat}**\n{item_lines}")
+
+        if out_blocks:
+            return "\n\n".join(out_blocks)
+        
+        return "\n".join(f"- {s}" for s in dict.fromkeys(skills))
+
+

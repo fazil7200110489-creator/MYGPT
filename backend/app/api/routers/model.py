@@ -20,14 +20,20 @@ async def health_check() -> Dict[str, str]:
 
 @router.get("/dashboard", response_model=DashboardResponse)
 async def get_dashboard_stats() -> Dict[str, Any]:
-    """Returns real-time dashboard variables and current training progress."""
-    model = model_manager.load_model()
-    total_params = sum(p.numel() for p in model.parameters())
+    """Returns real-time dashboard variables and current training progress.
+    Uses cached model state — does NOT trigger model loading or expensive operations.
+    """
+    import time
+    _t0 = time.time()
+
+    # Use cached model state — never trigger a load from this endpoint
+    total_params = model_manager.get_total_params()
 
     # Dynamically extract details from trainer
     from backend.app.services.tokenizer_service import tokenizer
-    vocab_size = len(tokenizer.w2i)
-    
+    vocab_size = len(tokenizer.w2i) if hasattr(tokenizer, 'w2i') and tokenizer.w2i else 0
+
+    elapsed = round((time.time() - _t0) * 1000, 2)
     return {
         "model_name": "MyGPT-v2",
         "version": "2.0.0",
