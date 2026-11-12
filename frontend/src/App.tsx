@@ -204,35 +204,42 @@ export default function App() {
           </button>
         </div>
 
-        <div className="flex items-center gap-5">
-          {/* GPU Status Badge */}
-          <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
-            <Cpu className={`h-4 w-4 ${stats?.device?.includes('cuda') ? 'text-green-500 animate-pulse' : 'text-slate-400'}`} />
-            <span className="text-slate-500">Device:</span>
-            <span className="font-semibold text-slate-700 uppercase">{stats?.device || 'CPU'}</span>
-          </div>
-
-          {/* WS Status badge */}
-          <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
-            <span className={`h-2 w-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-rose-500 animate-ping'}`} />
-            <span className="text-slate-500">WebSocket:</span>
-            <span className="font-semibold text-slate-700">{wsConnected ? 'Connected' : 'Offline'}</span>
-          </div>
-
-          {/* Model active status */}
-          {stats?.is_training && (
-            <div className="flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-250 text-xs px-3 py-1.5 rounded-lg animate-pulse shadow-sm">
-              <Flame className="h-4 w-4" />
-              <span>Training Model...</span>
+        {activeProduct !== 'company_ai' ? (
+          <div className="flex items-center gap-5">
+            {/* GPU Status Badge */}
+            <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
+              <Cpu className={`h-4 w-4 ${stats?.device?.includes('cuda') ? 'text-green-500 animate-pulse' : 'text-slate-400'}`} />
+              <span className="text-slate-500">Device:</span>
+              <span className="font-semibold text-slate-700 uppercase">{stats?.device || 'CPU'}</span>
             </div>
-          )}
-        </div>
+
+            {/* WS Status badge */}
+            <div className="flex items-center gap-2 text-xs bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-sm">
+              <span className={`h-2 w-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-rose-500 animate-ping'}`} />
+              <span className="text-slate-500">WebSocket:</span>
+              <span className="font-semibold text-slate-700">{wsConnected ? 'Connected' : 'Offline'}</span>
+            </div>
+
+            {/* Model active status */}
+            {stats?.is_training && (
+              <div className="flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-250 text-xs px-3 py-1.5 rounded-lg animate-pulse shadow-sm">
+                <Flame className="h-4 w-4" />
+                <span>Training Model...</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span>Local AI Online</span>
+          </div>
+        )}
       </header>
 
       {/* Workspace Frame */}
       <div className="flex flex-1 overflow-hidden">
         {activeProduct === 'company_ai' ? (
-          <div className="flex-1 w-full h-full overflow-hidden flex bg-[#090d16]">
+          <div className="flex-1 w-full h-full overflow-hidden flex bg-white">
             <CompanyAIChat />
           </div>
         ) : activeProduct === 'recruiter_platform' ? (

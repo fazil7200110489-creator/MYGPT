@@ -60,13 +60,8 @@ class ConversationContextManager:
         (re.compile(r"\b(finance|accounting)\s+(department|dept|team)\s*(here|member)?\b", re.I), DepartmentEnum.FINANCE),
     ]
 
-    def detect_department_declaration(self, text: str) -> Optional[DepartmentEnum]:
-        """Detects whether user is explicitly declaring their department context (e.g. 'I'm from tech department')."""
-        clean = text.strip()
-        for pattern, dept in self._DEPT_DECLARATION_PATTERNS:
-            if pattern.search(clean):
-                logger.info(f"ContextManager: Detected explicit department declaration: '{clean}' -> {dept.value}")
-                return dept
+    def detect_department_declaration(self, text: str) -> Optional[Any]:
+        """[DEPRECATED] Department-based routing is permanently removed. Always returns None."""
         return None
 
     # ------------------------------------------------------------------
@@ -74,9 +69,20 @@ class ConversationContextManager:
     # ------------------------------------------------------------------
 
     _CONFIRMATION_PATTERN = re.compile(
-        r"^(yes|yeah|yep|yup|sure|ok|okay|k|fine|continue|go ahead|proceed|alright|certainly|please do)[.!]?$",
+        r"^(yes|yeah|yep|yup|sure|ok|okay|k|fine|go ahead|alright|certainly|please do)[.!]?$",
         re.I
     )
+
+    _TASK_CONTINUATION_PATTERNS = [
+        re.compile(r"^(next|continue|proceed|start|go on|move on|step by step|one by one)[.!]?$", re.I),
+        re.compile(r"\b(give\s+me\s+(the\s+)?(files?|code|artifacts?)|show\s+me\s+(the\s+)?(files?|code)|give\s+files?|get\s+files?)\b", re.I),
+        re.compile(r"\b(one\s+by\s+one|step\s+by\s+step|file\s+by\s+file)\b", re.I),
+        re.compile(r"\b(what\s+comes\s+(after\s+this|next)|what\s+is\s+next|what'?s\s+next|next\s+step|next\s+stage|next\s+file)\b", re.I),
+        re.compile(r"\b(give\s+me\s+(the\s+)?flow|show\s+the\s+flow|explain\s+the\s+flow|continue\s+the\s+flow|continue\s+(this|the)\s+workflow)\b", re.I),
+        re.compile(r"^(this|that|it|this\s+one|that\s+one|same|same\s+one|previous|above|the\s+above)[.!]?$", re.I),
+        re.compile(r"\b(continue\s+from\s+(here|current|this|the\s+current\s+stage)|continue\s+(this|the)\s+(task|implementation|process|project))\b", re.I),
+        re.compile(r"\b(explain\s+(the\s+)?(approval|stock|procurement|po|grn|outward|logistics|dispatch|receipt|reconciliation|finance|closure))\b", re.I),
+    ]
 
     _EXPANSION_PATTERNS = [
         re.compile(r"\b(give me (in )?detail(s)?|more detail(s)?|in detail|explain (that |it |this )?in detail|explain more|tell me more|elaborate|expand on that|break it down)\b", re.I),
@@ -244,6 +250,16 @@ class ConversationContextManager:
             state.department = dept
             state.last_department = dept
 
+        # Code document tracking
+        ext = os.path.splitext(str(state.active_document_name or ""))[1].lower()
+        if state.active_document_type == "CODE" or ext in {
+            ".php", ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".cs",
+            ".cpp", ".c", ".sql", ".html", ".css", ".json", ".xml", ".yaml", ".yml", ".md", ".txt"
+        }:
+            state.active_code_document = doc_dict_normalized
+            state.active_code_filename = state.active_document_name
+            state.active_code_language = doc_dict.get("language")
+
         logger.info(
             f"ContextManager: Set active document for session '{session_id}' -> "
             f"name='{state.active_document_name}' id='{state.active_document_id}' type='{state.active_document_type}' "
@@ -251,8 +267,22 @@ class ConversationContextManager:
         )
         return state
 
+    def get_active_code_document(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves currently active code document descriptor from session state."""
+        state = self.get_state(session_id)
+        if state.active_code_document:
+            return state.active_code_document
+        if state.active_document and state.active_document_type == "CODE":
+            return state.active_document
+        return None
+
     def resolve_document_for_query(self, session_id: str, query: str) -> Optional[Dict[str, Any]]:
-        """Resolves target active document from user query references ('this resume', 'the resume', 'this excel', 'the invoice', 'that candidate')."""
+        """Resolves target active document from user query references following strict 4-level priority:
+        1. Explicit document uploaded in current request (handled by caller if document_id present)
+        2. Explicit document reference / filename mentioned in query
+        3. Explicit previous document reference ("previous document", "earlier document", "first document", "document A", etc.)
+        4. Current active_document (verifying authoritative file type)
+        """
         state = self.get_state(session_id)
         raw_docs = getattr(state, "documents", []) or getattr(state, "conversation_documents", []) or []
         if not raw_docs and state.active_document:
@@ -260,49 +290,108 @@ class ConversationContextManager:
         if not raw_docs:
             return None
 
-        query_lower = query.lower()
+        query_lower = query.lower().strip()
 
-        # 1. User explicitly references a Resume / Candidate
-        if re.search(r"\b(resume|resumes|candidate|candidates|cv|applicant|degree|graduation|qualification|passed\s+out)\b", query_lower, re.I):
-            resume_docs = [
-                d for d in raw_docs 
-                if str(d.get("document_type", "")).upper() == "RESUME"
-                or any(str(d.get("filename") or "").lower().endswith(ext) for ext in [".pdf", ".docx", ".doc", ".txt"])
-                or "resume" in str(d.get("filename") or "").lower()
-            ]
-            if resume_docs:
-                target_doc = resume_docs[-1]
+        # 1. Explicit filename / document name match from session history
+        for d in raw_docs:
+            fname = str(d.get("filename") or "").lower()
+            base_fname = os.path.splitext(fname)[0]
+            if len(base_fname) >= 4 and (base_fname in query_lower or fname in query_lower):
+                if state.active_document != d:
+                    self.set_active_document(session_id, d)
+                    logger.info(f"ContextManager: Resolved document from explicit filename match '{query}' -> '{d.get('filename')}'")
+                return d
+
+        # 2. Explicit Previous / Earlier Document reference ("previous document", "earlier document", "first document", "document A", "previous recruitment document")
+        is_previous_doc_requested = bool(re.search(
+            r"\b(previous\s+(?:recruitment\s+)?(?:document|doc|file|report|manual|spreadsheet|pdf|docx|excel|presentation)?|"
+            r"earlier\s+(?:recruitment\s+)?(?:document|doc|file|report|manual)?|"
+            r"first\s+(?:recruitment\s+)?(?:document|doc|file|report|manual)?|"
+            r"prior\s+(?:document|doc|file)?|"
+            r"document\s+a|file\s+a|"
+            r"the\s+document\s+(?:i\s+)?uploaded\s+earlier|"
+            r"the\s+earlier\s+uploaded\s+document)\b",
+            query_lower
+        ))
+        if is_previous_doc_requested:
+            # If user specified a keyword like "recruitment", find matching earlier doc
+            if "recruitment" in query_lower or "portal" in query_lower or "manual" in query_lower:
+                for d in raw_docs:
+                    dfname = str(d.get("filename") or "").lower()
+                    if any(k in dfname for k in ["recruitment", "portal", "manual", "role"]):
+                        if state.active_document != d:
+                            self.set_active_document(session_id, d)
+                        logger.info(f"ContextManager: Switched to previous recruitment document '{d.get('filename')}'")
+                        return d
+
+            if state.previous_document:
+                target_doc = state.previous_document
                 self.set_active_document(session_id, target_doc)
-                logger.info(f"ContextManager: Resolved document from reference '{query}' -> RESUME '{target_doc.get('filename')}'")
+                logger.info(f"ContextManager: Switched to previous document '{target_doc.get('filename')}' on explicit request '{query}'")
                 return target_doc
+            elif len(raw_docs) >= 2:
+                # Select the earlier document (not current active)
+                earlier_doc = next((d for d in raw_docs if (d.get("id") or d.get("document_id")) != state.active_document_id), raw_docs[0])
+                self.set_active_document(session_id, earlier_doc)
+                logger.info(f"ContextManager: Switched to earlier session document '{earlier_doc.get('filename')}'")
+                return earlier_doc
 
-        # 2. User explicitly references an Excel / Spreadsheet / Sprint / History
-        if re.search(r"\b(excel|spreadsheet|sheet|sprint|topup|transactions?|workbook)\b", query_lower, re.I):
-            excel_docs = [
-                d for d in raw_docs 
-                if str(d.get("document_type", "")).upper() in ("EXCEL", "EXCEL_WORKBOOK", "SPREADSHEET")
-                or any(str(d.get("filename") or "").lower().endswith(ext) for ext in [".xlsx", ".xls", ".csv"])
-            ]
-            if excel_docs:
-                target_doc = excel_docs[-1]
-                self.set_active_document(session_id, target_doc)
-                logger.info(f"ContextManager: Resolved document from reference '{query}' -> EXCEL '{target_doc.get('filename')}'")
-                return target_doc
+        # 3. Current active_document (Strict Document Locking & Authoritative File Type check)
+        if state.active_document:
+            active_ext = str((state.active_document.get("file_type") or state.active_document.get("extension") or os.path.splitext(state.active_document.get("filename", ""))[1])).lower()
+            active_type = str(state.active_document_type or state.active_document.get("document_type", "")).upper()
 
-        # 3. User explicitly references an Invoice
-        if re.search(r"\b(invoice|invoices|bill|vendor)\b", query_lower, re.I):
-            invoice_docs = [
-                d for d in raw_docs 
-                if str(d.get("document_type", "")).upper() == "INVOICE"
-                or "invoice" in str(d.get("filename") or "").lower()
-            ]
-            if invoice_docs:
-                target_doc = invoice_docs[-1]
-                self.set_active_document(session_id, target_doc)
-                logger.info(f"ContextManager: Resolved document from reference '{query}' -> INVOICE '{target_doc.get('filename')}'")
-                return target_doc
+            # If user explicitly specifies "in the invoice" / "from the invoice" and active doc is not invoice
+            if re.search(r"\b(in|from|for|switch to|look at)\s+(the\s+|this\s+)?(invoice|invoices|bill)\b", query_lower) and active_type != "INVOICE":
+                invoice_docs = [d for d in raw_docs if str(d.get("document_type", "")).upper() == "INVOICE" or "invoice" in str(d.get("filename") or "").lower()]
+                if invoice_docs:
+                    target_doc = invoice_docs[-1]
+                    self.set_active_document(session_id, target_doc)
+                    return target_doc
 
-        return state.active_document
+            # If user explicitly specifies "in the resume" / "from the resume" and active doc is not resume
+            if re.search(r"\b(in|from|for|switch to|look at)\s+(the\s+|this\s+)?(resume|candidate|cv)\b", query_lower) and active_type != "RESUME":
+                resume_docs = [d for d in raw_docs if str(d.get("document_type", "")).upper() == "RESUME" or "resume" in str(d.get("filename") or "").lower()]
+                if resume_docs:
+                    target_doc = resume_docs[-1]
+                    self.set_active_document(session_id, target_doc)
+                    return target_doc
+
+            # If user explicitly specifies "in the excel" / "from the excel" and active doc is not excel
+            if re.search(r"\b(in|from|for|switch to|look at)\s+(the\s+|this\s+)?(excel|spreadsheet|workbook)\b", query_lower) and active_ext not in (".xlsx", ".xls", ".csv") and active_type not in ("EXCEL", "EXCEL_WORKBOOK", "SPREADSHEET"):
+                excel_docs = [d for d in raw_docs if str(d.get("document_type", "")).upper() in ("EXCEL", "EXCEL_WORKBOOK", "SPREADSHEET") or any(str(d.get("filename") or "").lower().endswith(ext) for ext in [".xlsx", ".xls", ".csv"])]
+                if excel_docs:
+                    target_doc = excel_docs[-1]
+                    self.set_active_document(session_id, target_doc)
+                    return target_doc
+
+            # File type mismatch check:
+            # If user explicitly says "this pdf" / "what is this pdf" but active document is not a PDF:
+            if re.search(r"\b(this|the)\s+pdf\b", query_lower) and active_ext != ".pdf" and active_type != "PDF":
+                # Check if a PDF exists in session documents
+                pdf_docs = [d for d in raw_docs if str(d.get("file_type", "")).lower() == ".pdf" or str(d.get("document_type", "")).upper() == "PDF" or str(d.get("filename", "")).lower().endswith(".pdf")]
+                if pdf_docs:
+                    target_doc = pdf_docs[-1]
+                    self.set_active_document(session_id, target_doc)
+                    logger.info(f"ContextManager: Switched active document to PDF '{target_doc.get('filename')}' on explicit 'this pdf' request")
+                    return target_doc
+                else:
+                    return {
+                        "_file_type_mismatch": True,
+                        "active_name": state.active_document_name,
+                        "requested_type": "PDF",
+                        "actual_type": active_type,
+                        "id": state.active_document_id,
+                        "document_id": state.active_document_id
+                    }
+
+            # If query is an unrelated question and does not require active document context, do not auto-bind (RULE 1 & 8)
+            if not self.is_context_relevant(query, state):
+                return None
+
+            return state.active_document
+
+        return None
 
     def resolve_comparison_documents(self, session_id: str, text: str) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
         """Resolves two distinct documents from session history for comparison or multi-document summary."""
@@ -517,15 +606,20 @@ class ConversationContextManager:
                 meta["column"] = cand_col
                 return ("EXCEL_COLUMN_EXPORT", [], meta)
 
-        # 0d. Two-File Comparison & Mismatches ("compare the ebo topup and upi qr excel and find the mismatch details")
-        if re.search(r"\b(compare|reconcile|mismatch(es)?|discrepanc(y|ies)|diff)\b", norm, re.I):
-            if re.search(r"\b(mismatch(es)?|discrepanc(y|ies))\b", norm, re.I) and not re.search(r"\b(compare|reconcile|between|vs)\b", norm, re.I):
-                if re.search(r"\b(excel|sheet|file|export|download)\b", norm, re.I):
-                    meta["follow_up_action"] = "EXPORT_MISMATCHES"
-                elif re.search(r"\b(how\s+many|count)\b", norm, re.I):
-                    meta["follow_up_action"] = "COUNT_MISMATCHES"
-                else:
-                    meta["follow_up_action"] = "SHOW_MISMATCHES"
+        # 0d. Comparison, Differences & Mismatches ("How many differences?", "Compare Corpzee and Yatra", "Which flights have different prices?")
+        if re.search(r"\b(compare|reconcil(e|iation)|mismatch(es)?|discrepanc(y|ies)|diff(erence)?s?|different|different\s+prices?|failed\s+cases?|failing\s+cases?|issues?)\b", norm, re.I):
+            if re.search(r"\b(how\s+many|count|total\s+number)\b", norm, re.I):
+                meta["follow_up_action"] = "COUNT_DIFFERENCES"
+            elif re.search(r"\b(which|what)\s+(?:flights?|cases?|records?)\b.*\b(different|mismatch|differ|price)", norm, re.I):
+                meta["follow_up_action"] = "FILTER_PRICE_DIFFERENCES"
+            elif re.search(r"\b(failed|failing)\s+cases?\b", norm, re.I):
+                meta["follow_up_action"] = "FILTER_FAILED_CASES"
+            elif re.search(r"\b(compare|versus|vs)\b", norm, re.I):
+                meta["follow_up_action"] = "COMPARE_PORTALS"
+            elif re.search(r"\b(excel|sheet|file|export|download)\b", norm, re.I):
+                meta["follow_up_action"] = "EXPORT_MISMATCHES"
+            else:
+                meta["follow_up_action"] = "COUNT_DIFFERENCES"
             return ("EXCEL_COMPARE", [], meta)
 
         # 1a. Highest / Maximum / Biggest Transaction / Amount (EXCEL_MAX):
@@ -561,10 +655,10 @@ class ConversationContextManager:
 
         # 1c. Total / Sum / Financial Aggregation:
         is_total = bool(re.search(
-            r"\b(what('s|\s+is)\s+(the\s+)?total(\s+amount)?|"
+            r"\b(what('s|\s+is)\s+(the\s+)?(?:total\s+amount|sum\s+amount)|"
             r"total\s+amount|sum\s+amount|total\s+settled\s+amount|settled\s+amount|"
-            r"how\s+much\s+money|how\s+much\s+is\s+the\s+total|sum\s+the\s+amount|"
-            r"what\s+is\s+the\s+total|what('s|\s+is)\s+the\s+sum|calculate\s+total|give\s+me\s+the\s+total|"
+            r"how\s+much\s+money|how\s+much\s+is\s+the\s+total\s+amount|sum\s+the\s+amount|"
+            r"what\s+is\s+the\s+total\s+amount|what('s|\s+is)\s+the\s+sum\s+amount|calculate\s+(?:the\s+)?total\s+amount|give\s+me\s+the\s+total\s+amount|"
             r"grand\s+total|amount\s+total|calculate\s+(?:the\s+)?total\s+amount)\b",
             norm,
             re.I
@@ -656,7 +750,7 @@ class ConversationContextManager:
             return ("EXCEL_FILTER", target_owners, meta)
 
         # 7. Summary / Inspection (with typo tolerance):
-        if re.search(r"\b(summary|summarize|overview|breakdown|what('s|\s+is)\s+in|describe|short\s+summary|full\s+summary|summary\s+of\s+(?:the\s+)?(?:doc|document|excel|file)|give\s+me\s+(?:the\s+)?details)\b", norm, re.I):
+        if re.search(r"\b(overall\s+summary|summary\s+of\s+(?:this|the)\s+(?:doc|document|excel|file|workbook|sheet)|give\s+(?:me\s+)?(?:an?\s+)?(?:overall\s+|full\s+|complete\s+)?summary|summary|summarize|overview|breakdown|what('s|\s+is)\s+in|describe|short\s+summary|full\s+summary|give\s+me\s+(?:the\s+)?details)\b", norm, re.I):
             return ("EXCEL_SUMMARY", target_owners, meta)
 
         # 8. Excel Report:
@@ -677,19 +771,250 @@ class ConversationContextManager:
 
         return (None, target_owners, meta)
 
+    def resolve_clarification_selection(self, text: str, pending_clarification: Optional[Dict[str, Any]]) -> Tuple[Optional[str], Optional[int]]:
+        """Resolves user reply against pending clarification options.
+        
+        Supports:
+        - Numbers: '1', '2', '3', '#2', '(2)', '2.'
+        - Ordinals: 'first', 'the first one', '1st', 'second', 'the second one', '2nd', 'third', '3rd', 'fourth', '4th'
+        - Phrases: 'option 1', 'option 2', 'choice 2', 'select 2'
+        - Direct option names or fuzzy matches: 'Stock Available', 'Count of ExamCentre', 'exam centre'
+        """
+        if not pending_clarification or not isinstance(pending_clarification, dict):
+            return (None, None)
+
+        options = pending_clarification.get("options") or []
+        if not options or not isinstance(options, list):
+            return (None, None)
+
+        t_clean = text.strip().lower()
+
+        # 1. Direct integer check: '1', '2', '3', '#2', '2.'
+        int_m = re.search(r"^(?:option\s+|choice\s+|select\s+|#|\()?(\d+)(?:\.|\))?$", t_clean)
+        if int_m:
+            idx = int(int_m.group(1)) - 1
+            if 0 <= idx < len(options):
+                return (options[idx], idx + 1)
+
+        # 2. Ordinals and natural phrasing
+        ordinal_map = {
+            "first": 0, "the first": 0, "first one": 0, "the first one": 0, "1st": 0, "the 1st": 0, "the 1st one": 0,
+            "second": 1, "the second": 1, "second one": 1, "the second one": 1, "2nd": 1, "the 2nd": 1, "the 2nd one": 1,
+            "third": 2, "the third": 2, "third one": 2, "the third one": 2, "3rd": 2, "the 3rd": 2, "the 3rd one": 2,
+            "fourth": 3, "the fourth": 3, "fourth one": 3, "the fourth one": 3, "4th": 3, "the 4th": 3, "the 4th one": 3,
+            "fifth": 4, "the fifth": 4, "fifth one": 4, "the fifth one": 4, "5th": 4, "the 5th": 4, "the 5th one": 4,
+        }
+        for ord_word, idx in ordinal_map.items():
+            if t_clean == ord_word or t_clean == f"option {ord_word}" or t_clean == f"choose {ord_word}":
+                if 0 <= idx < len(options):
+                    return (options[idx], idx + 1)
+
+        # 3. Direct match against option names
+        from backend.app.services.excel.semantic_excel_resolver import semantic_excel_resolver
+        matched = semantic_excel_resolver.find_matching_columns(t_clean, options)
+        if matched and len(matched) == 1:
+            return (matched[0], options.index(matched[0]) + 1)
+        elif matched:
+            return (matched[0], options.index(matched[0]) + 1)
+
+        # 4. Normalized exact match against options
+        cand_norm = semantic_excel_resolver.normalize_column_key(t_clean)
+        for idx, opt in enumerate(options):
+            if semantic_excel_resolver.normalize_column_key(opt) == cand_norm:
+                return (opt, idx + 1)
+
+        return (None, None)
+
+    def is_context_relevant(self, text: str, state: Optional[ConversationState] = None) -> bool:
+        """Determines whether the current user message is a genuine follow-up or requires
+        previous conversation context (RULE 1 - 8).
+
+        Returns False if the message is a new topic / independent question,
+        guaranteeing that old documents, topics, departments, or history are NOT injected.
+        """
+        if not state:
+            return False
+
+        clean = text.strip().lower()
+        if not clean:
+            return False
+
+        # Explicit upload announcement from chat UI ("Uploaded file.pdf, annexure.xlsx")
+        if clean.startswith("uploaded "):
+            return True
+
+        active_doc_type = str(getattr(state, "active_document_type", "") or "").upper()
+        has_active_tender = active_doc_type == "TENDER" or (
+            isinstance(state.active_document, dict)
+            and (
+                str(state.active_document.get("document_type", "")).upper() == "TENDER"
+                or any(k in str(state.active_document.get("filename", "")).lower() for k in ("tender", "nit", "rfp", "boq", "corrigendum"))
+            )
+        )
+        is_tender_query = has_active_tender and bool(re.search(
+            r"\b(tender|nit|emd|earnest|bid|bids|bidder|deadline|submission|opening|pre-bid|prebid|"
+            r"eligib\w*|qualif\w*|turnover|boq|corrigendum|annexure|portal|estimated|tender\s*fee|"
+            r"security\s*deposit|oem|section|clause|schedule|scope|dates?)\b",
+            clean,
+        ))
+        if is_tender_query:
+            return True
+
+        # Guard 1: Standalone definitions, geography, or factual questions are NEVER follow-ups
+        # Examples: "What is PHP?", "What is Python?", "What is the capital of Japan?", "Explain JWT"
+        if re.match(r"^(what\s+is\s+(the\s+)?capital|who\s+is|who\s+was|where\s+is|when\s+did)\b", clean):
+            return False
+
+        if re.match(r"^(what\s+is|what\s+are|define\s+|explain\s+|tell\s+me\s+about\s+)(?!.*(it|that|above|previous|this\s+file|this\s+doc|this\s+excel|this\s+pdf))", clean):
+            if not any(k in clean for k in ["this code", "our project", "my project"]):
+                return False
+
+        # Guard 2: Standalone arithmetic: "Calculate 25 * 40", "What is 15% of 8500?"
+        if re.search(r"(\bcalculate\s+\d+|\b\d+\s*[\+\-\*\/]\s*\d+|\b\d+%\s+of\s+\d+)", clean) and not any(k in clean for k in ["more", "add to that", "subtract from that", "previous"]):
+            return False
+
+        # Guard 3: Standalone self-contained code fix: e.g. "Fix this Python code: print(hello)"
+        if re.search(r"\bfix\s+this\s+(python|php|js|javascript|java|code)\s*[:\n]", clean) or ("```" in clean and "fix" in clean):
+            return False
+
+        # RULE 8 Check 1 & 2: References indicating follow-up or continuation
+        # "it", "that", "this", "same", "again", "continue", "now", "previous", "above", etc.
+        has_reference = bool(re.search(
+            r"\b(it|that|this|these|those|same|same\s+one|this\s+one|that\s+one|again|continue|next|now|previous|earlier|above|the\s+above|here|them|both|more|detail|details|expand|elaborate|what\s+else|why\s+is\s+that)\b",
+            clean
+        ))
+        if has_reference:
+            return True
+
+        # Confirmations & continuations ("yes", "ok", "proceed", "step by step", etc.)
+        if self._CONFIRMATION_PATTERN.match(clean) or any(p.search(clean) for p in self._TASK_CONTINUATION_PATTERNS):
+            return True
+
+        # Arithmetic continuations ("add 500 more", "plus 20")
+        if self._ARITHMETIC_CONTINUATION_PATTERN.search(clean):
+            return True
+
+        # Pending clarification active
+        if getattr(state, "pending_clarification", None) or getattr(state, "pending_action", None):
+            return True
+
+        # RULE 8 Check 3: Does the new request require the active document/file?
+        has_active_doc = bool(state.active_document or state.active_document_name)
+        if has_active_doc:
+            # Explicit document words
+            if re.search(r"\b(document|doc|file|pdf|excel|sheet|spreadsheet|csv|table|row|rows|column|columns|workbook|invoice|resume|policy|contract|report|clause|section)\b", clean):
+                return True
+            # Document actions (summarize, extract, total, filter, etc.)
+            if re.search(r"\b(summary|summarize|overview|total|sum|average|count|min|max|filter|unique|export|mismatch|difference|compare|findings|candidate|experience|education|skills?)\b", clean):
+                return True
+            # Active document filename match
+            fname = str(state.active_document_name or (state.active_document or {}).get("filename", "")).lower()
+            base_fname = os.path.splitext(fname)[0]
+            if len(base_fname) >= 4 and base_fname in clean:
+                return True
+
+        # RULE 8 Check 4: Is the new request clearly related to the previous topic?
+        last_topic = str(getattr(state, "last_topic", None) or getattr(state, "topic", None) or "").lower()
+        if last_topic and last_topic not in ("none", "general", "chat", "unknown"):
+            topic_words = [w for w in re.findall(r"\b[a-zA-Z]{4,}\b", last_topic) if w not in {"what", "this", "that", "with", "from", "have", "more", "give", "show", "user", "file", "data", "test"}]
+            if any(w in clean for w in topic_words):
+                return True
+
+        # If none of the above are true, this is an independent new topic!
+        return False
+
+    def is_topic_shift(self, text: str, state: Optional[ConversationState] = None) -> bool:
+        """Determines whether a message is an independent general-knowledge query,
+        greeting, or new topic that must NOT inherit previous session document/coding context.
+        """
+        clean = text.strip().lower()
+        if not clean:
+            return False
+
+        # 1. Obvious conversational greetings
+        if re.match(r"^(hi|hello|hey|good\s+(morning|afternoon|evening)|howdy|greetings)[.!,?]?$", clean):
+            return True
+
+        # 2. If state exists and context is NOT relevant (Rule 8), it is a topic shift!
+        if state and not self.is_context_relevant(text, state):
+            return True
+
+        # 3. Standalone general-purpose questions
+        has_followup_reference = bool(re.search(
+            r"\b(this|that|it|these|those|above|previous|earlier|again|continue|next|more|same|here|them|both)\b",
+            clean
+        ))
+        if has_followup_reference:
+            return False
+
+        # General definitions & questions
+        if re.match(r"^(what\s+is|what\s+are|who\s+is|who\s+was|why\s+is|explain\s+|define\s+|tell\s+me\s+about\s+)", clean):
+            return True
+
+        # Standalone arithmetic: "What is 15% of 8500?", "Calculate 1200 + 800"
+        if re.search(r"(\b\d+\s*[\+\-\*\/]\s*\d+|\b\d+%\s+of\s+\d+|\bcalculate\s+\d+)", clean):
+            return True
+
+        return False
+
     def resolve_follow_up_signals(self, text: str, state: ConversationState) -> Dict[str, Any]:
         """Analyzes incoming text in light of current ConversationState to identify follow-up actions."""
         text_clean = text.strip()
         signals: Dict[str, Any] = {
             "is_follow_up": False,
+            "is_topic_shift": False,
             "signal_type": None,
             "target_action": None,
+            "inherited_capability": getattr(state, "capability", "GENERAL") or "GENERAL",
+            "inherited_operation": getattr(state, "last_operation", None),
+            "inherited_task": getattr(state, "task", None),
             "inherited_department": state.department or state.last_department or DepartmentEnum.GENERAL.value,
             "inherited_topic": state.last_topic,
             "referenced_document": state.active_document_name or state.last_generated_file,
             "referenced_doc_id": state.active_document_id,
             "entities": {}
         }
+
+        # Check for explicit topic shifts / general questions to prevent context bleed
+        if self.is_topic_shift(text_clean, state):
+            signals["is_follow_up"] = False
+            signals["is_topic_shift"] = True
+            signals["inherited_capability"] = "GENERAL"
+            logger.info(f"ContextManager: Detected topic shift / standalone query '{text_clean}' -> isolated GENERAL turn")
+            return signals
+
+        # 0. Pending Clarification Selection ("1", "2", "option 2", "the second one", "Count of ExamCentre")
+        if state.pending_clarification:
+            sel_opt, sel_idx = self.resolve_clarification_selection(text_clean, state.pending_clarification)
+            if sel_opt:
+                orig_op = state.pending_clarification.get("operation") or state.last_operation or "EXCEL_READ_COLUMN"
+                doc_id = state.pending_clarification.get("document_id") or state.active_document_id
+                
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "clarification_selection"
+                signals["target_action"] = orig_op
+                signals["inherited_department"] = DepartmentEnum.GENERAL.value
+                signals["entities"] = dict(state.pending_clarification.get("entities") or {})
+                signals["entities"]["column"] = sel_opt
+                signals["entities"]["target_column"] = sel_opt
+                signals["entities"]["target_columns"] = [sel_opt]
+                signals["entities"]["selected_column"] = sel_opt
+                signals["entities"]["selected_index"] = sel_idx
+                signals["entities"]["doc_id"] = doc_id
+                signals["entities"]["document_id"] = doc_id
+                signals["entities"]["filename"] = state.active_document_name
+                signals["entities"]["is_follow_up"] = True
+
+                logger.info(
+                    f"\n[CLARIFICATION_RESOLUTION]\n"
+                    f"raw_message: {text_clean}\n"
+                    f"clarification_type: {state.pending_clarification.get('type', 'COLUMN_SELECTION')}\n"
+                    f"selected_index: {sel_idx}\n"
+                    f"selected_column: {sel_opt}\n"
+                    f"document_id: {doc_id}\n"
+                    f"resumed_operation: {orig_op}"
+                )
+                return signals
 
         # 1. Confirmation continuation ("yes", "sure", "ok")
         if self._CONFIRMATION_PATTERN.match(text_clean):
@@ -699,8 +1024,43 @@ class ConversationContextManager:
             signals["pending_action"] = state.pending_action
             return signals
 
+        # 1a. Task / Workflow / Stage Continuation ("next", "give me the files", "step by step", "this one")
+        has_active_task_context = bool(
+            getattr(state, "task", None)
+            or getattr(state, "project", None)
+            or getattr(state, "workflow", None)
+            or getattr(state, "current_module", None)
+            or getattr(state, "current_stage", None)
+            or state.last_topic
+            or getattr(state, "conversation_mode", None) == "continuation"
+            or state.last_intent
+        )
+        for pat in self._TASK_CONTINUATION_PATTERNS:
+            if pat.search(text_clean):
+                if has_active_task_context:
+                    signals["is_follow_up"] = True
+                    signals["signal_type"] = "task_continuation"
+                    signals["target_action"] = "CONTINUE"
+                    signals["inherited_department"] = state.department or state.last_department or DepartmentEnum.TECH.value
+                    signals["inherited_topic"] = getattr(state, "topic", None) or state.last_topic
+                    signals["entities"]["is_follow_up"] = True
+                    signals["entities"]["action"] = "CONTINUE"
+                    signals["entities"]["topic"] = getattr(state, "topic", None) or state.last_topic
+                    signals["entities"]["project"] = getattr(state, "project", None)
+                    signals["entities"]["task"] = getattr(state, "task", None)
+                    signals["entities"]["workflow"] = getattr(state, "workflow", None)
+                    signals["entities"]["current_module"] = getattr(state, "current_module", None)
+                    signals["entities"]["current_stage"] = getattr(state, "current_stage", None)
+                    signals["entities"]["conversation_mode"] = "continuation"
+                    state.conversation_mode = "continuation"
+                    logger.info(
+                        f"ContextManager: Resolved task continuation '{text_clean}' -> "
+                        f"project={state.project}, module={state.current_module}, stage={state.current_stage}"
+                    )
+                    return signals
+
         # 1b. Contextual inquiry: "what happened", "why did it fail", "what went wrong"
-        if re.search(r"\b(what\s+happened|why\s+did\s+it\s+fail|what\s+went\s+wrong|what\s+happened\s+with\s+(?:my\s+)?(?:file|doc|document|excel)|tell\s+me\s+what\s+happened)\b", text_clean, re.I):
+        if re.search(r"^(what\s+happened\??|why\s+did\s+it\s+fail\??|what\s+went\s+wrong\??|what\s+happened\s+with\s+(?:my\s+)?(?:file|doc|document|excel|upload)\??|tell\s+me\s+what\s+happened\??)$", text_clean, re.I):
             signals["is_follow_up"] = True
             signals["signal_type"] = "contextual_explanation"
             signals["target_action"] = "EXPLAIN_STATUS"
@@ -769,11 +1129,8 @@ class ConversationContextManager:
         # 3. Candidate / Resume Single-Document Follow-up Inquiry ("is she fit for the hr role", "what is his experience", "what is the educational details of this candidate")
         is_resume_active = (
             str(state.active_document_type).upper() == "RESUME"
-            or (state.active_document and any(k in str(state.active_document.get("filename", "")).lower() for k in ["resume", "cv"]))
-            or (state.active_document and any(str(state.active_document.get("filename", "")).lower().endswith(ext) for ext in [".pdf", ".docx"]) and (state.last_department == "HR" or state.department == "HR"))
-            or (state.last_department == "HR" and ("candidate" in str(state.last_intent or "").lower() or "resume" in str(state.last_intent or "").lower() or "document_summary" in str(state.last_intent or "").lower()))
-            or (state.last_verified_result and "resume" in str(state.last_verified_result).lower())
-        )
+            or (state.active_document and any(k in str(state.active_document.get("filename", "")).lower() for k in ["resume", "cv", "curriculum_vitae"]))
+        ) and str(state.active_document_type).upper() != "TENDER"
         has_candidate_ref = any(
             re.search(rf"\b{w}\b", text_clean, re.I)
             for w in [
@@ -784,7 +1141,7 @@ class ConversationContextManager:
             ]
         )
 
-        if is_resume_active or has_candidate_ref:
+        if is_resume_active or (has_candidate_ref and str(state.active_document_type).upper() == "RESUME"):
             for pat, action in self._CANDIDATE_INQUIRY_PATTERNS:
                 if pat.search(text_clean):
                     signals["is_follow_up"] = True
@@ -798,19 +1155,168 @@ class ConversationContextManager:
                     logger.info(f"ContextManager: Resolved candidate inquiry follow-up '{text_clean}' -> {action}")
                     return signals
 
-        # 3. Active Excel Document Operations (Priority Resolution)
-        is_excel_active = (
-            str(state.active_document_type).upper() in ("EXCEL", "EXCEL_WORKBOOK", "SPREADSHEET")
-            or (state.active_document and any(str(state.active_document.get("filename", "")).lower().endswith(ext) for ext in [".xlsx", ".xls", ".csv"]))
-            or "sprint" in str(state.active_document_name or "").lower()
-            or "qr" in str(state.active_document_name or "").lower()
-            or "upi" in str(state.active_document_name or "").lower()
-            or (state.last_result_type and ("FILTER_RESULT" in state.last_result_type or "EXCEL" in str(state.last_result_type)))
-            or (state.last_excel_result is not None)
-            or (str(state.last_intent or "").startswith("excel_"))
-        )
+        # 3. Active Document Format & Follow-Up Scoping
+        active_fname = str(state.active_document_name or (state.active_document or {}).get("filename", "")).lower()
+        active_ext = os.path.splitext(active_fname)[1].lower() if active_fname else ""
+        active_type = str(state.active_document_type or (state.active_document or {}).get("document_type", "")).upper()
+
+        if state.active_document:
+            is_excel_active = active_ext in (".xlsx", ".xls", ".csv") or active_type in ("EXCEL", "EXCEL_WORKBOOK", "SPREADSHEET")
+            is_text_doc_active = not is_excel_active
+        else:
+            is_excel_active = False
+            is_text_doc_active = False
+
+        # 3a. Text / PDF / DOCX / PPTX Active Document Follow-ups & Semantic Queries
+        if is_text_doc_active and state.active_document:
+            # Document transformation / flowchart / workflow / blueprint
+            if re.search(r"\b(flow\s*chart|blueprint|workflow|process\s*flow|give\s+(?:me\s+)?(?:as\s+|a\s+)?flow\s*chart|make\s+(?:a\s+)?process\s*flow|show\s+(?:me\s+)?(?:the\s+)?workflow)\b", text_clean, re.I):
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "document_transformation"
+                signals["target_action"] = "DOCUMENT_TRANSFORMATION"
+                signals["inherited_department"] = DepartmentEnum.GENERAL.value
+                signals["entities"]["referenced_file"] = state.active_document_name
+                signals["entities"]["active_doc_id"] = state.active_document_id
+                signals["entities"]["doc_id"] = state.active_document_id
+                signals["entities"]["filename"] = state.active_document_name
+                signals["entities"]["output_format"] = "FLOWCHART"
+                signals["entities"]["query"] = text_clean
+                signals["entities"]["topic"] = "Workflow Process Blueprint"
+                logger.info(f"ContextManager: Resolved text document transformation follow-up '{text_clean}' -> document_transformation for '{state.active_document_name}'")
+                return signals
+
+            # Document summary query / shortening / expansion on active PDF/DOCX/PPTX/TXT
+            if re.search(r"\b(summary|summarize|overview|what('s|\s+is)\s+in\s+(?:this|the)\s+(?:document|doc|file|pdf|report)|give\s+(?:me\s+)?(?:an?\s+)?(?:short\s+|full\s+|overall\s+)?summary|give\s+(?:me\s+)?(?:in\s+|as\s+)?(?:short|brief)|in\s+short|in\s+brief|make\s+it\s+short|shorten(?:\s+it|\s+this)?|explain\s+(?:about\s+)?(?:this|the)\s+(?:document|doc|file|pdf|report)|what\s+is\s+(?:this|the)\s+(?:document|doc|file|pdf|report)\s+about|what\s+is\s+the\s+purpose\s+of\s+(?:this|the)\s+(?:document|doc|file|pdf|report)|explain\s+more|tell\s+me\s+more)\b", text_clean, re.I):
+                is_shorten = bool(re.search(r"\b(short|brief|in\s+short|make\s+it\s+short|shorten)\b", text_clean, re.I))
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "document_summary"
+                signals["target_action"] = "SUMMARIZE"
+                signals["inherited_department"] = DepartmentEnum.HR.value if active_type == "RESUME" else DepartmentEnum.GENERAL.value
+                signals["entities"]["referenced_file"] = state.active_document_name
+                signals["entities"]["active_doc_id"] = state.active_document_id
+                signals["entities"]["doc_id"] = state.active_document_id
+                signals["entities"]["filename"] = state.active_document_name
+                signals["entities"]["brief"] = is_shorten
+                if is_shorten and state.last_findings:
+                    signals["entities"]["previous_findings"] = state.last_findings
+                logger.info(f"ContextManager: Resolved text document summary follow-up '{text_clean}' -> document_summary for '{state.active_document_name}' (brief={is_shorten})")
+                return signals
+
+            # Document export to Excel / spreadsheet (e.g. "give me that in Excel", "export this as Excel", "put this in Excel")
+            if re.search(r"\b(give\s+(?:me\s+)?(?:that|this|the\s+summary|it)?\s*(?:in|as)\s+excel|export\s+(?:this|that|it)?\s*(?:to|as)?\s*excel|download\s+(?:as)?\s*excel)\b", text_clean, re.I):
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "document_export"
+                signals["target_action"] = "EXPORT_RESULT"
+                signals["inherited_department"] = DepartmentEnum.HR.value if active_type == "RESUME" else DepartmentEnum.GENERAL.value
+                signals["entities"]["referenced_file"] = state.active_document_name
+                signals["entities"]["active_doc_id"] = state.active_document_id
+                signals["entities"]["doc_id"] = state.active_document_id
+                signals["entities"]["filename"] = state.active_document_name
+                signals["entities"]["output_format"] = "XLSX"
+                logger.info(f"ContextManager: Resolved text document export follow-up '{text_clean}' -> document_export for '{state.active_document_name}'")
+                return signals
+
+            # Incompatible spreadsheet operations on non-Excel files
+            if re.search(r"\b(total\s+amount|sum\s+amount|average\s+amount|highest\s+transaction|lowest\s+transaction|split\s+(?:this\s+)?excel|export\s+(?:the\s+)?mismatches)\b", text_clean, re.I):
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "incompatible_file_operation"
+                signals["target_action"] = "INCOMPATIBLE_OPERATION"
+                signals["inherited_department"] = DepartmentEnum.GENERAL.value
+                signals["entities"]["active_doc"] = state.active_document_name
+                signals["entities"]["doc_id"] = state.active_document_id
+                signals["entities"]["filename"] = state.active_document_name
+                signals["entities"]["clarification_message"] = f"The active document **`{state.active_document_name}`** is a {active_type or 'PDF/Text'} file and does not support spreadsheet calculations. Would you like a summary of this document instead?"
+                return signals
+
+            # Semantic QA / Information Extraction on active document
+            # E.g. "what are the bugs?", "what are the difficulties?", "give me the camera counts", "what is the joining date?", "explain screenshot 3"
+            is_creation_cmd = bool(re.search(r"\b(create|generate|draft|build)\s+(?:an?\s+)?(?:offer\s*letter|invoice|policy|contract|template|report)\b", text_clean, re.I))
+            
+            # Explicit document reference or pronouns
+            has_explicit_doc_ref = bool(re.search(r"\b(this|the|that|my)\s+(document|file|report|resume|cv|pdf|paper|memo|policy|contract|screenshot|invoice|text|sheet)\b", text_clean, re.I))
+            has_pronoun_ref = bool(re.search(r"\b(in\s+(?:it|this|here)|from\s+(?:it|this|here)|according\s+to\s+(?:it|this)|mentioned\s+(?:in|here)|summarize\s+it)\b", text_clean, re.I))
+            
+            # Check document-specific domain keywords against full active doc extracted text
+            doc_context_text = ((state.active_document or {}).get("extracted_text") or "").lower()
+            query_content_words = [w.lower() for w in re.findall(r"\b[a-zA-Z]{3,}\b", text_clean) if w.lower() not in {"what", "are", "the", "and", "for", "with", "from", "how", "why", "when", "where", "can", "you", "tell", "show", "give", "explain", "does", "this", "that"}]
+            has_term_in_doc = any(w in doc_context_text for w in query_content_words) if doc_context_text and query_content_words else False
+
+            # Check if this is an obvious general-purpose question (science, history, geography, programming)
+            is_general_knowledge = bool(re.search(r"\b(photosynthesis|capital\s+of|quantum|einstein|newton|dna|rna|cellular\s+respiration|solar\s+system|speed\s+of\s+light|world\s+war|french\s+revolution|tcp/?ip|osi\s+model|http\s+status|binary\s+search|bubble\s+sort|quicksort|merge\s+sort|fibonacci|prime\s+numbers?|paris|france|germany|japan|history\s+of|who\s+invented|write\s+a\s+(?:python|javascript|code|function|script))\b", text_clean, re.I))
+
+            has_doc_qa_pattern = (
+                not is_creation_cmd
+                and not is_general_knowledge
+                and (
+                    has_explicit_doc_ref
+                    or has_pronoun_ref
+                    or has_term_in_doc
+                    or bool(re.search(r"\b(bugs?|difficult(y|ies)|issues?|errors?|problems?|screenshot|section|step|feature|requirement|recommendation|conclusion|roles?|candidates?|workflow)\b", text_clean, re.I))
+                )
+                and not re.match(r"^(hi|hello|hey|greetings|good\s+(morning|afternoon|evening))\b", text_clean, re.I)
+            )
+            if has_doc_qa_pattern:
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "document_qa"
+                signals["target_action"] = "EXTRACT_INFORMATION"
+                signals["inherited_department"] = DepartmentEnum.GENERAL.value
+                signals["entities"]["referenced_file"] = state.active_document_name
+                signals["entities"]["active_doc_id"] = state.active_document_id
+                signals["entities"]["doc_id"] = state.active_document_id
+                signals["entities"]["filename"] = state.active_document_name
+                signals["entities"]["query"] = text_clean
+                signals["entities"]["topic"] = text_clean
+                logger.info(f"ContextManager: Resolved text document QA follow-up '{text_clean}' -> document_qa for '{state.active_document_name}'")
+                return signals
 
         if is_excel_active:
+            # Check if user asks for summary following a column analysis (e.g. after Total Modules)
+            if re.search(r"^(give\s+(?:me\s+)?(?:a\s+)?summary|summary|summarize)[.!]?$", text_clean, re.I) and state.last_target_column:
+                col_name = state.last_target_column
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "excel_operation"
+                signals["target_action"] = "EXCEL_CLARIFICATION"
+                signals["inherited_department"] = DepartmentEnum.GENERAL.value
+                signals["clarification_message"] = f"Do you want a summary of the **`{col_name}`** column or the entire workbook **`{state.active_document_name}`**?"
+                signals["entities"]["action"] = "EXCEL_CLARIFICATION"
+                signals["entities"]["operation"] = "EXCEL_CLARIFICATION"
+                signals["entities"]["document_type"] = "EXCEL"
+                signals["entities"]["last_target_column"] = col_name
+                signals["entities"]["clarification_message"] = signals["clarification_message"]
+                signals["entities"]["target_columns"] = [col_name, "Entire Workbook"]
+                signals["entities"]["doc_id"] = state.active_document_id
+                signals["entities"]["document_id"] = state.active_document_id
+                signals["entities"]["filename"] = state.active_document_name
+                logger.info(f"ContextManager: Resolved follow-up column summary clarification for '{col_name}' vs entire workbook")
+                return signals
+
+            # Check if this is an explicit follow-up requesting a detailed version of the previous summary
+            is_detail_follow_up = bool(
+                re.search(r"\b(give\s+(?:me\s+)?(?:a\s+)?detailed(?:\s+(?:version|summary|breakdown|view))?|detailed\s+summary|in\s+detail|more\s+details?|elaborate|detailed\s+breakdown|expand\s+on\s+this)\b", text_clean, re.I)
+            )
+            if is_detail_follow_up and (
+                str(state.last_intent or "").startswith("excel_summary")
+                or state.last_operation in ("EXCEL_SUMMARY", "SUMMARY", "DOCUMENT_SUMMARY")
+                or "summary" in str(state.last_topic or "").lower()
+                or (state.last_result_type and "summary" in str(state.last_result_type).lower())
+            ):
+                signals["is_follow_up"] = True
+                signals["signal_type"] = "excel_operation"
+                signals["target_action"] = "EXCEL_SUMMARY"
+                signals["inherited_department"] = DepartmentEnum.GENERAL.value
+                signals["entities"]["action"] = "EXCEL_SUMMARY"
+                signals["entities"]["operation"] = "EXCEL_SUMMARY"
+                signals["entities"]["document_type"] = "EXCEL"
+                signals["entities"]["detailed"] = True
+                signals["entities"]["is_detailed"] = True
+                signals["entities"]["doc_id"] = state.active_document_id
+                signals["entities"]["document_id"] = state.active_document_id
+                signals["entities"]["filename"] = state.active_document_name
+                signals["entities"]["last_operation"] = state.last_operation
+                signals["entities"]["last_result"] = state.last_result
+                logger.info(f"ContextManager: Resolved detail expansion '{text_clean}' -> EXCEL_SUMMARY (detailed=True) referencing '{state.active_document_name}'")
+                return signals
+
             # Check if this is an explicit follow-up to mismatches/comparison
             if re.search(r"\b(export\s+(?:the\s+)?mismatches|give\s+(?:me\s+)?(?:the\s+)?mismatches\s+as\s+excel|show\s+(?:the\s+)?mismatches|how\s+many\s+mismatches|count\s+(?:the\s+)?mismatches)\b", text_clean, re.I):
                 doc_a, doc_b = self.resolve_comparison_documents(state.conversation_id, text_clean)
@@ -834,11 +1340,13 @@ class ConversationContextManager:
 
             known_owners = []
             headers = []
+            available_sheets = []
             if state.active_document and isinstance(state.active_document.get("structured_data"), dict):
                 known_owners = state.active_document.get("structured_data", {}).get("owners", [])
                 headers = state.active_document.get("structured_data", {}).get("headers", [])
+                available_sheets = state.active_document.get("structured_data", {}).get("sheets", [])
 
-            if not headers:
+            if not headers or not available_sheets:
                 fp = (state.active_document or {}).get("file_path")
                 if not fp and state.active_document_id:
                     from backend.app.services.document_manager import document_manager
@@ -850,11 +1358,13 @@ class ConversationContextManager:
                         from backend.app.services.excel.excel_aggregator import excel_aggregator
                         insp = excel_aggregator.inspect_workbook(fp)
                         headers = insp.get("headers", [])
+                        available_sheets = insp.get("sheet_names") or insp.get("worksheet_names", [])
                         if not isinstance(state.active_document, dict):
                             state.active_document = {}
                         if not isinstance(state.active_document.get("structured_data"), dict):
                             state.active_document["structured_data"] = {}
                         state.active_document["structured_data"]["headers"] = headers
+                        state.active_document["structured_data"]["sheets"] = available_sheets
                         if "owners" in insp:
                             known_owners = insp.get("owners", [])
                             state.active_document["structured_data"]["owners"] = known_owners
@@ -864,7 +1374,7 @@ class ConversationContextManager:
             op_type, target_owners, meta_dict = self._detect_excel_operation(text_clean, known_owners)
 
             # Consult SemanticExcelResolver for advanced natural language & schema understanding
-            sem_req = semantic_excel_resolver.understand_request(text_clean, headers, state.active_document_id, state)
+            sem_req = semantic_excel_resolver.understand_request(text_clean, headers, state.active_document_id, state, available_sheets=available_sheets)
             if sem_req and sem_req.operation:
                 op_map = {
                     "MULTI_DOCUMENT_SUMMARY": "EXCEL_MULTI_DOCUMENT_SUMMARY",
@@ -883,10 +1393,12 @@ class ConversationContextManager:
                     "COMPARISON": "EXCEL_COMPARE",
                     "SUMMARY": "EXCEL_SUMMARY",
                     "FILTER": "EXCEL_FILTER",
+                    "FILTER_COUNT": "EXCEL_FILTER",
                     "FILTER_EXPORT": "EXCEL_FILTER_EXPORT",
                     "FILTER_COLUMN": "EXCEL_FILTER_COLUMN",
                     "FILTER_COLUMN_EXPORT": "EXCEL_FILTER_COLUMN_EXPORT",
                     "READ_COLUMN": "EXCEL_READ_COLUMN",
+                    "READ_SHEET": "EXCEL_READ_SHEET",
                     "CLARIFICATION": "EXCEL_CLARIFICATION"
                 }
                 mapped_op = op_map.get(sem_req.operation)
@@ -897,8 +1409,12 @@ class ConversationContextManager:
                         not op_type
                         or op_type == "EXCEL_SUMMARY"
                         or (mapped_op != "EXCEL_CLARIFICATION" and sem_req.confidence >= 0.85)
+                        or (mapped_op == "EXCEL_CLARIFICATION" and not op_type)
                     ):
                         op_type = mapped_op
+                        if sem_req.target_sheet:
+                            meta_dict["target_sheet"] = sem_req.target_sheet
+                            meta_dict["sheet"] = sem_req.target_sheet
                         if sem_req.target_column:
                             meta_dict["target_column"] = sem_req.target_column
                             meta_dict["column"] = sem_req.target_column
@@ -916,8 +1432,12 @@ class ConversationContextManager:
                             meta_dict.setdefault("filter", {}).update(sem_req.filters if isinstance(sem_req.filters, dict) else {})
                         if isinstance(sem_req.filters, dict) and sem_req.filters.get("sections"):
                             meta_dict["sections"] = sem_req.filters["sections"]
+                        if isinstance(sem_req.filters, dict) and sem_req.filters.get("detailed"):
+                            meta_dict["detailed"] = sem_req.filters["detailed"]
                         if isinstance(sem_req.filters, dict) and sem_req.filters.get("follow_up_action"):
                             meta_dict["follow_up_action"] = sem_req.filters["follow_up_action"]
+                        if sem_req.clarification_message:
+                            meta_dict["clarification_message"] = sem_req.clarification_message
 
             if op_type:
                 signals["is_follow_up"] = True
@@ -932,12 +1452,16 @@ class ConversationContextManager:
                 signals["entities"]["target_column"] = meta_dict.get("target_column")
                 signals["entities"]["target_columns"] = meta_dict.get("target_columns")
                 signals["entities"]["target_concept"] = meta_dict.get("target_concept")
+                signals["entities"]["target_sheet"] = meta_dict.get("target_sheet")
+                signals["entities"]["sheet"] = meta_dict.get("target_sheet")
                 signals["entities"]["output_format"] = meta_dict.get("output_format")
                 signals["entities"]["group_by_column"] = meta_dict.get("group_by_column")
                 signals["entities"]["group_column"] = meta_dict.get("group_by_column")
                 signals["entities"]["filter"] = meta_dict.get("filter")
                 signals["entities"]["filters"] = meta_dict.get("filters")
                 signals["entities"]["sections"] = meta_dict.get("sections")
+                signals["entities"]["detailed"] = meta_dict.get("detailed")
+                signals["entities"]["clarification_message"] = meta_dict.get("clarification_message")
                 signals["entities"]["follow_up_action"] = meta_dict.get("follow_up_action")
                 signals["entities"]["doc_id"] = state.active_document_id
                 signals["entities"]["document_id"] = state.active_document_id
@@ -999,7 +1523,8 @@ class ConversationContextManager:
                 return signals
 
         # 6. Invoice Inquiry on active document
-        if state.active_document_type == "INVOICE" or "invoice" in text_clean.lower() or state.active_document:
+        active_doc_type_upper = str(getattr(state, "active_document_type", "") or "").upper()
+        if (state.active_document_type == "INVOICE" or "invoice" in text_clean.lower() or state.active_document) and active_doc_type_upper != "TENDER":
             for pat, action in self._INVOICE_INQUIRY_PATTERNS:
                 if pat.search(text_clean):
                     signals["is_follow_up"] = True
@@ -1065,11 +1590,16 @@ class ConversationContextManager:
         """Updates the conversation state after a turn executes."""
         state = self.get_state(session_id)
         state.turn_count += 1
-        state.last_department = verified_result.department.value
+        state.last_department = None
+        state.department = None
 
-        # Update department steering if result succeeded in a concrete department
-        if verified_result.department != DepartmentEnum.GENERAL:
-            state.department = verified_result.department.value
+        # Update capability tracking
+        cap_val = getattr(verified_result, "capability", None)
+        if not cap_val and structured_req:
+            cap_val = getattr(structured_req, "capability", None)
+        if cap_val:
+            state.last_capability = state.capability
+            state.capability = cap_val
 
         state.last_intent = verified_result.intent
         state.last_action = getattr(structured_req, "action", "QUERY") if structured_req else "QUERY"
@@ -1109,14 +1639,31 @@ class ConversationContextManager:
         # Track meaningful topics
         if verified_result.task and verified_result.task not in ("Company AI General Inquiry", "Conversational Greeting"):
             state.last_topic = verified_result.task
-        elif "policy" in verified_result.intent:
-            state.last_topic = "HR leave policy"
-        elif "expense" in verified_result.intent:
-            state.last_topic = "monthly travel expenses"
-        elif "invoice" in verified_result.intent:
-            state.last_topic = "invoice processing"
         elif "error" in verified_result.intent or "troubleshooting" in verified_result.intent:
             state.last_topic = "project troubleshooting and error diagnosis"
+
+        stage_match = re.search(r"\b(step\s+\d+\s*[-—–]\s*file\s+\d+)\b", user_message + " " + answer, re.I)
+        if stage_match:
+            state.current_stage = stage_match.group(1).upper()
+            state.conversation_mode = "continuation"
+
+        if structured_req and getattr(structured_req, "entities", None):
+            ent = structured_req.entities
+            if ent.get("project"):
+                state.project = ent["project"]
+            if ent.get("task"):
+                state.task = ent["task"]
+            if ent.get("workflow"):
+                state.workflow = ent["workflow"]
+            if ent.get("current_module"):
+                state.current_module = ent["current_module"]
+            if ent.get("current_stage"):
+                state.current_stage = ent["current_stage"]
+            if ent.get("conversation_mode"):
+                state.conversation_mode = ent["conversation_mode"]
+
+        if not state.topic and state.last_topic:
+            state.topic = state.last_topic
 
         # Track entities
         if structured_req and getattr(structured_req, "entities", None):
@@ -1124,7 +1671,7 @@ class ConversationContextManager:
         if getattr(verified_result, "tool_results", None):
             state.last_entities.update(verified_result.tool_results)
 
-        state.last_normalized_message = getattr(structured_req, "normalized_message", user_message) or user_message
+        state.last_findings = verified_result.findings or []
         state.last_verified_result = {
             "department": verified_result.department.value,
             "intent": verified_result.intent,
@@ -1144,6 +1691,12 @@ class ConversationContextManager:
 
         state.pending_action = pending_action
         state.pending_question = pending_question
+
+        # Track pending clarification state
+        if getattr(verified_result, "pending_clarification", None):
+            state.pending_clarification = verified_result.pending_clarification
+        elif verified_result.intent not in ("excel_clarification", "clarification_needed", "request_clarification"):
+            state.pending_clarification = None
 
         # Store compact turn in turn history
         if session_id not in self._turn_history:
@@ -1185,10 +1738,13 @@ class ConversationContextManager:
             recent_lines.append(f"Assistant: {ans_short}")
 
         return {
-            "department": state.department or state.last_department or "None",
+            "capability": getattr(state, "capability", None) or getattr(state, "last_capability", None) or "GENERAL",
+            "department": state.department or state.last_department or "GENERAL",
             "last_intent": state.last_intent or "None",
             "last_action": state.last_action or "None",
-            "last_topic": state.last_topic or "None",
+            "last_topic": state.last_topic or state.topic or "None",
+            "task": getattr(state, "task", None) or "None",
+            "project": getattr(state, "project", None) or "None",
             "pending_action": state.pending_action or "None",
             "last_normalized_message": state.last_normalized_message or "None",
             "last_generated_file": state.last_generated_file or "None",

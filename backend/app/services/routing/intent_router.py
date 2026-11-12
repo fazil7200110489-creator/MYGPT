@@ -79,10 +79,10 @@ class IntentRouter:
                 0.98
             ),
 
-            # --- EXCEL DOCUMENT WORKFLOW RULES ---
+            # --- EXCEL / CONTEXTUAL STATUS RULES ---
             (
                 re.compile(
-                    r"\b(what\s+happened|why\s+did\s+it\s+fail|what\s+went\s+wrong|tell\s+me\s+what\s+happened)\b",
+                    r"^(what\s+happened|why\s+did\s+it\s+fail|what\s+went\s+wrong|tell\s+me\s+what\s+happened)[.?!]?$",
                     re.I
                 ),
                 DepartmentEnum.GENERAL,
@@ -252,9 +252,9 @@ class IntentRouter:
                 0.99
             ),
             (
-                re.compile(r"\b(give\s+me\s+a\s+(short\s+)?summary|sprint\s+summary|summarize\s+(the\s+|this\s+)?(sprint|excel|exel|sheet|tasks?|file|document|doc)|what\s+is\s+in\s+this\s+(sprint|excel|file|document)|sprint\s+overview|transaction\s+summary|summarize\s+[a-z0-9]+'?s?\s+sprint|give\s+(?:me\s+)?(?:the\s+)?full\s+summary)\b", re.I),
+                re.compile(r"\b(give\s+me\s+a\s+(short\s+)?summary|sprint\s+summary|summarize\s+(the\s+|this\s+)?(sprint|excel|exel|sheet|tasks?|file|document|doc)|what\s+is\s+in\s+this\s+(sprint|excel|file|document)|sprint\s+overview|transaction\s+summary|summarize\s+[a-z0-9]+'?s?\s+sprint|give\s+(?:me\s+)?(?:the\s+)?full\s+summary|explain\s+(?:about\s+)?(?:this\s+|the\s+)?(?:document|doc|file)|what\s+is\s+this\s+(?:document|doc|file|presentation|pdf)|what\s+is\s+this\s+pdf\s+tells|what\s+about\s+(?:the\s+)?(?:previous\s+|earlier\s+)?(?:recruitment\s+)?(?:document|doc|file|report|manual|pdf|docx)|what\s+(?:does\s+|did\s+)?(?:the\s+)?(?:previous\s+|earlier\s+)?(?:recruitment\s+)?(?:document|doc|file|report|manual)\s+(?:say|contain|have|tell))\b", re.I),
                 DepartmentEnum.GENERAL,
-                "excel_summary",
+                "document_summary",
                 0.98
             ),
             (
@@ -491,6 +491,14 @@ class IntentRouter:
             r"\b(more detail(s|ed)?|give me more|tell me more|can (u|you) give me more|can (u|you) explain (more|that|further)|explain (more|that|further)|elaborate|can (u|you) elaborate|details? please|give more details?|tell me details?)\b",
             r"\b(what about|how about|why is that|and for|how many|what else|anything else|what if|who handles that|where do i send)\b",
             r"^(more\s+details?|details?|explain|elaborate|give\s+more|more|can\s+you\s+give\s+more|detailed|can\s+u\s+give\s+me\s+more\s+detailed)\b",
+            r"^(next|continue|proceed|start|go on|move on|step by step|one by one)[.!]?$",
+            r"\b(give\s+me\s+(the\s+)?(files?|code|artifacts?)|show\s+me\s+(the\s+)?(files?|code)|give\s+files?|get\s+files?)\b",
+            r"\b(one\s+by\s+one|step\s+by\s+step|file\s+by\s+file)\b",
+            r"\b(what\s+comes\s+(after\s+this|next)|what\s+is\s+next|what'?s\s+next|next\s+step|next\s+stage|next\s+file)\b",
+            r"\b(give\s+me\s+(the\s+)?flow|show\s+the\s+flow|explain\s+the\s+flow|continue\s+the\s+flow|continue\s+(this|the)\s+workflow)\b",
+            r"^(this|that|it|this\s+one|that\s+one|same|same\s+one|previous|above|the\s+above)[.!]?$",
+            r"\b(continue\s+from\s+(here|current|this|the\s+current\s+stage)|continue\s+(this|the)\s+(task|implementation|process|project))\b",
+            r"\b(explain\s+(the\s+)?(approval|stock|procurement|po|grn|outward|logistics|dispatch|receipt|reconciliation|finance|closure))\b",
         ]
         for pat in follow_up_patterns:
             if re.search(pat, text_lower):
@@ -525,34 +533,83 @@ class IntentRouter:
     ) -> bool:
         """Determines whether Qwen Layer 1 semantic understanding is required.
 
-        Qwen Layer 1 is the primary natural-language understanding layer.
-        Deterministic rules are kept ONLY as a fast-path for obvious requests:
-          - Trivial greetings (e.g. "hi", "hello", "good morning")
-          - Explicit department declarations ("I'm from tech department")
-          - Pure standalone arithmetic expressions with explicit numbers ("500 + 250")
+        Layer 1 is reserved ONLY for complex requests requiring MYGPT orchestration:
+          - Excel / spreadsheet operations
+          - Document / PDF operations
+          - Coding, debugging, and refactoring requests
+          - Vision / image understanding
+          - Multi-step tasks and system-building requests
+          - Tool execution and data comparison
+          - Tasks referencing active documents or context-dependent files
 
-        All other natural language queries, questions, indirect phrasing, synonyms,
-        typos, and conversational follow-ups use Qwen Layer 1 Semantic Understanding.
+        Simple general conversational questions, explanations, math expressions, and greetings
+        do NOT require Layer 1, allowing MYGPT to answer them in a single direct LLM pass.
         """
         intent = getattr(route_decision, "intent", "unknown")
-        confidence = getattr(route_decision, "confidence", 0.0)
-        entities = getattr(route_decision, "entities", {}) or {}
-        words = message.split()
+        msg_clean = message.strip().lower()
+        words = msg_clean.split()
 
         # 1. Fast-path: trivial short greetings (<= 3 words)
         if intent == "greeting" and len(words) <= 3:
             return False
 
-        # 2. Fast-path: explicit department declarations (<= 6 words)
-        if intent == "department_declaration" and len(words) <= 6:
+        # 2. Fast-path: pure standalone arithmetic / math expressions (e.g. "Calculate 25 * 40", "500 + 250")
+        if re.search(r"(\bcalculate\b|\bsolve\b|\d+(\.\d+)?\s*%\s*of\s*\d+(\.\d+)?|^\s*(\$|€|£|₹|Rs\.?)?\s*\d+(?:\.\d+)?\s*(?:[\+\-\*\/]\s*(\$|€|£|₹|Rs\.?)?\s*\d+(?:\.\d+)?\s*)+\.?\s*$)", msg_clean):
             return False
 
-        # 4. Fast-path: high-confidence semantic operations already fully resolved
-        if confidence >= 0.95 and (entities.get("operation") or intent.startswith("excel_")):
+        # 3. Fast-path: general definition and knowledge questions ("what is PHP?", "what is Python?", "explain JWT", "what is the capital of Japan?")
+        # unless it explicitly references an active document, spreadsheet, or code file
+        if re.match(r"^(what\s+is|what\s+are|who\s+is|explain\s+|tell\s+me\s+about\s+|define\s+)\b", msg_clean):
+            if not any(w in msg_clean for w in ["this file", "this document", "this excel", "this sheet", "this code", "this error", "this bug", "this screenshot", "attached", "uploaded"]):
+                return False
+
+        # 4. Fast-path: simple confirmation when pending action exists
+        if context_state and context_state.pending_action and msg_clean in ("yes", "yeah", "yep", "sure", "ok", "okay", "proceed", "confirm"):
             return False
 
-        # All other user language goes to Qwen Layer 1 for Semantic Understanding
-        return True
+        # 5. Fast-path: clarification selection reply ("1", "2", "option 2", "second one")
+        if context_state and context_state.pending_clarification:
+            sel_col, _ = conversation_context_manager.resolve_clarification_selection(message, context_state.pending_clarification)
+            if sel_col:
+                return False
+
+        # 5b. Fast-path: active Tender upload/follow-up bypasses redundant Layer 1 round-trip
+        if context_state and str(getattr(context_state, "active_document_type", "") or "").upper() == "TENDER":
+            return False
+
+        # 6. Check for Complex Orchestration Triggers (Only these need Layer 1)
+        # 6a. Active document context inquiry/manipulation
+        has_active_doc = bool(context_state and (getattr(context_state, "active_document", None) or getattr(context_state, "active_document_name", None)))
+        if has_active_doc and any(w in msg_clean for w in ["document", "file", "sheet", "pdf", "table", "summary", "summarize", "column", "section", "this", "it", "above"]):
+            return True
+
+        # 6b. Excel / Spreadsheet operations
+        if intent.startswith("excel_") or re.search(r"\b(excel|sheet|spreadsheet|csv|column|columns|row|rows|filter|sum|total|average|count|unique|min|max|formula|workbook|worksheet)\b", msg_clean):
+            return True
+
+        # 6c. Document / PDF / Resume operations
+        if intent.startswith("document_") or re.search(r"\b(pdf|document|docx|word|resume|cv|invoice|contract|handbook|section|clause|page|pages)\b", msg_clean):
+            return True
+
+        # 6d. Coding, debugging, and software engineering tasks (fixing code, reviewing code, writing functions)
+        if intent in ("code_generation", "coding_debug", "code_review", "code_analysis") or re.search(r"\b(fix\s+(?:this\s+)?code|debug\s+(?:this\s+)?code|write\s+(?:a\s+)?(?:script|function|class|query)|syntax\s*error|stack\s*trace|typeerror|refactor\s+code|codeigniter\s+controller)\b", msg_clean):
+            return True
+
+        # 6e. Vision & image understanding
+        if intent in ("vision", "vision_analysis", "image_understanding") or re.search(r"\b(image|screenshot|photo|picture|diagram|chart|png|jpg|jpeg)\b", msg_clean):
+            return True
+
+        # 6f. System planning / architectural building requests
+        if intent == "project_planning" or re.search(r"\b(build|create|develop)\s+(?:me\s+)?(?:a\s+)?(?:new\s+)?(?:web\s+)?(?:application|app|system|platform|portal)\b", msg_clean):
+            return True
+
+        # 6g. Explicit tool execution, file comparisons, or exports
+        if re.search(r"\b(compare|difference|mismatch|export\s+to|download|convert)\b", msg_clean):
+            return True
+
+        # All other queries are simple general questions / explanations / conversations
+        # -> Do NOT run Layer 1. Route directly to general answer generation.
+        return False
 
     def route(
         self,
@@ -568,6 +625,15 @@ class IntentRouter:
                 intent="unknown",
                 confidence=0.0,
                 entities={"reason": "empty_input"}
+            )
+
+        # 0. Check for Direct Conversational Greeting (Trivial greetings must never trigger document operations)
+        if re.match(r"^(hi|hello|hey|greetings|good\s+(morning|afternoon|evening))\b[\!\.\?]?\s*$", text, re.I):
+            return self._build_decision(
+                dept=DepartmentEnum.GENERAL,
+                intent="greeting",
+                confidence=0.99,
+                entities={"greeting": True}
             )
 
         # 1. Check for Explicit Department Declaration ("I'm from tech department", "HR team here")
@@ -588,6 +654,19 @@ class IntentRouter:
                 sig_type = signals.get("signal_type")
                 target_act = signals.get("target_action")
 
+                # 2_0. Clarification Selection reply ("1", "2", "option 2", "Count of ExamCentre")
+                if sig_type == "clarification_selection":
+                    resumed_intent = str(target_act or "excel_read_column").lower()
+                    if not resumed_intent.startswith("excel_") and str(context_state.active_document_type).upper() in ("EXCEL", "EXCEL_WORKBOOK", "SPREADSHEET"):
+                        resumed_intent = f"excel_{resumed_intent}"
+                    logger.info(f"Route: Clarification selection '{text}' resolved column '{signals['entities'].get('selected_column')}' -> {resumed_intent}")
+                    return self._build_decision(
+                        dept=DepartmentEnum.GENERAL,
+                        intent=resumed_intent,
+                        confidence=0.99,
+                        entities=signals.get("entities", {})
+                    )
+
                 # 2a. Confirmation ("yes", "sure", "ok") continuing a pending action
                 if sig_type == "confirmation" and context_state.pending_action:
                     dept = DepartmentEnum(context_state.last_department) if context_state.last_department else DepartmentEnum.TECH
@@ -598,6 +677,34 @@ class IntentRouter:
                         intent=intent,
                         confidence=0.98,
                         entities={"is_follow_up": True, "action": "CONFIRM", "pending_action": context_state.pending_action}
+                    )
+
+                # 2_task. Task / Workflow / Step Continuation ("next", "give me the files", "step by step", "this one")
+                if sig_type in ("task_continuation", "workflow_continuation", "step_continuation"):
+                    dept_str = context_state.department or context_state.last_department or DepartmentEnum.TECH.value
+                    try:
+                        dept = DepartmentEnum(dept_str)
+                    except ValueError:
+                        dept = DepartmentEnum.TECH
+                    intent = context_state.last_intent or "code_generation"
+                    logger.info(f"Route: Task continuation '{text}' continuing {dept.value} / {intent} (task={getattr(context_state, 'task', None)}, topic={getattr(context_state, 'topic', None) or context_state.last_topic})")
+                    entities = dict(signals.get("entities", {}))
+                    entities.update({
+                        "is_follow_up": True,
+                        "action": "CONTINUE",
+                        "topic": getattr(context_state, "topic", None) or context_state.last_topic,
+                        "project": getattr(context_state, "project", None),
+                        "task": getattr(context_state, "task", None),
+                        "workflow": getattr(context_state, "workflow", None),
+                        "current_module": getattr(context_state, "current_module", None),
+                        "current_stage": getattr(context_state, "current_stage", None),
+                        "conversation_mode": "continuation"
+                    })
+                    return self._build_decision(
+                        dept=dept,
+                        intent=intent,
+                        confidence=0.99,
+                        entities=entities
                     )
 
                 # 2b. Detail expansion ("give me in detail", "explain more")
@@ -712,6 +819,8 @@ class IntentRouter:
                         intent = "excel_filter_column_export"
                     elif target_action in ("EXCEL_READ_COLUMN", "READ_COLUMN"):
                         intent = "excel_read_column"
+                    elif target_action in ("EXCEL_READ_SHEET", "READ_SHEET", "SHEET_INSPECTION", "EXCEL_SHEET_INSPECTION"):
+                        intent = "excel_read_sheet"
                     elif target_action in ("EXCEL_CLARIFICATION", "CLARIFICATION"):
                         intent = "excel_clarification"
                     elif target_action and str(target_action).lower().startswith("excel_"):
@@ -749,8 +858,10 @@ class IntentRouter:
                             "output_format": signals["entities"].get("output_format"),
                             "filter": filter_spec or filters_list,
                             "filters": filters_list,
+                            "pending_operation": (filters_list.get("pending_operation") if isinstance(filters_list, dict) else None),
                             "sections": signals["entities"].get("sections"),
                             "follow_up_action": signals["entities"].get("follow_up_action"),
+                            "clarification_message": signals["entities"].get("clarification_message"),
                             "values": target_owners,
                             "target_owners": target_owners,
                             "last_exportable_rows": signals["entities"].get("last_exportable_rows"),
@@ -759,7 +870,10 @@ class IntentRouter:
                             "referenced_previous_document": doc_name,
                             "active_doc_id": doc_id,
                             "doc_id": doc_id,
+                            "document_id": doc_id,
                             "filename": doc_name,
+                            "raw_query": text,
+                            "message": text,
                             "doc_id_a": signals["entities"].get("doc_id_a"),
                             "doc_id_b": signals["entities"].get("doc_id_b"),
                             "filename_a": signals["entities"].get("filename_a"),
@@ -806,6 +920,75 @@ class IntentRouter:
                             "referenced_previous_document": ref_doc,
                             "active_doc_id": context_state.active_document_id,
                             "topic": context_state.last_topic
+                        }
+                    )
+
+                # 2d_tf. Document Transformation / Flowchart / Workflow on active document ("give me a flow chart", "blueprint", "show me the workflow")
+                if sig_type == "document_transformation":
+                    ref_doc = signals["entities"].get("referenced_file") or context_state.active_document_name or "uploaded document"
+                    doc_id = signals["entities"].get("doc_id") or context_state.active_document_id
+                    logger.info(f"Route: Document Transformation '{text}' -> GENERAL / document_transformation referencing '{ref_doc}'")
+                    return self._build_decision(
+                        dept=DepartmentEnum.GENERAL,
+                        intent="document_transformation",
+                        confidence=0.98,
+                        entities={
+                            "is_follow_up": True,
+                            "action": "DOCUMENT_TRANSFORMATION",
+                            "operation": "DOCUMENT_TRANSFORMATION",
+                            "output_format": signals["entities"].get("output_format") or "FLOWCHART",
+                            "referenced_previous_document": ref_doc,
+                            "active_doc_id": doc_id,
+                            "doc_id": doc_id,
+                            "filename": ref_doc,
+                            "query": text,
+                            "topic": signals["entities"].get("topic") or "Workflow Process Blueprint"
+                        }
+                    )
+
+                # 2d_exp. Document Export to Excel / Spreadsheet on active document ("give me that in Excel", "export this as Excel")
+                if sig_type == "document_export":
+                    ref_doc = signals["entities"].get("referenced_file") or context_state.active_document_name or "uploaded document"
+                    doc_id = signals["entities"].get("doc_id") or context_state.active_document_id
+                    doc_type = str(context_state.active_document_type or "").upper()
+                    dept = DepartmentEnum.HR if doc_type == "RESUME" else DepartmentEnum.GENERAL
+                    logger.info(f"Route: Document Export '{text}' -> {dept.value} / document_export referencing '{ref_doc}'")
+                    return self._build_decision(
+                        dept=dept,
+                        intent="document_export",
+                        confidence=0.98,
+                        entities={
+                            "is_follow_up": True,
+                            "action": "EXPORT_RESULT",
+                            "operation": "EXPORT_RESULT",
+                            "output_format": "XLSX",
+                            "referenced_previous_document": ref_doc,
+                            "active_doc_id": doc_id,
+                            "doc_id": doc_id,
+                            "filename": ref_doc,
+                            "query": text,
+                            "topic": "Document Export"
+                        }
+                    )
+
+                # 2d_qa. Document QA / Information Extraction on active document ("what are the bugs", "what are the difficulties", "explain screenshot 3")
+                if sig_type == "document_qa":
+                    ref_doc = signals["entities"].get("referenced_file") or context_state.active_document_name or "uploaded document"
+                    doc_id = signals["entities"].get("doc_id") or context_state.active_document_id
+                    logger.info(f"Route: Document QA '{text}' -> GENERAL / document_qa referencing '{ref_doc}'")
+                    return self._build_decision(
+                        dept=DepartmentEnum.GENERAL,
+                        intent="document_qa",
+                        confidence=0.98,
+                        entities={
+                            "is_follow_up": True,
+                            "action": "EXTRACT_INFORMATION",
+                            "referenced_previous_document": ref_doc,
+                            "active_doc_id": doc_id,
+                            "doc_id": doc_id,
+                            "filename": ref_doc,
+                            "query": text,
+                            "topic": signals["entities"].get("topic") or text
                         }
                     )
 

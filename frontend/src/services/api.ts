@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:8000'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
 export const api = {
   async getDashboard() {
@@ -400,6 +400,16 @@ export const api = {
       method: 'DELETE'
     })
     if (!res.ok) throw new Error('Failed to delete conversation')
+    return res.json()
+  },
+
+  async renameConversation(conversationId: string, title: string) {
+    const res = await fetch(`${BASE_URL}/api/company/conversations/${conversationId}/rename`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title })
+    })
+    if (!res.ok) throw new Error('Failed to rename conversation')
     return res.json()
   },
 

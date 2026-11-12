@@ -35,7 +35,7 @@ class ExcelService:
     ) -> CompanyAIResult:
         """Dispatches to the appropriate deterministic Excel processor."""
         t0 = time.time()
-        filename = os.path.basename(file_path)
+        filename = entities.get("filename") or entities.get("referenced_previous_document") or os.path.basename(file_path)
 
         inspection = excel_aggregator.inspect_workbook(file_path)
         wb_type = inspection.get("workbook_type", WorkbookType.GENERIC.value)
@@ -461,17 +461,23 @@ class ExcelService:
             )
 
         # -------------------------------------------------------------
-        # 3. EXCEL_COMPARE ("compare the EBO topup and UPI QR excel")
+        # 3. EXCEL_COMPARE ("compare the EBO topup and UPI QR excel" or "How many differences?")
         # -------------------------------------------------------------
         if intent in ("excel_compare", "file_comparison", "excel_comparison"):
             if not secondary_file_path:
+                # 1. First inspect if this single workbook itself contains test cases, portal prices, or comparison columns
+                single_comp_res = self.analyze_single_workbook_comparison(file_path, entities, target_dept)
+                if single_comp_res is not None:
+                    return single_comp_res
+
+                # 2. Otherwise return missing second file notice
                 return CompanyAIResult(
                     department=target_dept,
                     intent="excel_compare",
                     task="Excel Comparison",
-                    summary="Comparison requires two uploaded Excel files.",
+                    summary="Comparison requires two uploaded Excel files or a comparative test case sheet.",
                     findings=[
-                        "Please provide two Excel workbooks in the conversation to perform comparison.",
+                        "Please provide two Excel workbooks in the conversation to perform comparison, or an Excel file containing comparison test cases.",
                         "Example: Upload `UPI.xlsx` and `EBO.xlsx`, then ask *'compare these two files'*."
                     ],
                     citations=[filename],
@@ -583,62 +589,128 @@ class ExcelService:
                 f"verified_result=true"
             )
 
+            is_financial_col = any(w in str(agg.get("selected_column", "")).lower() for w in ("amount", "price", "fee", "cost", "salary", "settled", "paid", "balance", "charge"))
+            is_trans_wb = wb_type in (WorkbookType.TRANSACTION.value, WorkbookType.EBO_TOPUP.value)
+
             if intent == "excel_total":
-                findings = [
-                    "### 📊 Total Amount",
-                    f"- **Total Amount**: **{agg['formatted_total']}**",
-                    f"- **Authorised Transactions**: **{agg['authorised_count']:,}** records",
-                    f"- **Evaluated Column**: `{agg['selected_column']}`",
-                    f"- **Source Workbook**: `{filename}`"
-                ]
-                task_title = "Excel Total Aggregation"
-                summary_text = f"Total amount in {filename} is {agg['formatted_total']} across {agg['authorised_count']:,} authorised transactions."
-                card_data = {
-                    "card_type": "metric_card",
-                    "title": "Total Amount",
-                    "primary_value": agg["formatted_total"],
-                    "secondary_value": f"{agg['authorised_count']:,} authorised transactions",
-                    "column": agg["selected_column"],
-                    "source_file": filename
-                }
+                if is_trans_wb or is_financial_col:
+                    findings = [
+                        "### 📊 Total Amount",
+                        f"- **Total Amount**: **{agg['formatted_total']}**",
+                        f"- **Authorised Transactions**: **{agg['authorised_count']:,}** records",
+                        f"- **Evaluated Column**: `{agg['selected_column']}`",
+                        f"- **Source Workbook**: `{filename}`"
+                    ]
+                    task_title = "Excel Total Aggregation"
+                    summary_text = f"Total amount in {filename} is {agg['formatted_total']} across {agg['authorised_count']:,} authorised transactions."
+                    card_data = {
+                        "card_type": "metric_card",
+                        "title": "Total Amount",
+                        "primary_value": agg["formatted_total"],
+                        "secondary_value": f"{agg['authorised_count']:,} authorised transactions",
+                        "column": agg["selected_column"],
+                        "source_file": filename
+                    }
+                else:
+                    tot_num = agg["total"]
+                    formatted_num = f"{tot_num:,}" if float(tot_num).is_integer() else f"{tot_num:,.2f}"
+                    findings = [
+                        f"### 📊 Total {agg['selected_column']}",
+                        f"- **Total {agg['selected_column']}**: **{formatted_num}**",
+                        f"- **Evaluated Records**: **{agg['numeric_count']:,}** rows",
+                        f"- **Evaluated Column**: `{agg['selected_column']}`",
+                        f"- **Source Workbook**: `{filename}`"
+                    ]
+                    task_title = f"Total {agg['selected_column']}"
+                    summary_text = f"Total {agg['selected_column']} in {filename} is {formatted_num} across {agg['numeric_count']:,} records."
+                    card_data = {
+                        "card_type": "metric_card",
+                        "title": f"Total {agg['selected_column']}",
+                        "primary_value": formatted_num,
+                        "secondary_value": f"{agg['numeric_count']:,} records",
+                        "column": agg["selected_column"],
+                        "source_file": filename
+                    }
             elif intent == "excel_average":
-                findings = [
-                    "### 📊 Average Amount",
-                    f"- **Average Transaction Amount**: **{agg['formatted_average']}**",
-                    f"- **Total Evaluated Transactions**: **{agg['numeric_count']:,}**",
-                    f"- **Total Amount**: **{agg['formatted_total']}**",
-                    f"- **Evaluated Column**: `{agg['selected_column']}`",
-                    f"- **Source Workbook**: `{filename}`"
-                ]
-                task_title = "Excel Average Calculation"
-                summary_text = f"Average transaction amount in {filename} is {agg['formatted_average']} (Total: {agg['formatted_total']})."
-                card_data = {
-                    "card_type": "metric_card",
-                    "title": "Average Transaction Amount",
-                    "primary_value": agg["formatted_average"],
-                    "secondary_value": f"Total: {agg['formatted_total']} across {agg['numeric_count']:,} transactions",
-                    "column": agg["selected_column"],
-                    "source_file": filename
-                }
+                if is_trans_wb or is_financial_col:
+                    findings = [
+                        "### 📊 Average Amount",
+                        f"- **Average Transaction Amount**: **{agg['formatted_average']}**",
+                        f"- **Total Evaluated Transactions**: **{agg['numeric_count']:,}**",
+                        f"- **Total Amount**: **{agg['formatted_total']}**",
+                        f"- **Evaluated Column**: `{agg['selected_column']}`",
+                        f"- **Source Workbook**: `{filename}`"
+                    ]
+                    task_title = "Excel Average Calculation"
+                    summary_text = f"Average transaction amount in {filename} is {agg['formatted_average']} (Total: {agg['formatted_total']})."
+                    card_data = {
+                        "card_type": "metric_card",
+                        "title": "Average Transaction Amount",
+                        "primary_value": agg["formatted_average"],
+                        "secondary_value": f"Total: {agg['formatted_total']} across {agg['numeric_count']:,} transactions",
+                        "column": agg["selected_column"],
+                        "source_file": filename
+                    }
+                else:
+                    avg_num = agg["average"]
+                    formatted_avg = f"{avg_num:,.2f}"
+                    findings = [
+                        f"### 📊 Average {agg['selected_column']}",
+                        f"- **Average {agg['selected_column']}**: **{formatted_avg}**",
+                        f"- **Evaluated Records**: **{agg['numeric_count']:,}** rows",
+                        f"- **Total Sum**: **{agg['total']:,}**",
+                        f"- **Evaluated Column**: `{agg['selected_column']}`",
+                        f"- **Source Workbook**: `{filename}`"
+                    ]
+                    task_title = f"Average {agg['selected_column']}"
+                    summary_text = f"Average {agg['selected_column']} in {filename} is {formatted_avg}."
+                    card_data = {
+                        "card_type": "metric_card",
+                        "title": f"Average {agg['selected_column']}",
+                        "primary_value": formatted_avg,
+                        "secondary_value": f"{agg['numeric_count']:,} records",
+                        "column": agg["selected_column"],
+                        "source_file": filename
+                    }
             elif intent == "excel_count":
-                findings = [
-                    "### 📊 Transaction Count",
-                    f"- **Authorised Transactions**: **{agg['authorised_count']:,}** records",
-                    f"- **Total Populated Rows**: **{agg['rows_detected']:,}** records",
-                    f"- **Evaluated Field**: `{agg['selected_column']}`",
-                    f"- **Source Workbook**: `{filename}`"
-                ]
-                task_title = "Excel Record Count"
-                summary_text = f"Found {agg['authorised_count']:,} authorised transactions in {filename}."
-                card_data = {
-                    "card_type": "metric_card",
-                    "title": f"{(filter_spec.get('mode') or '').upper() + ' ' if filter_spec and filter_spec.get('mode') else ''}Authorised Transactions",
-                    "primary_value": f"{agg['authorised_count']:,}",
-                    "secondary_value": f"{agg['rows_detected']:,} total rows",
-                    "column": agg["selected_column"],
-                    "filter": filter_spec,
-                    "source_file": filename
-                }
+                if is_trans_wb:
+                    findings = [
+                        "### 📊 Transaction Count",
+                        f"- **Authorised Transactions**: **{agg['authorised_count']:,}** records",
+                        f"- **Total Populated Rows**: **{agg['rows_detected']:,}** records",
+                        f"- **Evaluated Field**: `{agg['selected_column']}`",
+                        f"- **Source Workbook**: `{filename}`"
+                    ]
+                    task_title = "Excel Record Count"
+                    summary_text = f"Found {agg['authorised_count']:,} authorised transactions in {filename}."
+                    card_data = {
+                        "card_type": "metric_card",
+                        "title": f"{(filter_spec.get('mode') or '').upper() + ' ' if filter_spec and filter_spec.get('mode') else ''}Authorised Transactions",
+                        "primary_value": f"{agg['authorised_count']:,}",
+                        "secondary_value": f"{agg['rows_detected']:,} total rows",
+                        "column": agg["selected_column"],
+                        "filter": filter_spec,
+                        "source_file": filename
+                    }
+                else:
+                    findings = [
+                        f"### 📊 Record Count: {agg['selected_column']}",
+                        f"- **Total Records**: **{agg['numeric_count']:,}** records",
+                        f"- **Total Populated Rows**: **{agg['rows_detected']:,}** rows",
+                        f"- **Evaluated Field**: `{agg['selected_column']}`",
+                        f"- **Source Workbook**: `{filename}`"
+                    ]
+                    task_title = "Excel Record Count"
+                    summary_text = f"Found {agg['numeric_count']:,} records for {agg['selected_column']} in {filename}."
+                    card_data = {
+                        "card_type": "metric_card",
+                        "title": f"Record Count ({agg['selected_column']})",
+                        "primary_value": f"{agg['numeric_count']:,}",
+                        "secondary_value": f"{agg['rows_detected']:,} total rows",
+                        "column": agg["selected_column"],
+                        "filter": filter_spec,
+                        "source_file": filename
+                    }
             elif intent in ("excel_max", "excel_min"):
                 is_max = (intent == "excel_max")
                 date_ext = excel_aggregator.get_date_extremes(file_path=file_path, target_column=target_col, find_max=is_max)
@@ -745,6 +817,52 @@ class ExcelService:
             )
 
         # -------------------------------------------------------------
+        # 4a. EXCEL_GROUP / DATE_GROUP ("give me the dates month wise", "show expiry date month wise", "give me as month wise")
+        # -------------------------------------------------------------
+        if intent in ("excel_group", "excel_date_group", "group", "date_group") or entities.get("operation") in ("GROUP", "DATE_GROUP"):
+            group_by_dim = entities.get("group_by") or entities.get("group_by_dimension") or "month"
+            target_col = entities.get("target_column") or entities.get("column") or entities.get("date_column")
+            
+            prior_rows = entities.get("last_exportable_rows") or ((entities.get("last_result") or {}).get("matched_rows") if isinstance(entities.get("last_result"), dict) else None)
+            
+            grp_data = excel_aggregator.calculate_date_grouping(
+                file_path=file_path,
+                date_column=target_col,
+                group_by=group_by_dim,
+                rows=prior_rows if entities.get("is_follow_up") else None
+            )
+
+            if grp_data.get("success") and grp_data.get("total_groups", 0) > 0:
+                findings = [
+                    f"### 📅 {grp_data['column']} ({group_by_dim.title()}-Wise Breakdown)",
+                    f"Found **{grp_data['total_groups']}** {group_by_dim} periods across **{grp_data['total_records']:,}** records in `{filename}`:\n",
+                    f"| {group_by_dim.title()} | Total Records |",
+                    "| :--- | :--- |"
+                ]
+                for g in grp_data.get("groups", []):
+                    findings.append(f"| **{g['group']}** | **{g['count']:,}** records |")
+
+                return CompanyAIResult(
+                    department=target_dept,
+                    intent="excel_group",
+                    task=f"Month-Wise Grouping: {grp_data['column']}",
+                    summary=f"Grouped {grp_data['total_records']:,} records into {grp_data['total_groups']} {group_by_dim} groups for column '{grp_data['column']}'.",
+                    findings=findings,
+                    citations=[filename],
+                    confidence=0.99,
+                    tool_results={
+                        "card_type": "group_table",
+                        "column": grp_data["column"],
+                        "group_by": group_by_dim,
+                        "total_groups": grp_data["total_groups"],
+                        "total_records": grp_data["total_records"],
+                        "groups": grp_data["groups"],
+                        "source_file": filename
+                    },
+                    internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
+                )
+
+        # -------------------------------------------------------------
         # 4b. EXCEL_GROUP_MAX / EXCEL_GROUP_MIN ("which mode has highest transaction", "show biggest transaction for each mode")
         # -------------------------------------------------------------
         if intent in ("excel_group_max", "excel_group_min"):
@@ -810,36 +928,75 @@ class ExcelService:
         # -------------------------------------------------------------
         if intent in (
             "excel_filter", "excel_filter_export", "excel_filter_column",
-            "excel_filter_column_export", "excel_read_column", "excel_clarification",
+            "excel_filter_column_export", "excel_read_column", "excel_read_sheet",
+            "read_sheet", "excel_sheet_inspection", "excel_clarification",
             "filter", "filter_export", "filter_column"
         ):
             # 5a. Clarification Request
             if intent in ("excel_clarification", "clarification"):
+                clarification_msg = entities.get("clarification_message")
+                ambiguous_cols = entities.get("target_columns") or []
                 all_headers = inspection.get("headers", [])
-                cols_preview = ", ".join([f"`{h}`" for h in all_headers[:8]])
-                findings = [
-                    "### ℹ️ Request Clarification",
-                    f"I understand you're asking about the Excel workbook `{filename}`.",
-                    f"Detected columns include: {cols_preview}.",
-                    "",
-                    "How would you like me to process this data?",
-                    "- *'What are the columns available?'*",
-                    "- *'Who are all expired?'*",
-                    "- *'Give me expired users as excel'*",
-                    "- *'Give me all mobile numbers'*",
-                    "- *'What is the total amount?'*"
-                ]
+
+                if not ambiguous_cols and all_headers:
+                    from backend.app.services.excel.semantic_excel_resolver import semantic_excel_resolver
+                    raw_q = entities.get("raw_query") or entities.get("message") or ""
+                    ambiguous_cols = semantic_excel_resolver.find_matching_columns(raw_q, all_headers)
+
+                if ambiguous_cols and isinstance(ambiguous_cols, list):
+                    findings = [
+                        "### ℹ️ Please Clarify Your Request",
+                        f"I found multiple matching columns in `{filename}`:\n",
+                        *[f"{idx}. **`{c}`**" for idx, c in enumerate(ambiguous_cols, start=1)],
+                        "",
+                        "Which specific field or column would you like me to process?"
+                    ]
+                    summary_text = f"Multiple matching columns found in {filename}. Please specify which column to use."
+                elif clarification_msg:
+                    findings = [
+                        "### ℹ️ Please Clarify Your Request",
+                        clarification_msg,
+                        "",
+                        f"**Workbook**: `{filename}`"
+                    ]
+                    summary_text = clarification_msg
+                else:
+                    cols_preview = ", ".join([f"`{h}`" for h in all_headers[:8]])
+                    findings = [
+                        "### ℹ️ Request Clarification",
+                        f"I understand you're asking about the Excel workbook `{filename}`.",
+                        f"Detected columns include: {cols_preview}.",
+                        "",
+                        "How would you like me to process this data?",
+                        "- *'What are the columns available?'*",
+                        "- *'Give me the summary of this document'*",
+                        "- *'Give me the materials name as excel sheet'*",
+                        "- *'What is the total quantity?'*"
+                    ]
+                    summary_text = f"Please specify your requested operation on {filename}."
+
+                pending_clarif_data = {
+                    "type": "COLUMN_SELECTION",
+                    "options": ambiguous_cols,
+                    "original_request": entities.get("raw_query") or entities.get("message") or "",
+                    "document_id": entities.get("document_id") or entities.get("doc_id") or "",
+                    "operation": entities.get("pending_operation") or entities.get("original_operation") or entities.get("operation") or "EXCEL_READ_COLUMN",
+                    "entities": entities
+                }
+
                 return CompanyAIResult(
                     department=target_dept,
                     intent="excel_clarification",
                     task="Excel Request Clarification",
-                    summary=f"Please specify your requested operation on {filename}.",
+                    summary=summary_text,
                     findings=findings,
                     citations=[filename],
                     confidence=0.95,
+                    pending_clarification=pending_clarif_data if ambiguous_cols else None,
                     tool_results={
                         "card_type": "clarification_card",
-                        "available_columns": all_headers,
+                        "available_columns": ambiguous_cols or all_headers,
+                        "options": ambiguous_cols,
                         "source_file": filename
                     },
                     internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
@@ -871,6 +1028,67 @@ class ExcelService:
                         "card_type": "column_analysis",
                         "column": resolved_col_name,
                         "record_count": rec_count,
+                        "source_file": filename
+                    },
+                    internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
+                )
+
+            # 5bb. Read/Inspect Worksheet ("give me the user modules")
+            if intent in ("excel_read_sheet", "read_sheet", "excel_sheet_inspection"):
+                target_sheet = entities.get("target_sheet") or entities.get("sheet") or entities.get("target_column") or "Sheet1"
+                sheet_names = inspection.get("sheet_names") or inspection.get("worksheet_names", [])
+                sheets_data = inspection.get("sheets_data") or inspection.get("sheets", {})
+
+                matched_sheet_name = None
+                if str(target_sheet) in sheet_names:
+                    matched_sheet_name = str(target_sheet)
+                else:
+                    for s in sheet_names:
+                        if s.lower() == str(target_sheet).lower() or re.sub(r"[_\s\-]+", "", s.lower()) == re.sub(r"[_\s\-]+", "", str(target_sheet).lower()):
+                            matched_sheet_name = s
+                            break
+
+                if not matched_sheet_name and sheet_names:
+                    matched_sheet_name = sheet_names[0]
+
+                sheet_info = sheets_data.get(matched_sheet_name, {})
+                cols = sheet_info.get("headers", [])
+                rec_count = sheet_info.get("row_count", 0)
+                sheet_rows = sheet_info.get("rows", [])
+
+                findings = [
+                    f"### 📑 Worksheet Details: `{matched_sheet_name}`",
+                    f"- **Worksheet Name**: `{matched_sheet_name}`",
+                    f"- **Total Records**: **{rec_count:,}**",
+                    f"- **Detected Columns ({len(cols)})**:",
+                    *[f"  {idx}. `{c}`" for idx, c in enumerate(cols[:15], start=1)],
+                    "",
+                    f"**Source Workbook**: `{filename}`",
+                ]
+
+                if sheet_rows:
+                    findings.append("\n**Sample Records:**")
+                    for r in sheet_rows[:5]:
+                        row_vals = [f"**{k}**: `{v}`" for k, v in list(r.items())[:4] if v is not None and str(v).strip()]
+                        findings.append("- " + " | ".join(row_vals))
+
+                findings.append("\nYou can ask for specific columns, calculate metrics, or export data from this sheet.")
+
+                return CompanyAIResult(
+                    department=target_dept,
+                    intent="excel_read_sheet",
+                    task=f"Worksheet Analysis: {matched_sheet_name}",
+                    summary=f"Evaluated worksheet '{matched_sheet_name}' with {rec_count:,} records in {filename}.",
+                    findings=findings,
+                    citations=[filename],
+                    confidence=0.99,
+                    tool_results={
+                        "card_type": "sheet_analysis",
+                        "sheet_name": matched_sheet_name,
+                        "columns": cols,
+                        "column_count": len(cols),
+                        "total_records": rec_count,
+                        "matched_rows": sheet_rows,
                         "source_file": filename
                     },
                     internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
@@ -1172,25 +1390,19 @@ class ExcelService:
             sample_previews = []
             for r in matched_rows[:10]:
                 preview_parts = []
-                for k in ["UserName", "FirstName", "VleId", "MobileNo", "Email", "Expiry_Date", "Transaction ID", "Amount", "Settled_Amount", "Status"]:
-                    if k in r and r[k] is not None and str(r[k]).strip():
-                        val = r[k]
+                # First collect descriptive columns (ID, Name, User, Status, Date, Amount)
+                for k, v in r.items():
+                    if v is not None and str(v).strip():
                         if k in ("Amount", "Settled_Amount", "Total", "Price", "Balance", "Volume"):
-                            dec_v = parse_decimal_safe(val)
-                            val_str = format_inr(dec_v) if dec_v is not None else str(val)
+                            dec_v = parse_decimal_safe(v)
+                            val_str = format_inr(dec_v) if dec_v is not None else str(v)
                         else:
-                            val_str = str(val)
+                            val_str = str(v)
                         preview_parts.append(f"**{k}**: `{val_str}`")
-                if not preview_parts:
-                    for k, v in list(r.items())[:4]:
-                        if v is not None and str(v).strip():
-                            if k in ("Amount", "Settled_Amount", "Total", "Price", "Balance", "Volume"):
-                                dec_v = parse_decimal_safe(v)
-                                val_str = format_inr(dec_v) if dec_v is not None else str(v)
-                            else:
-                                val_str = str(v)
-                            preview_parts.append(f"**{k}**: `{val_str}`")
-                sample_previews.append("- " + " | ".join(preview_parts))
+                    if len(preview_parts) >= 4:
+                        break
+                if preview_parts:
+                    sample_previews.append("- " + " | ".join(preview_parts))
 
             # Check if there is a numeric column to aggregate in matched rows
             numeric_sum = None
@@ -1368,25 +1580,73 @@ class ExcelService:
                         internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
                     )
 
-            # Generic Summary
-            findings = [
-                "### 📊 Document Summary",
-                f"- **Worksheets ({len(inspection.get('worksheet_names', []))})**: {', '.join(inspection.get('worksheet_names', []))}",
-                f"- **Total Records**: {inspection.get('total_valid_rows', inspection.get('total_rows', 0)):,} rows across all worksheets.",
-                f"- **Detected Columns**: {', '.join(inspection.get('headers', []))[:120]}...",
-                f"- **Source Workbook**: `{filename}`"
-            ]
-            return CompanyAIResult(
-                department=target_dept,
-                intent="excel_summary",
-                task="Excel Document Summary",
-                summary=f"Analyzed {filename} containing {inspection.get('total_valid_rows', 0):,} records.",
-                findings=findings,
-                citations=[filename],
-                confidence=0.98,
-                tool_results={"card_type": "generic_summary", "source_file": filename},
-                internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
-            )
+            # Generic / Document Summary
+            is_detailed = bool(entities.get("detailed") or entities.get("is_detailed") or False)
+            sheet_names = inspection.get("worksheet_names", [])
+            sheets_map = inspection.get("sheets") or {}
+            total_valid_rows = inspection.get("total_valid_rows", inspection.get("total_rows", 0))
+
+            if is_detailed:
+                findings = [
+                    f"### 📋 Detailed Document Summary: `{filename}`",
+                    f"- **Total Worksheets ({len(sheet_names)})**: {', '.join(sheet_names)}",
+                    f"- **Total Records Across All Sheets**: **{total_valid_rows:,}** rows",
+                    "",
+                    "#### 📑 Worksheet Breakdown:"
+                ]
+                for s_name in sheet_names:
+                    s_data = sheets_map.get(s_name, {})
+                    s_count = s_data.get("valid_row_count", s_data.get("row_count", 0))
+                    s_headers = [h for h in s_data.get("headers", []) if not h.startswith("Column_")]
+                    headers_preview = ", ".join([f"`{h}`" for h in s_headers[:6]])
+                    if len(s_headers) > 6:
+                        headers_preview += f" *(+{len(s_headers) - 6} more)*"
+                    findings.append(f"##### 📄 Sheet: `{s_name}`")
+                    findings.append(f"- **Record Count**: **{s_count:,}** rows")
+                    findings.append(f"- **Columns ({len(s_headers)})**: {headers_preview if headers_preview else 'None detected'}")
+                    findings.append("")
+
+                return CompanyAIResult(
+                    department=target_dept,
+                    intent="excel_summary",
+                    task="Detailed Document Breakdown",
+                    summary=f"Detailed breakdown for {filename} ({len(sheet_names)} sheets, {total_valid_rows:,} total records).",
+                    findings=findings,
+                    citations=[filename],
+                    confidence=0.98,
+                    tool_results={
+                        "card_type": "detailed_document_summary",
+                        "worksheets": sheet_names,
+                        "total_rows": total_valid_rows,
+                        "source_file": filename
+                    },
+                    internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
+                )
+            else:
+                sheet_summaries = []
+                for s_name in sheet_names:
+                    s_data = sheets_map.get(s_name, {})
+                    s_count = s_data.get("valid_row_count", s_data.get("row_count", 0))
+                    sheet_summaries.append(f"**{s_name}** ({s_count:,} rows)")
+
+                findings = [
+                    f"### 📊 Document Summary: `{filename}`",
+                    f"- **Worksheets ({len(sheet_names)})**: {', '.join(sheet_summaries) if sheet_summaries else ', '.join(sheet_names)}",
+                    f"- **Total Records**: **{total_valid_rows:,}** rows across all worksheets.",
+                    f"- **Detected Columns**: {', '.join(inspection.get('headers', []))[:120]}...",
+                    f"- **Source Workbook**: `{filename}`"
+                ]
+                return CompanyAIResult(
+                    department=target_dept,
+                    intent="excel_summary",
+                    task="Excel Document Summary",
+                    summary=f"Summary of {filename}: {len(sheet_names)} sheets containing {total_valid_rows:,} total records.",
+                    findings=findings,
+                    citations=[filename],
+                    confidence=0.98,
+                    tool_results={"card_type": "generic_summary", "worksheets": sheet_names, "total_rows": total_valid_rows, "source_file": filename},
+                    internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
+                )
 
         # -------------------------------------------------------------
         # 7. EXCEL_REPORT
@@ -1484,6 +1744,108 @@ class ExcelService:
                     "source_file": filename,
                     "_owner_payloads": owner_results
                 }
+            )
+
+        # -------------------------------------------------------------
+        # 9. EXCEL_READ_COLUMN ("give me the UserName column", "show Stock Available")
+        # -------------------------------------------------------------
+        if intent in ("excel_read_column", "read_column"):
+            target_col = entities.get("column") or entities.get("target_column")
+            export_data = excel_column_export.export_column(file_path, str(target_col))
+            if not export_data.get("success") or export_data.get("record_count", 0) == 0:
+                resolved_col = str(target_col)
+                vals = []
+                total_count = 0
+            else:
+                resolved_col = export_data.get("column_name", str(target_col))
+                preview_rows = export_data.get("preview_rows", [])
+                vals = [str(r[1]) for r in preview_rows if len(r) > 1 and r[1] is not None]
+                total_count = export_data.get("record_count", len(vals))
+
+            sample_lines = [f"{idx}. `{v}`" for idx, v in enumerate(vals[:15], start=1)]
+            findings = [
+                f"### 📋 `{resolved_col}` Values",
+                f"Found **{total_count:,}** records for `{resolved_col}` in `{filename}`:\n",
+                *sample_lines
+            ]
+            if total_count > 15:
+                findings.append(f"\n*(+{total_count - 15} more records)*")
+
+            logger.info(
+                f"\n[ExcelProcessor]\n"
+                f"document={filename}\n"
+                f"operation=READ_COLUMN\n"
+                f"column={resolved_col}\n"
+                f"records={total_count}\n"
+                f"\n[CompanyAI]\n"
+                f"verified_result=true"
+            )
+
+            return CompanyAIResult(
+                department=target_dept,
+                intent="excel_read_column",
+                task=f"Read Column: {resolved_col}",
+                summary=f"Retrieved {total_count:,} records for {resolved_col} from {filename}.",
+                findings=findings,
+                citations=[filename],
+                confidence=0.99,
+                tool_results={
+                    "card_type": "column_values",
+                    "title": f"Column: {resolved_col}",
+                    "column": resolved_col,
+                    "count": total_count,
+                    "values": vals,
+                    "source_file": filename
+                },
+                internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
+            )
+
+        # -------------------------------------------------------------
+        # 10. EXCEL_CLARIFICATION ("Which column would you like to view?")
+        # 10. EXCEL_CLARIFICATION ("Which column would you like to view?")
+        # -------------------------------------------------------------
+        if intent in ("excel_clarification", "clarification"):
+            from backend.app.services.excel.semantic_excel_resolver import semantic_excel_resolver
+
+            clarif_msg = entities.get("clarification_message")
+            target_cols = entities.get("target_columns") or []
+            all_headers = inspection.get("headers", [])
+
+            if not target_cols and all_headers:
+                raw_q = entities.get("raw_query") or entities.get("message") or ""
+                target_cols = semantic_excel_resolver.find_matching_columns(raw_q, all_headers)
+
+            if not clarif_msg:
+                if target_cols:
+                    col_items = [f"{idx}. `{c}`" for idx, c in enumerate(target_cols, start=1)]
+                    clarif_msg = "I found multiple matching columns in the workbook:\n\n" + "\n".join(col_items) + "\n\nWhich one would you like to use?"
+                else:
+                    clarif_msg = "Could you please specify which column or operation you would like to perform on the workbook?"
+
+            pending_clarif_data = {
+                "type": "COLUMN_SELECTION",
+                "options": target_cols,
+                "original_request": entities.get("raw_query") or entities.get("message") or "",
+                "document_id": entities.get("document_id") or entities.get("doc_id") or "",
+                "operation": entities.get("pending_operation") or entities.get("original_operation") or entities.get("operation") or "EXCEL_READ_COLUMN",
+                "entities": entities
+            }
+
+            return CompanyAIResult(
+                department=target_dept,
+                intent="excel_clarification",
+                task="Workbook Column Clarification",
+                summary="Clarification requested for ambiguous columns.",
+                findings=[clarif_msg],
+                citations=[filename],
+                confidence=0.95,
+                pending_clarification=pending_clarif_data if target_cols else None,
+                tool_results={
+                    "card_type": "clarification_request",
+                    "options": target_cols,
+                    "source_file": filename
+                },
+                internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
             )
 
         # Fallback / Default
@@ -1807,6 +2169,246 @@ class ExcelService:
                 "source_file": filename
             },
             internal_metadata={"excel_ms": excel_ms, "file_generation_ms": 0.0, "source_file": filename}
+        )
+
+    def analyze_single_workbook_comparison(
+        self,
+        file_path: str,
+        entities: Dict[str, Any],
+        target_dept: Any
+    ) -> Optional[CompanyAIResult]:
+        """Analyzes a single workbook containing comparison test cases or multi-portal pricing columns,
+        following the Answer-First principle.
+        """
+        import openpyxl, time, re
+        t0 = time.time()
+        filename = os.path.basename(file_path)
+
+        try:
+            wb = openpyxl.load_workbook(file_path, data_only=True)
+        except Exception as e:
+            logger.error(f"Failed to load workbook {file_path} for single comparison: {e}")
+            return None
+
+        # 1. Locate the test case / comparison sheet
+        target_sheet = None
+        for s_name in wb.sheetnames:
+            if any(k in s_name.lower() for k in ["test", "case", "compare", "diff", "mismatch"]):
+                target_sheet = wb[s_name]
+                break
+        if target_sheet is None:
+            target_sheet = wb.active
+
+        # 2. Extract header row
+        rows_iter = target_sheet.iter_rows(values_only=True)
+        header_row = next(rows_iter, None)
+        if not header_row:
+            return None
+
+        headers = [str(c).strip() if c is not None else "" for c in header_row]
+        headers_lower = [h.lower() for h in headers]
+
+        # Verify whether this sheet has comparison columns
+        has_comparison = any(
+            any(k in h for k in ["difference", "diff", "result", "mismatch", "yatra", "corpzee", "via", "portal", "expected", "actual", "status"])
+            for h in headers_lower
+        )
+        if not has_comparison:
+            return None
+
+        # Resolve column indices
+        case_idx = next((i for i, h in enumerate(headers_lower) if any(k in h for k in ["sl", "case", "test", "id", "#"])), 0)
+        diff_idx = next((i for i, h in enumerate(headers_lower) if "difference" in h or "diff" in h), None)
+        result_idx = next((i for i, h in enumerate(headers_lower) if "result" in h or "status" in h), None)
+        remarks_idx = next((i for i, h in enumerate(headers_lower) if any(k in h for k in ["remark", "comment", "note", "detail"])), None)
+        route_idx = next((i for i, h in enumerate(headers_lower) if "route" in h or "sector" in h), None)
+        flight_idx = next((i for i, h in enumerate(headers_lower) if "flight" in h or "airline" in h), None)
+
+        # Identify portal/entity price columns
+        portal_cols = [
+            i for i, h in enumerate(headers_lower)
+            if any(p in h for p in ["corpzee", "via", "yatra", "portal", "price", "expected", "actual"])
+            and i != diff_idx
+        ]
+
+        price_diffs: List[Dict[str, Any]] = []
+        avail_diffs: List[Dict[str, Any]] = []
+        pending_cases: List[Dict[str, Any]] = []
+        total_price_diff = 0
+
+        for r in rows_iter:
+            if not any(r) or r[case_idx] is None:
+                continue
+            c_num = str(r[case_idx]).strip()
+            # Stop if we hit a section header banner like "MULTI-CITY SUPPORTING SCREENSHOTS"
+            if not c_num or not (c_num.isdigit() or c_num.lower().startswith("tc") or c_num.lower().startswith("case")):
+                continue
+
+            p_diff_val = r[diff_idx] if diff_idx is not None and diff_idx < len(r) else None
+            res_val = str(r[result_idx] or "").strip() if result_idx is not None and result_idx < len(r) else ""
+            rem_val = str(r[remarks_idx] or "").strip() if remarks_idx is not None and remarks_idx < len(r) else ""
+            route_val = str(r[route_idx] or "").strip() if route_idx is not None and route_idx < len(r) else ""
+            flight_val = str(r[flight_idx] or "").strip() if flight_idx is not None and flight_idx < len(r) else ""
+
+            # Check if pending
+            if "pending" in res_val.lower() or "pending" in rem_val.lower():
+                pending_cases.append({
+                    "case": c_num,
+                    "remarks": rem_val or "Comparison pending because required comparison data is missing.",
+                    "route": route_val,
+                    "flight": flight_val
+                })
+                continue
+
+            # Parse numeric difference
+            diff_num = None
+            if p_diff_val is not None:
+                clean_d = re.sub(r"[^0-9.]", "", str(p_diff_val))
+                if clean_d:
+                    try:
+                        diff_num = int(float(clean_d))
+                    except ValueError:
+                        pass
+
+            row_portals = {headers[i]: str(r[i] or "").strip() for i in portal_cols if i < len(r)}
+            has_not_avail = any("not available" in v.lower() for v in row_portals.values())
+            has_avail = any("available" in v.lower() and "not available" not in v.lower() for v in row_portals.values())
+
+            if has_not_avail or "issue" in res_val.lower() or "availability" in rem_val.lower():
+                avail_diffs.append({
+                    "case": c_num,
+                    "portals": row_portals,
+                    "remarks": rem_val or "Flight availability differs across portals.",
+                    "route": route_val,
+                    "flight": flight_val
+                })
+            elif diff_num is not None and diff_num > 0:
+                price_diffs.append({
+                    "case": c_num,
+                    "difference": diff_num,
+                    "portals": row_portals,
+                    "route": route_val,
+                    "flight": flight_val,
+                    "remarks": rem_val
+                })
+                total_price_diff += diff_num
+
+        total_differences = len(price_diffs) + len(avail_diffs)
+        follow_up = entities.get("follow_up_action", "COUNT_DIFFERENCES")
+
+        # 3. Format according to Answer-First Principle (Conceptually matching Part 5)
+        lines: List[str] = []
+
+        if follow_up == "FILTER_PRICE_DIFFERENCES":
+            lines.append("### ✈️ Flights with Price Differences")
+            lines.append("")
+            lines.append(f"I found **{len(price_diffs)} flights** with price differences across portals:")
+            lines.append("")
+            lines.append("| Test Case | Route | Flight | Difference |")
+            lines.append("|---|---|---|---|")
+            for p in price_diffs:
+                rt = p['route'] or '—'
+                fl = p['flight'] or '—'
+                lines.append(f"| {p['case']} | {rt} | {fl} | ₹{p['difference']:,} |")
+            lines.append("")
+            lines.append(f"Total price difference: **₹{total_price_diff:,}**")
+
+        elif follow_up == "FILTER_FAILED_CASES":
+            lines.append("### ⚠️ Failed & Mismatch Test Cases")
+            lines.append("")
+            lines.append(f"I found **{total_differences} failed/mismatch cases**:")
+            lines.append("")
+            for p in price_diffs:
+                lines.append(f"• **Test Case {p['case']}**: Price difference of ₹{p['difference']:,} ({p['flight'] or 'Flight'})")
+            for a in avail_diffs:
+                lines.append(f"• **Test Case {a['case']}**: Availability mismatch — {a['remarks']}")
+            if pending_cases:
+                lines.append("")
+                lines.append(f"*(Test Case {', '.join(x['case'] for x in pending_cases)} is pending comparison due to missing data)*")
+
+        elif follow_up == "COMPARE_PORTALS":
+            lines.append("### 📊 Portal Comparison Overview")
+            lines.append("")
+            lines.append(f"Across the test cases in `{filename}`:")
+            lines.append(f"• **Price Differences:** Found in {len(price_diffs)} test cases (Total variance: ₹{total_price_diff:,}).")
+            lines.append(f"• **Availability Differences:** Found in {len(avail_diffs)} test case.")
+            if avail_diffs:
+                for a in avail_diffs:
+                    avail_summary = ", ".join(f"{k}: {v}" for k, v in a["portals"].items() if v)
+                    lines.append(f"  - Test Case {a['case']}: {avail_summary}")
+            if pending_cases:
+                lines.append(f"• **Pending Cases:** {len(pending_cases)} case(s) with missing portal screenshots.")
+
+        else:
+            # Default / "How many differences?" -> Conceptual match to Part 5
+            lines.append(f"🔴 {total_differences} Differences Found")
+            lines.append("")
+            lines.append("I found:")
+            lines.append("")
+            lines.append(f"• {len(price_diffs)} price differences")
+            lines.append(f"• {len(avail_diffs)} flight availability difference")
+            lines.append("")
+            lines.append("### Price Differences")
+            lines.append("")
+            lines.append("| Test Case | Difference |")
+            lines.append("|-----------|------------|")
+            for p in price_diffs:
+                lines.append(f"| {p['case']} | ₹{p['difference']:,} |")
+            lines.append("")
+            lines.append(f"Total price difference: ₹{total_price_diff:,}")
+            lines.append("")
+            lines.append("### Availability Difference")
+            lines.append("")
+            for a in avail_diffs:
+                lines.append(f"Test Case {a['case']}:")
+                lines.append("")
+                for portal_name, portal_status in a["portals"].items():
+                    if portal_status:
+                        clean_name = re.sub(r"\s*price\s*", "", portal_name, flags=re.I).strip()
+                        lines.append(f"{clean_name} → {portal_status}")
+                lines.append("")
+            if pending_cases:
+                lines.append("### Pending")
+                lines.append("")
+                for pend in pending_cases:
+                    lines.append(f"Test Case {pend['case']} cannot be fully compared because the")
+                    lines.append("required comparison data is missing.")
+
+        answer_text = "\n".join(lines).strip()
+
+        tool_results = {
+            "card_type": "comparison_card",
+            "title": "Flight Test Case Reconciliation",
+            "total_differences": total_differences,
+            "price_differences": len(price_diffs),
+            "availability_differences": len(avail_diffs),
+            "total_price_difference": f"₹{total_price_diff:,}",
+            "pending_count": len(pending_cases),
+            "items": [{"case": p["case"], "difference": f"₹{p['difference']:,}"} for p in price_diffs],
+            "source_file": filename
+        }
+
+        return CompanyAIResult(
+            department=target_dept,
+            intent="excel_compare",
+            task="Flight Test Case Comparison",
+            summary=f"🔴 {total_differences} Differences Found ({len(price_diffs)} price differences totaling ₹{total_price_diff:,}, {len(avail_diffs)} flight availability difference)",
+            findings=[answer_text],
+            citations=[filename],
+            confidence=0.99,
+            tool_results=tool_results,
+            internal_metadata={
+                "excel_ms": round((time.time() - t0) * 1000, 2),
+                "source_file": filename,
+                "answer_type": "comparison",
+                "structured_data": {
+                    "total_differences": total_differences,
+                    "price_differences": len(price_diffs),
+                    "availability_differences": len(avail_diffs),
+                    "price_difference_total": total_price_diff,
+                    "pending_count": len(pending_cases)
+                }
+            }
         )
 
 

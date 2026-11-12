@@ -44,9 +44,12 @@ This project is an educational, step-by-step walkthrough of building, training, 
    ```bash
    pip install -r requirements.txt
    ```
-<!-- Activate the virtual environment -->
-venv\Scripts\activate
+### Server Start
 
-   venv\Scripts\activate   
-<!-- ### server start  -->
-python -m uvicorn app.main:app --reload
+From the project root (`D:\MYGPT`):
+```bash
+venv\Scripts\activate
+python -m uvicorn backend.app.main:app --reload
+```
+.\venv\Scripts\Activate.ps1
+python -m uvicorn backend.app.main:app --reload --port 8000

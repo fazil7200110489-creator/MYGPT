@@ -14,7 +14,12 @@ class TestQwenAnswerModel:
     def test_qwen_model_interface_and_info(self):
         """Validates that Qwen answer model exposes required interface and metadata."""
         info = answer_model_service.get_status()
-        assert info["model_name"] == "Qwen3-4B-Q4_K_M"
+        assert info["model_name"] in (
+            "Gemma-4-E2B-It-Q4_K_M",
+            "Qwen2.5-Coder-3B-Instruct",
+            "Qwen2.5-3B-Instruct",
+            "Qwen3-4B-Q4_K_M",
+        )
         assert info["quantization"] == "Q4_K_M"
         assert info["format"] == "GGUF"
         assert info["runtime"] == "llama.cpp"

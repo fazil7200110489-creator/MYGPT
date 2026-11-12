@@ -55,17 +55,21 @@ class DocumentManager:
         except Exception as e:
             logger.error(f"Failed to write document metadata: {e}")
 
-    def upload_document(self, filename: str, file_content: bytes) -> Dict[str, Any]:
+    def upload_document(self, filename: str, file_content: bytes, pre_parse: bool = True) -> Dict[str, Any]:
         """Saves a document content to disk and indexes its metadata.
         
         Args:
             filename: Original name of the uploaded file.
             file_content: Raw bytes of the file.
+            pre_parse: Whether to pre-extract text immediately (set False when caller parses directly).
             
         Returns:
             Document metadata dictionary.
         """
+        import hashlib
+
         doc_id = str(uuid.uuid4())
+        file_hash = hashlib.sha256(file_content).hexdigest()
         _, ext = os.path.splitext(filename)
         safe_filename = f"{doc_id}{ext}"
         filepath = os.path.join(self.upload_dir, safe_filename)
@@ -79,12 +83,67 @@ class DocumentManager:
             logger.error(f"Failed to save file to disk: {e}")
             raise IOError(f"Failed to save file {filename}: {str(e)}")
 
+        ext_lower = ext.lower()
+        doc_type = "GENERAL_DOCUMENT"
+        if ext_lower in (".xlsx", ".xls", ".csv"):
+            doc_type = "EXCEL"
+        elif ext_lower == ".pdf":
+            doc_type = "PDF"
+        elif ext_lower in (".docx", ".doc"):
+            doc_type = "DOCX"
+        elif ext_lower in (".pptx", ".ppt"):
+            doc_type = "PPTX"
+        elif ext_lower in (".txt", ".md", ".json", ".xml", ".html"):
+            doc_type = "TEXT"
+        elif ext_lower in (".png", ".jpg", ".jpeg"):
+            doc_type = "IMAGE"
+
+        extracted_text = ""
+        structured_data = {}
+        if pre_parse:
+            try:
+                from backend.app.services.document_parser import document_parser
+                parsed = document_parser.parse(filepath)
+                extracted_text = parsed.get("text", "")
+                structured_data = parsed.get("metadata", {})
+            except Exception as e:
+                logger.warning(f"Could not pre-extract text for {filename}: {e}")
+
+        mime_map = {
+            ".pdf": "application/pdf",
+            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".doc": "application/msword",
+            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".xls": "application/vnd.ms-excel",
+            ".csv": "text/csv",
+            ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            ".ppt": "application/vnd.ms-powerpoint",
+            ".txt": "text/plain",
+            ".md": "text/markdown",
+            ".json": "application/json",
+            ".xml": "application/xml",
+            ".html": "text/html",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+        }
+        mime_type = mime_map.get(ext_lower, "application/octet-stream")
+        now_ts = time.time()
+
         metadata = {
             "id": doc_id,
+            "document_id": doc_id,
+            "file_hash": file_hash,
             "filename": filename,
             "file_path": filepath,
-            "file_type": ext.lower(),
-            "upload_time": time.time(),
+            "extension": ext_lower,
+            "file_type": ext_lower,
+            "mime_type": mime_type,
+            "document_type": doc_type,
+            "extracted_text": extracted_text,
+            "structured_data": structured_data,
+            "upload_timestamp": now_ts,
+            "upload_time": now_ts,
             "file_size": len(file_content),
             "status": "uploaded",
         }

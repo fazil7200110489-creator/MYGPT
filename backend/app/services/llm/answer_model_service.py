@@ -61,6 +61,32 @@ class AnswerModelService:
             response_format=response_format
         )
 
+    def generate_general_response(
+        self,
+        prompt: str,
+        history: Optional[List[Dict[str, Any]]] = None,
+        system_instruction: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+    ) -> str:
+        """Answers general knowledge, explanations, reasoning, and conversational queries directly using local model."""
+        if hasattr(self._provider, "generate_general_response"):
+            if max_tokens is not None:
+                try:
+                    return self._provider.generate_general_response(
+                        prompt=prompt,
+                        history=history,
+                        system_instruction=system_instruction,
+                        max_tokens=max_tokens,
+                    )
+                except TypeError:
+                    pass
+            return self._provider.generate_general_response(
+                prompt=prompt,
+                history=history,
+                system_instruction=system_instruction,
+            )
+        return "General answer capability is not supported by the current provider."
+
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------
@@ -76,6 +102,29 @@ class AnswerModelService:
 
     def get_status(self) -> Dict[str, Any]:
         return self._provider.get_model_info()
+
+    def check_primary_health(self):
+        """Runs a lightweight health check on the primary Gemma 4 model."""
+        if hasattr(self._provider, "check_primary_health"):
+            return self._provider.check_primary_health()
+        return self._provider.is_available(), "provider_default"
+
+    def attempt_primary_recovery(self, force: bool = False) -> bool:
+        """Attempts cooldown-gated recovery back to the primary Gemma 4 model."""
+        if hasattr(self._provider, "attempt_primary_recovery"):
+            return self._provider.attempt_primary_recovery(force=force)
+        return False
+
+    def reset_turn_trace(self) -> None:
+        """Reset trace records for a new chat request turn."""
+        if hasattr(self._provider, "reset_turn_trace"):
+            self._provider.reset_turn_trace()
+
+    def get_turn_trace(self) -> Dict[str, Any]:
+        """Returns captured prompts and raw outputs from the latest request turn."""
+        if hasattr(self._provider, "get_turn_trace"):
+            return self._provider.get_turn_trace()
+        return {}
 
 
 # Global singleton instance

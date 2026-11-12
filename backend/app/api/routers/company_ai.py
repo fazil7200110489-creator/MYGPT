@@ -3,6 +3,7 @@ Provides endpoints for natural-language request routing, department metadata, an
 """
 
 import re
+import time
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form, Query
 from loguru import logger
@@ -12,7 +13,7 @@ from backend.app.schemas.department import (
 )
 from backend.app.schemas.security import KnowledgeSearchRequest
 from backend.app.schemas.company_ai import (
-    CompanyAIChatRequest, CompanyAIChatResponse, AIStatusResponse
+    CompanyAIChatRequest, CompanyAIChatResponse, AIStatusResponse, RenameConversationRequest
 )
 from backend.app.services.routing.intent_router import intent_router
 from backend.app.departments.department_registry import department_registry
@@ -71,8 +72,21 @@ async def get_ai_status() -> AIStatusResponse:
 
 @router.get("/departments", response_model=List[DepartmentInfo])
 async def list_company_departments() -> List[DepartmentInfo]:
-    """Returns metadata for all available company departments."""
+    """Returns metadata for legacy company departments (deprecated compatibility)."""
     return department_registry.list_departments()
+
+
+@router.get("/capabilities")
+async def list_capabilities() -> List[Dict[str, Any]]:
+    """Returns metadata for all available general-purpose AI capabilities."""
+    from backend.app.services.capabilities import capability_registry
+    return [
+        {
+            "name": cap.capability_name,
+            "description": cap.__doc__.strip().split("\n")[0] if cap.__doc__ else cap.capability_name
+        }
+        for cap in capability_registry.get_all()
+    ]
 
 
 @router.post("/knowledge/search")
@@ -114,6 +128,18 @@ async def delete_company_conversation(conversation_id: str) -> Dict[str, Any]:
     return {"success": success, "conversation_id": conversation_id}
 
 
+@router.patch("/conversations/{conversation_id}")
+async def rename_company_conversation_patch(conversation_id: str, req: RenameConversationRequest) -> Dict[str, Any]:
+    """Renames a conversation (PATCH)."""
+    return company_ai_service.rename_conversation(conversation_id, req.title)
+
+
+@router.post("/conversations/{conversation_id}/rename")
+async def rename_company_conversation_post(conversation_id: str, req: RenameConversationRequest) -> Dict[str, Any]:
+    """Renames a conversation (POST alias for frontend ease)."""
+    return company_ai_service.rename_conversation(conversation_id, req.title)
+
+
 @router.get("/chat/history")
 async def get_chat_history(session_id: str = "default_session") -> List[Dict[str, Any]]:
     """Retrieves conversation history for a specific session."""
@@ -127,30 +153,61 @@ async def reset_chat_history(session_id: str = "default_session") -> Dict[str, A
     return {"success": True, "message": f"Session '{session_id}' reset successfully."}
 
 
+def _is_tender_document(text_lower: str, file_lower: str, file_type: str) -> bool:
+    """Detects whether an uploaded file (PDF, DOCX, XLSX, scanned image, etc.) belongs to a tender."""
+    tender_cues = [
+        "notice inviting tender", "notice inviting e-tender", "notice inviting",
+        "e-tender", "earnest money", "emd", "bid submission", "tender no",
+        "tender id", "nit no", "pre-bid", "corrigendum", "technical bid",
+        "financial bid", "bill of quantities", "boq", "tender value",
+        "bid security", "eprocure", "wbtenders", "tender fee", "opening of bid",
+    ]
+    hits = sum(1 for cue in tender_cues if cue in text_lower)
+    strong_fname = any(k in file_lower for k in ("tender", "nit_", "nit-", "corrigendum", "boq", "rfp"))
+    if hits >= 2:
+        return True
+    if strong_fname and (hits >= 1 or len(text_lower.strip()) > 30):
+        return True
+    return False
+
+
 def _process_single_upload(
     filename: str,
     content_bytes: bytes,
     session_id: str,
     user_role: str = "EMPLOYEE",
     user_id: str = "dev_user",
-    department: Optional[str] = None
+    department: Optional[str] = None,
+    nas_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Internal helper to parse, classify, index, and register a single uploaded document in context."""
-    # 1. Save document via document_manager
-    doc_meta = document_manager.upload_document(filename, content_bytes)
+    """Internal helper to save, parse once (with hash caching), classify, and register an uploaded file."""
+    t_save0 = time.perf_counter()
+    # 1. Save document once without redundant pre-parse (we parse cleanly right below)
+    doc_meta = document_manager.upload_document(filename, content_bytes, pre_parse=False)
     doc_id = doc_meta["id"]
     filepath = doc_meta["file_path"]
     file_type = doc_meta["file_type"]
+    file_hash = doc_meta.get("file_hash")
+    save_ms = round((time.perf_counter() - t_save0) * 1000, 2)
 
-    # 2. Extract text via document_parser with safe fallback
+    # 2. Extract text + full per-page/sheet metadata via document_parser (single pass + cache)
+    t_parse0 = time.perf_counter()
     extracted_text = ""
+    parsed: Dict[str, Any] = {}
+    parse_error: Optional[str] = None
     try:
-        parsed = document_parser.parse(filepath)
+        parsed = document_parser.parse(filepath, file_hash=file_hash)
         extracted_text = parsed.get("text", "")
     except Exception as parse_err:
+        parse_error = str(parse_err)
         logger.warning(f"document_parser failed on {filename}: {parse_err}, attempting fallback")
-        if file_type in [".txt", ".md", ".csv", ".json"]:
+        if file_type in [".txt", ".md", ".csv", ".json"] or file_type in {
+            ".php", ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".cs",
+            ".cpp", ".c", ".sql", ".html", ".css", ".xml", ".yaml", ".yml"
+        }:
             extracted_text = content_bytes.decode("utf-8", errors="ignore")
+        elif file_type in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff", ".svg"}:
+            extracted_text = f"[Image attachment: {filename}]"
         elif file_type == ".pdf":
             try:
                 from pypdf import PdfReader
@@ -160,7 +217,8 @@ def _process_single_upload(
             except Exception:
                 extracted_text = f"Uploaded PDF document: {filename}"
         else:
-            extracted_text = f"Uploaded document: {filename}"
+            extracted_text = f"[Unreadable document '{filename}': {parse_err}]"
+    parse_ms = round((time.perf_counter() - t_parse0) * 1000, 2)
 
     # 3. Classify document type and extract structured fields purely from authentic text
     text_lower = extracted_text.lower()
@@ -168,8 +226,18 @@ def _process_single_upload(
     doc_type = "GENERAL_DOCUMENT"
     structured_data: Dict[str, Any] = {}
 
+    if _is_tender_document(text_lower, file_lower, file_type):
+        doc_type = "TENDER"
+        structured_data = {
+            "document_name": filename,
+            "document_type": "TENDER",
+            "total_pages": parsed.get("total_pages", len(parsed.get("pages", [])) or 1),
+            "sheets": parsed.get("sheets", []),
+            "ocr_pages": parsed.get("ocr_pages", []),
+            "unreadable_pages": parsed.get("unreadable_pages", []),
+        }
     # Excel / Spreadsheet detection
-    if file_type in [".xlsx", ".xls", ".csv"] or filename.lower().endswith((".xlsx", ".xls", ".csv")) or "sprint" in file_lower or "spreadsheet" in file_lower:
+    elif file_type in [".xlsx", ".xls", ".csv"] or filename.lower().endswith((".xlsx", ".xls", ".csv")) or "sprint" in file_lower or "spreadsheet" in file_lower:
         doc_type = "EXCEL"
         try:
             inspection = excel_aggregator.inspect_workbook(filepath)
@@ -203,10 +271,10 @@ def _process_single_upload(
                 "total_valid_rows": 0
             }
     # Resume / CV detection
-    elif any(k in file_lower for k in ["resume", "cv", "curriculum_vitae"]) or any(k in text_lower for k in [
-        "curriculum vitae", "education", "work experience", "professional experience",
-        "technical skills", "career summary", "academic background", "projects", "certifications"
-    ]):
+    elif any(k in file_lower for k in ["resume", "cv", "curriculum_vitae"]) or "curriculum vitae" in text_lower or (
+        any(k in text_lower for k in ["work experience", "professional experience", "career summary"]) and
+        any(k in text_lower for k in ["education", "academic background", "qualifications"])
+    ):
         doc_type = "RESUME"
         name_m = re.search(r'^(?:name[\s:]*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)', extracted_text.strip())
         email_m = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', extracted_text)
@@ -287,20 +355,89 @@ def _process_single_upload(
             "policy_name": filename,
             "document_type": "HR_POLICY"
         }
+    elif file_type in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff", ".svg"}:
+        doc_type = "IMAGE"
+        structured_data = {
+            "document_name": filename,
+            "document_type": "IMAGE",
+            "extension": file_type
+        }
+    elif file_type in {
+        ".php", ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".cs",
+        ".cpp", ".c", ".sql", ".html", ".css", ".json", ".xml", ".yaml",
+        ".yml", ".md", ".txt"
+    }:
+        doc_type = "CODE"
+        code_lang = file_type.lstrip(".").upper() or "TEXT"
+        structured_data = {
+            "document_name": filename,
+            "document_type": "CODE",
+            "extension": file_type,
+            "language": code_lang
+        }
+        doc_meta["language"] = code_lang
+    else:
+        if file_type == ".pdf":
+            doc_type = "PDF"
+        elif file_type in (".docx", ".doc"):
+            doc_type = "DOCX"
+        elif file_type in (".pptx", ".ppt"):
+            doc_type = "PPTX"
+        elif file_type in (".txt", ".md"):
+            doc_type = "TEXT"
+        else:
+            doc_type = "GENERAL_DOCUMENT"
+        structured_data = {
+            "document_name": filename,
+            "document_type": doc_type
+        }
 
-    # 4. Save enhanced metadata
+    # 4. Save enhanced metadata (including per-page, OCR coverage, hash & stage timings)
+    t_meta0 = time.perf_counter()
+    doc_meta["document_id"] = doc_id
     doc_meta["document_type"] = doc_type
     doc_meta["extracted_text"] = extracted_text
+    doc_meta["pages"] = parsed.get("pages") or [{"page_number": 1, "text": extracted_text}]
+    doc_meta["total_pages"] = parsed.get("total_pages") or len(doc_meta["pages"])
+    doc_meta["ocr_pages"] = parsed.get("ocr_pages", [])
+    doc_meta["unreadable_pages"] = parsed.get("unreadable_pages", [])
+    doc_meta["sheets"] = parsed.get("sheets", [])
+    doc_meta["ocr_engine"] = parsed.get("ocr_engine")
+    if file_hash or parsed.get("file_hash"):
+        doc_meta["file_hash"] = file_hash or parsed.get("file_hash")
+    if parse_error:
+        doc_meta["parse_error"] = parse_error
+    if nas_path:
+        doc_meta["nas_path"] = nas_path
     doc_meta["structured_data"] = structured_data
-    
+    doc_meta["conversation_id"] = session_id
+    doc_meta["filename"] = filename
+    doc_meta["extension"] = file_type
+    doc_meta["size"] = len(content_bytes)
+    doc_meta["path"] = filepath
+    doc_meta["upload_timestamp"] = doc_meta.get("upload_timestamp") or time.time()
+
+    stage_timings = {
+        "save_ms": save_ms,
+        "parse_ms": parse_ms,
+        "cache_hit": parsed.get("cache_hit"),
+        "parse_details": parsed.get("stage_timings") or {},
+    }
+    doc_meta["stage_timings"] = stage_timings
+
     # Persist updated doc metadata
     db = document_manager._read_metadata()
     db[doc_id] = doc_meta
     document_manager._write_metadata(db)
+    stage_timings["metadata_write_ms"] = round((time.perf_counter() - t_meta0) * 1000, 2)
+    stage_timings["total_upload_ms"] = round(save_ms + parse_ms + stage_timings["metadata_write_ms"], 2)
 
     # 5. Set as active document in conversation state
     conversation_context_manager.set_active_document(session_id, doc_meta)
-    logger.info(f"Successfully processed upload: {filename} (ID: {doc_id}, Type: {doc_type}) for session {session_id}")
+    logger.info(
+        f"Successfully processed upload: {filename} (ID: {doc_id}, Type: {doc_type}, "
+        f"cache={stage_timings['cache_hit']}, total={stage_timings['total_upload_ms']}ms) for session {session_id}"
+    )
 
     return {
         "success": True,
@@ -309,7 +446,12 @@ def _process_single_upload(
         "filename": filename,
         "file_type": file_type,
         "document_type": doc_type,
+        "file_hash": doc_meta.get("file_hash"),
+        "total_pages": doc_meta["total_pages"],
+        "ocr_pages": doc_meta["ocr_pages"],
+        "unreadable_pages": doc_meta["unreadable_pages"],
         "structured_data": structured_data,
+        "stage_timings": stage_timings,
         "extracted_text_preview": extracted_text[:300] if extracted_text else "",
         "message": f"Document '{filename}' uploaded and indexed successfully."
     }
@@ -321,7 +463,8 @@ async def upload_multiple_company_documents(
     session_id: str = Form("default_session"),
     user_role: str = Form("EMPLOYEE"),
     user_id: str = Form("dev_user"),
-    department: Optional[str] = Form(None)
+    department: Optional[str] = Form(None),
+    nas_path: Optional[str] = Form(None),
 ) -> Dict[str, Any]:
     """Uploads multiple company documents simultaneously and registers all of them into active conversation context."""
     try:
@@ -329,13 +472,22 @@ async def upload_multiple_company_documents(
         for file in files:
             content_bytes = await file.read()
             fname = file.filename or "uploaded_file.bin"
-            res = _process_single_upload(fname, content_bytes, session_id, user_role, user_id, department)
+            res = _process_single_upload(fname, content_bytes, session_id, user_role, user_id, department, nas_path=nas_path)
             results.append(res)
+
+        batch_ids = [r["doc_id"] for r in results if r.get("doc_id")]
+        state = conversation_context_manager.get_state(session_id)
+        if batch_ids:
+            state.active_document_ids = batch_ids
+            # If any file in the uploaded bundle is a tender document, promote session bundle type to TENDER
+            if any(r.get("document_type") == "TENDER" for r in results):
+                state.active_document_type = "TENDER"
 
         return {
             "success": True,
             "count": len(results),
             "documents": results,
+            "batch_document_ids": batch_ids,
             "session_id": session_id,
             "message": f"Successfully uploaded and indexed {len(results)} documents for session '{session_id}'."
         }
@@ -353,19 +505,58 @@ async def upload_company_document(
     session_id: str = Form("default_session"),
     user_role: str = Form("EMPLOYEE"),
     user_id: str = Form("dev_user"),
-    department: Optional[str] = Form(None)
+    department: Optional[str] = Form(None),
+    nas_path: Optional[str] = Form(None),
 ) -> Dict[str, Any]:
     """Uploads a single company document and registers it in the active conversation context."""
     try:
         content_bytes = await file.read()
         filename = file.filename or "uploaded_file.bin"
-        return _process_single_upload(filename, content_bytes, session_id, user_role, user_id, department)
+        return _process_single_upload(filename, content_bytes, session_id, user_role, user_id, department, nas_path=nas_path)
     except Exception as e:
         logger.error(f"Failed to upload document: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Upload processing failed: {str(e)}"
         )
+
+
+@router.post("/tender/extract")
+async def extract_tender_fields(
+    document_ids: Optional[List[str]] = None,
+    session_id: str = "default_session",
+    nas_path: Optional[str] = None,
+    use_llm: bool = True,
+) -> Dict[str, Any]:
+    """Extracts the fixed 25-field tender schema from specified document IDs or session tender bundle."""
+    try:
+        from backend.app.services.tender.tender_extractor import tender_extractor
+
+        db = document_manager._read_metadata()
+        docs: List[Dict[str, Any]] = []
+        if document_ids:
+            for did in document_ids:
+                if did in db:
+                    docs.append(db[did])
+        else:
+            state = conversation_context_manager.get_state(session_id)
+            for did in (state.active_document_ids or []):
+                if did in db:
+                    docs.append(db[did])
+            if not docs and state.active_document:
+                docs.append(state.active_document)
+
+        if not docs:
+            raise HTTPException(status_code=404, detail="No uploaded tender documents found for extraction.")
+
+        eff_nas = nas_path or next((d.get("nas_path") for d in docs if d.get("nas_path")), None)
+        result = tender_extractor.extract_from_documents(docs, nas_path=eff_nas, use_llm=use_llm)
+        return {"success": True, "tender_extraction": result.model_dump()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Tender extraction endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=f"Tender extraction failed: {str(e)}")
 
 
 @router.get("/files/{file_id}/download")

@@ -20,8 +20,22 @@ class ExcelAggregator:
 
     def inspect_workbook(self, file_path: str) -> Dict[str, Any]:
         """Inspects all sheets, counts valid records, extracts column headers, modes, and statuses."""
-        wb = load_workbook_safe(file_path, data_only=True, read_only=True)
-        sheet_names = wb.sheetnames
+        if file_path.lower().endswith(".csv"):
+            import csv
+            sheet_names = ["Sheet1"]
+            rows_raw_list = []
+            try:
+                with open(file_path, "r", encoding="utf-8-sig", errors="ignore") as f:
+                    reader = csv.reader(f)
+                    for r in reader:
+                        rows_raw_list.append(tuple(r))
+            except Exception as e:
+                logger.warning(f"Error reading CSV {file_path}: {e}")
+            csv_wb_data = {"Sheet1": rows_raw_list}
+            wb = None
+        else:
+            wb = load_workbook_safe(file_path, data_only=True, read_only=True)
+            sheet_names = wb.sheetnames
 
         sheets_data: Dict[str, Any] = {}
         all_headers: List[str] = []
@@ -32,8 +46,11 @@ class ExcelAggregator:
         summary_lines: List[str] = []
 
         for name in sheet_names:
-            ws = wb[name]
-            rows_raw = list(ws.iter_rows(values_only=True))
+            if wb is not None:
+                ws = wb[name]
+                rows_raw = list(ws.iter_rows(values_only=True))
+            else:
+                rows_raw = csv_wb_data.get(name, [])
             if not rows_raw:
                 continue
 
@@ -126,7 +143,8 @@ class ExcelAggregator:
             else:
                 summary_lines.append(f"Sheet '{name}': {len(data_rows)} rows")
 
-        wb.close()
+        if wb is not None:
+            wb.close()
 
         # Determine overall workbook type
         overall_type = WorkbookType.GENERIC.value
@@ -143,7 +161,9 @@ class ExcelAggregator:
 
         return {
             "worksheet_names": sheet_names,
+            "sheet_names": sheet_names,
             "sheets": sheets_data,
+            "sheets_data": sheets_data,
             "headers": all_headers,
             "owners": sorted(list(all_owners)) if overall_type == WorkbookType.SPRINT.value else [],
             "total_rows": total_rows_all,
@@ -167,7 +187,7 @@ class ExcelAggregator:
         all_headers = [str(h).strip() for h in inspection.get("headers", []) if h is not None]
         amount_candidates = [
             h for h in all_headers
-            if any(k in h.lower() for k in ["amount", "settled", "total", "value", "price", "fee", "hours", "cost"])
+            if any(k in h.lower() for k in ["amount", "settled_amount", "price", "fee", "cost", "salary", "balance"])
         ]
 
         # Priority Selection
@@ -234,7 +254,7 @@ class ExcelAggregator:
                             selected_col = h
                             break
                 if not selected_col:
-                    for cand in ["settled_amount", "transaction amount", "requested amount", "payment amount", "net amount", "total"]:
+                    for cand in ["settled_amount", "transaction amount", "requested amount", "payment amount", "net amount"]:
                         for h in all_headers:
                             if cand in h.strip().lower():
                                 selected_col = h
@@ -302,6 +322,19 @@ class ExcelAggregator:
         # For COUNT operation, authorised_count is status_filtered_count or non_empty_rows or rows_detected
         auth_cnt = status_filtered_count if status_filtered_count > 0 else (non_empty_rows if non_empty_rows > 0 else rows_detected)
 
+        is_monetary = any(w in str(selected_col or "").lower() for w in ("amount", "price", "fee", "cost", "salary", "settled", "paid", "balance", "charge", "revenue", "income", "expense", "tax", "gst", "commission", "val", "value", "inr", "usd", "money"))
+
+        if is_monetary:
+            f_tot = format_inr(total_sum)
+            f_avg = format_inr(avg_val)
+            f_max = format_inr(max_val)
+            f_min = format_inr(min_val)
+        else:
+            f_tot = f"{total_sum:,}" if float(total_sum).is_integer() else f"{total_sum:,.2f}"
+            f_avg = f"{avg_val:,.2f}"
+            f_max = f"{max_val:,}" if float(max_val).is_integer() else f"{max_val:,.2f}"
+            f_min = f"{min_val:,}" if float(min_val).is_integer() else f"{min_val:,.2f}"
+
         return {
             "selected_column": selected_col,
             "all_amount_candidates": amount_candidates,
@@ -314,10 +347,10 @@ class ExcelAggregator:
             "max": max_val,
             "max_row": max_row,
             "min_row": min_row,
-            "formatted_total": format_inr(total_sum),
-            "formatted_average": format_inr(avg_val),
-            "formatted_max": format_inr(max_val),
-            "formatted_min": format_inr(min_val),
+            "formatted_total": f_tot,
+            "formatted_average": f_avg,
+            "formatted_max": f_max,
+            "formatted_min": f_min,
             "workbook_type": inspection.get("workbook_type", WorkbookType.GENERIC.value),
             "source_file": os.path.basename(file_path)
         }
@@ -703,5 +736,87 @@ class ExcelAggregator:
         }
 
 
+    def calculate_date_grouping(
+        self,
+        file_path: str,
+        date_column: Optional[str] = None,
+        group_by: str = "month",
+        rows: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
+        """Groups records by date dimension (month, year, day) and computes counts and distributions."""
+        inspection = self.inspect_workbook(file_path)
+        all_headers = inspection.get("headers", [])
+        sheets = inspection.get("sheets", {})
+
+        from backend.app.services.excel.semantic_excel_resolver import semantic_excel_resolver
+        col_to_check = semantic_excel_resolver.resolve_column(date_column or "Date", all_headers, concept_hint="date") or date_column or "Date"
+
+        source_rows = []
+        if rows and isinstance(rows, list):
+            source_rows = rows
+        else:
+            for s_name, s_info in sheets.items():
+                source_rows.extend(s_info.get("rows", []))
+
+        groups: Dict[str, List[Dict[str, Any]]] = {}
+        month_order = {}
+        unparsed_count = 0
+
+        for r in source_rows:
+            raw_val = r.get(col_to_check)
+            d_val = self.parse_date_safe(raw_val)
+            if d_val is None:
+                for k, v in r.items():
+                    d_cand = self.parse_date_safe(v)
+                    if d_cand:
+                        d_val = d_cand
+                        col_to_check = k
+                        break
+
+            if d_val:
+                if group_by in ("month", "month-wise", "monthly", "month_wise"):
+                    grp_key = d_val.strftime("%B %Y")
+                    sort_key = d_val.strftime("%Y-%m")
+                elif group_by in ("year", "year-wise", "yearly", "year_wise"):
+                    grp_key = d_val.strftime("%Y")
+                    sort_key = d_val.strftime("%Y")
+                elif group_by in ("day", "day-wise", "daily", "day_wise"):
+                    grp_key = d_val.strftime("%d-%b-%Y")
+                    sort_key = d_val.strftime("%Y-%m-%d")
+                else:
+                    grp_key = d_val.strftime("%B %Y")
+                    sort_key = d_val.strftime("%Y-%m")
+
+                if grp_key not in groups:
+                    groups[grp_key] = []
+                    month_order[grp_key] = sort_key
+                groups[grp_key].append(dict(r))
+            else:
+                unparsed_count += 1
+
+        sorted_groups = sorted(groups.items(), key=lambda x: month_order.get(x[0], x[0]))
+
+        group_summary = []
+        for g_name, g_rows in sorted_groups:
+            group_summary.append({
+                "group": g_name,
+                "count": len(g_rows),
+                "preview_row": g_rows[0] if g_rows else {},
+                "rows": g_rows
+            })
+
+        return {
+            "success": len(group_summary) > 0,
+            "column": col_to_check,
+            "date_column": col_to_check,
+            "group_by": group_by,
+            "total_groups": len(group_summary),
+            "total_records": len(source_rows),
+            "groups": group_summary,
+            "source_file": os.path.basename(file_path)
+        }
+
+
 excel_aggregator = ExcelAggregator()
+
 

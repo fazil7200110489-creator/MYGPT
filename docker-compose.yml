@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mygpt-backend
+    restart: unless-stopped
+    ports:
+      - "${MYGPT_BACKEND_PORT:-8000}:8000"
+    environment:
+      - MYGPT_API_KEY=${MYGPT_API_KEY:-change-this-in-production}
+      - MYGPT_TENDER_JOB_DIR=/app/data/tender_jobs
+      - MYGPT_TENDER_JOB_TTL_SECONDS=86400
+    volumes:
+      - ./models:/app/models:ro
+      - mygpt_tender_data:/app/data
+      - mygpt_logs:/app/logs
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ""
+    container_name: mygpt-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${MYGPT_FRONTEND_PORT:-3000}:80"
+
+volumes:
+  mygpt_tender_data:
+  mygpt_logs:

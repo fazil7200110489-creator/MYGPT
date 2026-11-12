@@ -46,7 +46,29 @@ class BaseAnswerModel(ABC):
         """Returns True if local model weights are loaded and ready."""
         pass
 
-    @abstractmethod
-    def get_model_info(self) -> Dict[str, Any]:
-        """Returns non-sensitive model metadata."""
-        pass
+    def _format_deterministic_answer(self, result: CompanyAIResult) -> str:
+        """Deterministic formatter — always available, zero latency."""
+        if result.permission_status == "DENIED":
+            return (
+                "Access to this department's privileged operations is restricted for your role. "
+                "Your account does not possess the necessary RBAC permissions to execute this request."
+            )
+
+        paragraphs = []
+        if result.summary and result.summary.strip():
+            paragraphs.append(result.summary.strip())
+
+        if result.findings:
+            for f in result.findings:
+                f_str = f.strip() if isinstance(f, str) else str(f).strip()
+                if f_str and (not result.summary or f_str != result.summary.strip()):
+                    paragraphs.append(f_str)
+
+        if result.warnings:
+            for w in result.warnings:
+                paragraphs.append(f"Notice: {str(w).strip()}")
+
+        answer = "\n\n".join(paragraphs).strip()
+        if not answer:
+            return "I couldn't find this information in the available company knowledge or documents."
+        return answer

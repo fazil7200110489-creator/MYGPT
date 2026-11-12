@@ -56,6 +56,21 @@ class WorkbookDetector:
 
     def detect(self, file_path: str) -> WorkbookType:
         """Inspects workbook file and returns classified WorkbookType enum."""
+        if file_path.lower().endswith(".csv"):
+            import csv
+            try:
+                with open(file_path, "r", encoding="utf-8-sig", errors="ignore") as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        headers = [str(c).strip() for c in row if c is not None and str(c).strip()]
+                        if len(headers) >= 2:
+                            schema_info = self.detect_schema(headers)
+                            type_str = schema_info.get("workbook_type", WorkbookType.GENERIC.value)
+                            return WorkbookType(type_str)
+            except Exception as e:
+                logger.warning(f"Failed to detect CSV schema: {e}")
+            return WorkbookType.GENERIC
+
         from backend.app.services.excel.excel_parser import load_workbook_safe
         wb = load_workbook_safe(file_path, data_only=True)
         try:
