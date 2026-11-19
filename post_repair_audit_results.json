@@ -1,0 +1,218 @@
+{
+  "NITK_Desktop_41p": {
+    "anchors": {
+      "bid_title": "NOT_FOUND",
+      "authority": "DEPARTMENT OF MECHANICAL ENGINEERING",
+      "tender_id": "NITK/DPD/OH35-MECH/2024-25/A9-4",
+      "estimated_value": "\u20b9 47,25,000.00 (Including GST)",
+      "emd_value": "Rs. 94,500.00",
+      "submission_deadline": "13/03/2025",
+      "technical_bid_opening_date": "14/03/2025",
+      "tender_publication_date": "04/03/2025",
+      "category": "IT & Software Services",
+      "state": "Karnataka"
+    },
+    "overview": {
+      "title": "High End Desktop",
+      "ref_no": "NITK/DPD/OH35-MECH/2024-25/A9-4",
+      "authority": "Department of Mechanical Engineering",
+      "inviting_authority": "Department of Mechanical Engineering",
+      "est_value": "\u20b9 47,25,000.00 (Including GST)",
+      "emd_value": "Rs. 94,500.00",
+      "submission_deadline": "13/03/2025",
+      "opening_date": "14/03/2025",
+      "pub_date": "04/03/2025",
+      "warranty": "5-Years Comprehensive Onsite Warranty"
+    },
+    "eligibility": {
+      "turnover": "Turnover must be 30% of the estimated cost",
+      "similar_experience": "NOT FOUND",
+      "min_project_value": "NOT FOUND",
+      "oem_mandatory": false,
+      "conditions_count": 2
+    },
+    "specs": {
+      "total_specs": 20,
+      "subsystems_count": 11,
+      "sample_specs": [
+        "Date, Time& Venue of Pre-Bid Conference",
+        "Bid Document Download Start Date",
+        "Clarification Start Date",
+        "Clarification End Date",
+        "Online Bid Submission Start Date",
+        "Online Bid Submission End Date"
+      ],
+      "has_toc_leak": false,
+      "has_top_sheet_leak": false
+    },
+    "commercial": {
+      "estimated_value": "\u20b9 47,25,000.00 (Including GST)",
+      "emd_amount": "Rs. 94,500.00",
+      "emd_amount_and_mode": "Rs. 94,500.00",
+      "pbg": "Performance Security amounting to 3%of the purchase order value in favor of \"The Director, NITK Surathkal\"",
+      "liquidated_damages": "Liquidated Damages for the delay, unless covered under Force Majeure conditions aforesaid, @ 1% per week or part of the week of the delayed period as pre-estimated damages not exceeding 5% of the contract value without any controversy/dispute of any sort whatsoever"
+    }
+  },
+  "Women_Safety_CCTV_170p": {
+    "anchors": {
+      "bid_title": "NOT_FOUND",
+      "authority": "control room operators, supervisory officers and technical support staff",
+      "tender_id": "Rc. No. L1/MPF/PTB/10916/2026 dt.09.10.2026 Office of the Deputy Inspector General of Police, Technical Services, DGP Office complex, Kamarajar Salai, Chennai-600 004",
+      "estimated_value": "NOT_FOUND",
+      "emd_value": "Rs.70,00,000/- (Rupees Seventy- Lakhs only)",
+      "submission_deadline": "14.12. 2026 @ 1200 Hrs",
+      "technical_bid_opening_date": "NOT_FOUND",
+      "tender_publication_date": "21.12.1998",
+      "category": "IT / Security & CCTV Surveillance",
+      "state": "Tamil Nadu"
+    },
+    "overview": {
+      "title": "INTEGRATED CCTV SURVEILLANCE SOLUTION ACROSS STRATEGIC LOCATIONS FOR CHENNAI, TAMBARAM, AVADI, MADURAI, TRICHY & COIMBAORE CITIES FOR WOMEN SAFETY",
+      "ref_no": "Rc. No. L1/MPF/PTB/10916/2026 dt.09.10.2026 Office of the Deputy Inspector General of Police, Technical Services, DGP Office complex, Kamarajar Salai, Chennai-600 004",
+      "authority": "Office of the Deputy Inspector General of Police, Technical Services, DGP Office complex, Kamarajar salai",
+      "inviting_authority": "the Deputy Inspector General of Police, Technical Services",
+      "est_value": "NOT_FOUND",
+      "emd_value": "Rs. 70,00,000",
+      "submission_deadline": "14.12. 2026 @ 1200 Hrs",
+      "opening_date": null,
+      "pub_date": "21.12.1998",
+      "warranty": "3 years onsite warranty"
+    },
+    "eligibility": {
+      "turnover": "Minimum Annual Average Turnover of the bidders should not be less than Rs.60.00 Crs.",
+      "similar_experience": "executed one or more work orders, subject to a maximum of three work orders, for the supply, installation, integration, commissioning and maintenance of cloud based CCTV surveillance system / similar project. The value of work order should be atleast Rs. 50.00 crores or above during last three financial years (i) Copies of the purchase order / Contract agreement /work orders with the supporting documents which shall clearly indicate the mentioned quantity of supply and establishment of project",
+      "min_project_value": "Rs. 50.00 crores",
+      "oem_mandatory": true,
+      "conditions_count": 6
+    },
+    "specs": {
+      "total_specs": 23,
+      "subsystems_count": 59,
+      "sample_specs": [
+        "4MP IP Bullet Camera for Surveillance with connectivity",
+        "MP IP Bullet Camera for FRS with provision of OFC connectivity",
+        "Camera Pole for ANPR",
+        "7 Camera Pole for Surveillance",
+        "Router for Standalone cameras",
+        "8 Channel NVR with 10 TB HDD"
+      ],
+      "has_toc_leak": false,
+      "has_top_sheet_leak": false
+    },
+    "commercial": {
+      "estimated_value": null,
+      "emd_amount": "Rs.70,00,000/- (Rupees Seventy- Lakhs only)",
+      "emd_amount_and_mode": "Rs.70,00,000/- (Rupees Seventy- Lakhs only)",
+      "pbg": "NOT SPECIFIED / Governed by Security Deposit (5% retained as performance guarantee)",
+      "liquidated_damages": "Delay for Supply & installation of the equipment Rate of penalty Delay up to 1 week after allowable time schedule. 0.5 % of the product cost which are yet to be supplied. Up to 2nd week after allowable time limit. 1% of the product cost which are yet to be supplied Up to 3rd week after 2 % of the product cost which are yet to be Up to 4th week after 3 % of the product cost which are yet to be 5th 4 % of the product cost which are yet to be More than 5 weeks after 5% of the product cost which are yet to be \"The maximum penalty for delay in completion of supply shall be restricted to 5% of the cost of the products remaining to be supplied / installed.\" (b) Penalty for non-fulfillment of tender conditions: Penalty will be levied at 5% on the total value of project cost or the actual loss incurred to the Department whichever is higher if the Scope of the project is not achieved and conditions stipulated in the Contract Agreement are not fulfilled. (c) Penalty for breakdown during warranty period: Any defect, malfunction or failure in the CCTV system and its related equipment/components supplied, installed and commissioned under this project shall be attended to by the vendor on the same day of receipt of the complaint from the Department. The supplier shall ensure 100% rectification and restoration of the defective/non-functional equipment or system within a maximum period of 48 hours from the time of receipt of the complaint, either by repairing the equipment, replacing the defective component/item, or taking such corrective action as may be required. Other wise penalty will be levied as detailed below: Breakdown Period Up to 1 week Nil"
+    }
+  },
+  "EESL_Energy_149p": {
+    "anchors": {
+      "bid_title": "\"Empanelment of agencies for design, supply, installation, integration, commissioning",
+      "authority": "NOT_FOUND",
+      "tender_id": "27/OTE/2627019",
+      "estimated_value": "NOT_FOUND",
+      "emd_value": "NOT_FOUND",
+      "submission_deadline": "05.11.2026",
+      "technical_bid_opening_date": "05.11.2026",
+      "tender_publication_date": "15.10.2026",
+      "category": "IT & Software Services",
+      "state": "Uttar Pradesh"
+    },
+    "overview": {
+      "title": "Empanelment of agencies for design, supply, installation, integration, commissioning, operation, and maintenance of AI-Native Energy Monitoring & Supervision Technology (EMST) Platform for Public & Private Infrastructure.",
+      "ref_no": "EESL/CC/06/CDP/Empanelment",
+      "authority": "Energy Efficiency Services Limited (EESL)",
+      "inviting_authority": "Energy Efficiency Services Limited",
+      "est_value": "NOT_FOUND",
+      "emd_value": null,
+      "submission_deadline": "05.11.2026",
+      "opening_date": "05.11.2026",
+      "pub_date": "15.10.2026",
+      "warranty": "NOT FOUND"
+    },
+    "eligibility": {
+      "turnover": "Minimum annual turnover not exceeding INR 25 crore",
+      "similar_experience": "NOT FOUND",
+      "min_project_value": "NOT FOUND",
+      "oem_mandatory": false,
+      "conditions_count": 3
+    },
+    "specs": {
+      "total_specs": 8,
+      "subsystems_count": 33,
+      "sample_specs": [
+        "Brief Scope of Work",
+        "Qualifying Requirements (QR)",
+        "Bidding Documents",
+        "Empanelment of agencies for design, supply, installation, integration, commissioning, operation, and maintenance of AI-Native Energy Monitoring & Supervision Technology (EMST) Platform for Public & Private Infrastructure.",
+        "Pre-bid meeting",
+        "Deadline for submission of bids"
+      ],
+      "has_toc_leak": false,
+      "has_top_sheet_leak": false
+    },
+    "commercial": {
+      "estimated_value": null,
+      "emd_amount": null,
+      "emd_amount_and_mode": "NOT FOUND",
+      "pbg": "NOT SPECIFIED / Governed by Security Deposit (5% retained as performance guarantee)",
+      "liquidated_damages": "liquidated damages, certification of relation clause no.1.1.2 [Conflict of Interest] etc"
+    }
+  },
+  "Tripura_WiFi_33p": {
+    "anchors": {
+      "bid_title": "Design, Supply, Installation, Testing, Commissioning, Configuration, and Comprehensive Maintenance of an Enterprise-Grade Campus-Wide Wi-Fi Network, including all required Active and Passive Network Components, Controllers/Cloud Management, Network Security, Structured Cabling, Power Supply, Integration, Testing, Documentation, and Technical Support at Tripura University, Suryamaninagar",
+      "authority": "TRIPURA UNIVERSITY",
+      "tender_id": "No.F.TU/FIN/Wi-Fi/Vol-I/2025",
+      "estimated_value": "NOT_FOUND",
+      "emd_value": "Rs. 5,00,000/- (Rupees Five Lakh only)",
+      "submission_deadline": "17-11-2026 upto 10.30 AM",
+      "technical_bid_opening_date": "18-11-2026 at 11.00 AM",
+      "tender_publication_date": "22-10-2026",
+      "category": "IT / Networking & Wi-Fi Infrastructure",
+      "state": "Tripura"
+    },
+    "overview": {
+      "title": "Design, Supply, Installation, Testing, Commissioning, Configuration, and Comprehensive Maintenance of an Enterprise-Grade Campus-Wide Wi-Fi Network, including all required Active and Passive Network Components, Controllers/Cloud Management, Network Security, Structured Cabling, Power",
+      "ref_no": "No.F.TU/FIN/Wi-Fi/Vol-I/2025",
+      "authority": "Tripura University",
+      "inviting_authority": "Tripura University",
+      "est_value": "NOT_FOUND",
+      "emd_value": "Rs. 5,00,000/- (Rupees Five Lakh only)",
+      "submission_deadline": "17-11-2026 upto 10.30 AM",
+      "opening_date": "18-11-2026 at 11.00 AM",
+      "pub_date": "22-10-2026",
+      "warranty": "NOT FOUND"
+    },
+    "eligibility": {
+      "turnover": "Minimum average annual turnover of Rs.10.00 Crore",
+      "similar_experience": "similar projects, each involving the supply and installation of Wi-Fi, Firewall/UTM, and/or IT Electronic Security Solutions, with a minimum project value of Rs. 45.00 Lakh",
+      "min_project_value": "Rs. 45.00 Lakh",
+      "oem_mandatory": true,
+      "conditions_count": 4
+    },
+    "specs": {
+      "total_specs": 56,
+      "subsystems_count": 8,
+      "sample_specs": [
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "has_toc_leak": false,
+      "has_top_sheet_leak": false
+    },
+    "commercial": {
+      "estimated_value": null,
+      "emd_amount": "Rs. 5,00,000/- (Rupees Five Lakh only)",
+      "emd_amount_and_mode": "Rs. 5,00,000/- (Rupees Five Lakh only)",
+      "pbg": "NOT FOUND",
+      "liquidated_damages": "liquidated damages (LD) shall be levied at the rate of 0.5% (half percent) of the total contract value for each week of delay or part thereof, subject to a maximum of 5% (five percent) of the total contract value"
+    }
+  }
+}

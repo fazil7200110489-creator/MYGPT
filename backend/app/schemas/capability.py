@@ -54,6 +54,7 @@ class CapabilityResult(BaseModel):
     answer: str = Field(default="", description="Human-ready or verified primary answer")
     answer_type: str = Field(default="text", description="Display archetype: text | comparison | calculation | code | plan | error")
     structured_data: Optional[Dict[str, Any]] = Field(default=None, description="Machine-readable structured payload")
+    suggested_questions: List[str] = Field(default_factory=list, description="Dynamic suggested follow-up questions")
     sources: List[Any] = Field(default_factory=list, description="Ground truth citations, files, or references")
     files: List[str] = Field(default_factory=list, description="Generated or referenced files")
     requires_plan: bool = Field(default=False, description="Flag indicating system-building planning mode")

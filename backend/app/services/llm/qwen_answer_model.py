@@ -21,7 +21,7 @@ import re
 import json
 import time
 import threading
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Iterator
 from loguru import logger
 
 from backend.app.schemas.company_ai import CompanyAIResult, StructuredRequest
@@ -258,7 +258,7 @@ class QwenAnswerModel(BaseAnswerModel):
     def _stop_tokens(self) -> List[str]:
         """Returns family-specific stop tokens for chat completions."""
         if self._is_gemma:
-            return ["<turn|>", "<eos>"]
+            return ["<end_of_turn>", "<turn|>", "<eos>", "<start_of_turn>", "<|im_end|>"]
         return ["<|im_end|>", "<|endoftext|>", "<|im_start|>"]
 
     def _clean_model_output(self, text: str) -> str:
@@ -268,7 +268,12 @@ class QwenAnswerModel(BaseAnswerModel):
         cleaned = text
         if self._is_gemma:
             cleaned = re.sub(r"<\|channel>thought.*?<channel\|>", "", cleaned, flags=re.DOTALL)
-            cleaned = cleaned.replace("<turn|>", "").replace("<eos>", "")
+            cleaned = (
+                cleaned.replace("<end_of_turn>", "")
+                .replace("<turn|>", "")
+                .replace("<eos>", "")
+                .replace("<start_of_turn>", "")
+            )
         return cleaned.strip()
 
     def _unload_current_model(self) -> None:
@@ -332,22 +337,27 @@ class QwenAnswerModel(BaseAnswerModel):
         """Instantiates llama_cpp.Llama with family-specific chat_format and CPU settings."""
         from llama_cpp import Llama
         threads = min(4, os.cpu_count() or 4)
+        # Optimized for Intel i7 dual-core / quad-thread L3 cache locality (benchmarked at 3.96 tok/s)
         logger.info(
             f"[MODEL_LOAD] Loading {display_name} from {model_path} "
-            f"(threads={threads}, ctx=3072, batch=256, chat_format={'None(gguf_default)' if is_gemma else 'chatml'})..."
+            f"(threads={threads}, ctx=2048, batch=512, chat_format={'None(gguf_default)' if is_gemma else 'chatml'})..."
         )
         start_t = time.time()
         llama_kwargs: Dict[str, Any] = {
             "model_path": model_path,
-            "n_ctx": 3072,
+            "n_ctx": 2048,
             "n_threads": threads,
             "n_threads_batch": threads,
-            "n_batch": 256,
+            "n_batch": 512,
             "verbose": False,
             "chat_format": None if is_gemma else "chatml",
         }
         llm = Llama(**llama_kwargs)
         elapsed = time.time() - start_t
+        logger.info(
+            f"[GEMMA_MODEL_LOADED] model={display_name} path={model_path} "
+            f"threads={threads} n_ctx=2048 n_batch=512 load_time={elapsed:.2f}s"
+        )
         return llm, elapsed
 
     def _activate_primary(self, reason: str = "startup") -> bool:
@@ -594,6 +604,35 @@ class QwenAnswerModel(BaseAnswerModel):
 
             attempt_role = self._active_role
             attempt_model = self.model_name
+
+            # Calculate prompt token metrics (safe, non-sensitive)
+            prompt_chars = sum(len(m.get("content", "")) for m in messages)
+            prompt_tokens_est = sum(len(m.get("content", "").split()) * 4 // 3 for m in messages)
+
+            logger.info(
+                f"[GEMMA_INFERENCE_STARTED] stage={stage} model={attempt_model} role={attempt_role} "
+                f"prompt_chars={prompt_chars}"
+            )
+            logger.info(f"[GEMMA_PROMPT_TOKENS] stage={stage} count={prompt_tokens_est}")
+            logger.info(
+                f"[GEMMA_GENERATION_STARTED] stage={stage} max_tokens={max_tokens} "
+                f"temperature={temperature}"
+            )
+
+            # Ensure prompt does not overflow 2048 ctx (reserve max_tokens for generation)
+            max_allowed_prompt_chars = max(1200, (2048 - max_tokens - 64) * 3)
+            if prompt_chars > max_allowed_prompt_chars:
+                logger.info(
+                    f"[PROMPT_TRUNCATION] Prompt {prompt_chars} chars exceeds safe limit "
+                    f"{max_allowed_prompt_chars} chars for ctx=2048. Truncating context safely."
+                )
+                for m in messages:
+                    if m.get("role") == "user" and len(m.get("content", "")) > max_allowed_prompt_chars:
+                        content = m["content"]
+                        keep_front = max_allowed_prompt_chars * 2 // 3
+                        keep_tail = max_allowed_prompt_chars // 3
+                        m["content"] = content[:keep_front] + "\n...[context condensed for inference speed]...\n" + content[-keep_tail:]
+
             t0 = time.time()
             try:
                 response = self._llm.create_chat_completion(
@@ -607,13 +646,42 @@ class QwenAnswerModel(BaseAnswerModel):
                 self._last_latency_seconds = round(elapsed, 3)
                 retry_status = "served_by_fallback" if attempt_role == "fallback" else "not_needed"
                 self._update_execution_status(retry_status=retry_status)
+
+                usage = response.get("usage", {})
+                completion_tokens = usage.get("completion_tokens", 0)
+                prompt_toks = usage.get("prompt_tokens", prompt_tokens_est)
+                resp_content = response.get("choices", [{}])[0].get("message", {}).get("content", "")
+                word_count = len(resp_content.split())
+                char_count = len(resp_content)
+                tps = round(completion_tokens / max(elapsed, 0.001), 2)
+
+                logger.info(
+                    f"[GEMMA_GENERATION_COMPLETED] stage={stage} latency={elapsed:.3f}s "
+                    f"completion_tokens={completion_tokens} words={word_count}"
+                )
+                logger.info(f"[GEMMA_OUTPUT_LENGTH] stage={stage} chars={char_count} words={word_count}")
+                logger.info(f"[GEMMA_INFERENCE_DURATION] stage={stage} duration={elapsed:.3f}s")
+                logger.info(
+                    f"[GEMMA_SPEED] stage={stage} tps={tps} prompt_tokens={prompt_toks} "
+                    f"completion_tokens={completion_tokens} latency={elapsed:.3f}s"
+                )
                 logger.info(
                     f"[LLM_INFERENCE] stage={stage} active_model={attempt_model} role={attempt_role} "
-                    f"latency={elapsed:.3f}s rss_mb={self._last_rss_mb}"
+                    f"latency={elapsed:.3f}s tps={tps} rss_mb={self._last_rss_mb}"
                 )
+                self._last_execution_info.update({
+                    "prompt_tokens": prompt_toks,
+                    "completion_tokens": completion_tokens,
+                    "tokens_per_second": tps,
+                    "inference_latency": elapsed,
+                })
                 return response, elapsed, attempt_model
             except Exception as primary_err:
                 elapsed = time.time() - t0
+                logger.error(
+                    f"[GEMMA_INFERENCE_ERROR] stage={stage} model={attempt_model} "
+                    f"error={primary_err} elapsed={elapsed:.3f}s"
+                )
                 logger.error(
                     f"[PRIMARY_FAIL] stage={stage} active_model={attempt_model} "
                     f"error={primary_err} after {elapsed:.3f}s"
@@ -622,6 +690,7 @@ class QwenAnswerModel(BaseAnswerModel):
                     self._primary_status = "failed"
                     self._consecutive_primary_failures += 1
                     reason = f"inference_exception: {primary_err}"
+                    logger.warning(f"[GEMMA_FALLBACK_USED] stage={stage} reason={reason}")
                     if self._activate_fallback(reason=reason) and self._llm is not None:
                         t_retry = time.time()
                         try:
@@ -1118,6 +1187,43 @@ class QwenAnswerModel(BaseAnswerModel):
         except Exception as e:
             logger.error(f"[QWEN_GENERAL] Error formatting answer: {e}")
             return self._generate_fallback_general_response(prompt)
+
+    def generate_streaming_response(
+        self,
+        prompt: str,
+        system_instruction: Optional[str] = None,
+        max_tokens: int = 300,
+        temperature: float = 0.3,
+        top_p: float = 0.9,
+    ) -> Iterator[str]:
+        """Streams completion tokens one chunk at a time for interactive UI rendering."""
+        if self._llm is None and not self._activate_primary("lazy_stream"):
+            yield "Local AI model is currently unavailable."
+            return
+
+        messages = []
+        if system_instruction:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": prompt})
+
+        with self._lock:
+            try:
+                stream = self._llm.create_chat_completion(
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    stop=self._stop_tokens(),
+                    stream=True,
+                )
+                for chunk in stream:
+                    delta = chunk.get("choices", [{}])[0].get("delta", {})
+                    token_text = delta.get("content")
+                    if token_text:
+                        yield token_text
+            except Exception as e:
+                logger.error(f"[STREAM_ERROR] {e}")
+                yield f"\n[Generation error: {e}]"
 
     def _is_valid_natural_language(self, text: str) -> bool:
         """Validates that model output is genuine readable language, rejecting gibberish/symbol noise."""

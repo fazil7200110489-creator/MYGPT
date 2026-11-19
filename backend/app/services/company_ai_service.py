@@ -43,6 +43,7 @@ from backend.app.services.rag.department_rag import department_rag
 from backend.app.services.llm.answer_model_service import answer_model_service
 from backend.app.services.document_manager import document_manager
 from backend.app.services.document_parser import document_parser
+from backend.app.services.processing_progress_tracker import processing_progress_tracker
 from backend.app.services.excel import (
     excel_service, excel_aggregator, excel_column_export,
     excel_comparator, sprint_processor, format_inr, parse_decimal_safe, WorkbookType
@@ -332,6 +333,16 @@ class CompanyAIService:
         user_role = req.user_role or UserRoleEnum.EMPLOYEE
         user_id = req.user_id or "dev_user"
         message = req.message.strip()
+        task_id = req.task_id or f"task_{session_id}"
+        if task_id:
+            processing_progress_tracker.start_task(
+                task_id,
+                task_type="tender_consultant" if ("tender" in message.lower() or "bid" in message.lower() or "participate" in message.lower()) else "chat_qa",
+                session_id=session_id,
+                document_id=document_id,
+                initial_stage="understanding_question",
+                initial_message="Understanding your question...",
+            )
 
         # Reset Layer 1 / Layer 2 / General Response trace
         answer_model_service.reset_turn_trace()
@@ -456,15 +467,17 @@ class CompanyAIService:
         # Stage 1: Request Understanding & StructuredRequest Creation
         # ----------------------------------------------------------------
         is_upload_msg = bool(re.match(r"^Uploaded\s+", message, re.I))
-        if not is_context_relevant and not is_upload_msg:
+        if document_id:
+            # Explicit document provided: always bind active_doc to that exact document
+            active_doc = document_manager.get_document(document_id)
+            if active_doc and context_state:
+                conversation_context_manager.set_active_document(session_id, active_doc)
+        elif not is_context_relevant and not is_upload_msg:
             # Independent / unrelated queries must never inherit previous uploaded document context
-            # even if the frontend still passes activeDocId on the turn.
             active_doc = None
         else:
             active_doc = (
-                (effective_context.active_document if effective_context else None)
-                if not document_id
-                else (context_state.active_document if context_state else None)
+                effective_context.active_document if effective_context else None
             )
         active_doc_ext = (active_doc.get("extension") or "").lower() if isinstance(active_doc, dict) else ""
         active_doc_type = str(active_doc.get("document_type") or "").upper() if isinstance(active_doc, dict) else ""
@@ -547,6 +560,17 @@ class CompanyAIService:
                 source="fast_path" if not use_nlp else "deterministic_fallback"
             )
 
+        # Ensure active_document on structured_req is ALWAYS reliably populated with the active document
+        resolved_doc_ref = (
+            document_id
+            or (active_doc.get("id") or active_doc.get("document_id") if isinstance(active_doc, dict) else None)
+            or (active_doc if isinstance(active_doc, str) else None)
+        )
+        if structured_req is not None and not getattr(structured_req, "active_document", None) and resolved_doc_ref:
+            structured_req.active_document = resolved_doc_ref
+        if structured_req is not None:
+            structured_req.task_id = task_id
+
         # [CHAT TRACE] Marker 4 & Marker 5
         if use_nlp:
             l1_trace = answer_model_service.get_turn_trace()
@@ -611,6 +635,9 @@ class CompanyAIService:
         # ----------------------------------------------------------------
         # Stage 5: Record Turn & Context State
         # ----------------------------------------------------------------
+        sugg_qs = getattr(verified_res, "suggested_questions", []) or (
+            verified_res.structured_data.get("suggested_questions", []) if isinstance(verified_res.structured_data, dict) else []
+        )
         verified_company_res = CompanyAIResult(
             capability=cap_name,
             department=DepartmentEnum.GENERAL,
@@ -621,7 +648,9 @@ class CompanyAIService:
             structured_data=verified_res.structured_data,
             tool_results=verified_res.structured_data if isinstance(verified_res.structured_data, dict) else {},
             files=verified_res.files,
-            confidence=verified_res.confidence
+            confidence=verified_res.confidence,
+            suggested_questions=sugg_qs,
+            answer_type=verified_res.answer_type or "text",
         )
 
         conversation_context_manager.record_turn(
@@ -631,6 +660,7 @@ class CompanyAIService:
             answer=final_answer,
             structured_req=structured_req
         )
+        self._record_conversation(session_id, message, verified_company_res, final_answer)
         if context_state:
             context_state.capability = cap_name
             context_state.last_intent = op_name.lower()
@@ -666,6 +696,7 @@ class CompanyAIService:
             answer=final_answer,
             answer_type=verified_res.answer_type or "text",
             structured_data=verified_res.structured_data,
+            suggested_questions=sugg_qs,
             capability=cap_name,
             department="GENERAL",
             intent=op_name.lower(),
@@ -3450,7 +3481,10 @@ class CompanyAIService:
             "id": asst_msg_id,
             "sender": "assistant",
             "text": answer,
-            "department": result.department.value,
+            "answer_type": getattr(result, "answer_type", "text"),
+            "structured_data": getattr(result, "structured_data", None) or getattr(result, "tool_results", None),
+            "suggested_questions": getattr(result, "suggested_questions", []),
+            "department": result.department.value if result.department else "GENERAL",
             "intent": result.intent,
             "status": "success" if result.success else "error",
             "task": result.task,

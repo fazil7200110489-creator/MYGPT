@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Copy, Check, Download, FileSpreadsheet, Eye } from 'lucide-react'
+import { Copy, Check, Download, FileSpreadsheet, Eye, Sparkles, LayoutDashboard, ChevronDown, ChevronUp } from 'lucide-react'
 import { ComparisonCard } from './ComparisonCard'
 import { TenderExtractionCard } from './TenderExtractionCard'
+import { TenderIntelligenceCard } from './TenderIntelligenceCard'
 import { AnswerRenderer } from '../AnswerRenderer'
 
 export interface ChatMessageItemProps {
@@ -11,19 +12,23 @@ export interface ChatMessageItemProps {
     text: string
     answer_type?: string
     structured_data?: any
+    suggested_questions?: string[]
     files?: Array<{ file_id?: string; filename: string; type: string; size_kb?: number; data_base64?: string }>
     timestamp?: string
   }
   onDownloadFile?: (fileId: string, filename: string, dataBase64?: string) => void
   onInspectFile?: (fileId: string, filename: string) => void
+  onSelectSuggestion?: (question: string) => void
 }
 
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   message,
   onDownloadFile,
-  onInspectFile
+  onInspectFile,
+  onSelectSuggestion
 }) => {
   const [copied, setCopied] = useState(false)
+  const [showDetailedAnalysis, setShowDetailedAnalysis] = useState(false)
   const isUser = message.sender === 'user'
 
   const handleCopy = () => {
@@ -32,15 +37,58 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const hasTenderIntelligence = Boolean(message.structured_data?.tender_intelligence)
+
   const isTenderExtraction =
+    !hasTenderIntelligence &&
     message.answer_type === 'tender_extraction' &&
     Boolean(message.structured_data?.tender_extraction)
 
-  const isComparison = !isTenderExtraction && (
+  const isComparison = !hasTenderIntelligence && !isTenderExtraction && (
     message.answer_type === 'comparison' ||
     Boolean(message.structured_data?.total_differences) ||
     (message.text.includes('Differences Found') && message.text.includes('Price Difference'))
   )
+
+  const suggestions: string[] =
+    message.suggested_questions ||
+    message.structured_data?.suggested_questions ||
+    []
+
+  const sanitizedText = React.useMemo(() => {
+    if (!message.text) return ''
+    const trimmed = message.text.trim()
+    if (trimmed.startsWith('{') && trimmed.includes('}')) {
+      try {
+        const m = trimmed.match(/(\{[\s\S]*\})/)
+        if (m) {
+          const parsed = JSON.parse(m[1])
+          if (typeof parsed === 'object' && parsed !== null) {
+            const ans = parsed.answer || parsed.direct_answer || parsed.performance_security_requirement || parsed.pbg_requirement || parsed.response || parsed.summary || ''
+            const ev = parsed.tender_evidence || parsed.evidence || (Array.isArray(parsed.sources) ? parsed.sources.map((s: any) => `Page ${s.page_number || s}`).join(', ') : parsed.sources) || ''
+            const interp = parsed.consultant_interpretation || parsed.interpretation || parsed.implication || ''
+            const act = parsed.recommended_action || parsed.action || parsed.recommendation || ''
+
+            let ansText = ans
+            if (!ansText) {
+              const parts: string[] = []
+              for (const [k, v] of Object.entries(parsed)) {
+                if (!['sources', 'page', 'evidence', 'interpretation', 'action'].includes(k.toLowerCase())) {
+                  parts.push(`- **${k.replace(/_/g, ' ')}**: ${v}`)
+                }
+              }
+              ansText = parts.join('\n')
+            }
+
+            return `### 📌 Answer\n${ansText}\n\n### 📄 Tender Evidence\n${ev || 'Tender Document Clauses'}\n\n### 💡 Consultant Interpretation\n${interp || 'Bidders must verify compliance strictly against tender clauses to avoid pre-qualification disqualification.'}\n\n### 🎯 Recommended Action\n${act || 'Verify mandatory requirements and seek formal pre-bid clarification if needed.'}`
+          }
+        }
+      } catch {
+        // Fall back to original text
+      }
+    }
+    return message.text
+  }, [message.text])
 
   if (isUser) {
     return (
@@ -60,8 +108,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
       </div>
 
       {/* Assistant Content Canvas */}
-      <div className="flex-1 min-w-0 space-y-2 text-sm text-slate-800">
-        {/* Tender Extraction Card, Comparison Card, or Standard Markdown */}
+      <div className="flex-1 min-w-0 space-y-3 text-sm text-slate-800">
+        {/* Tender Extraction Card, Comparison Card, or Conversational Markdown */}
         {isTenderExtraction ? (
           <div>
             <TenderExtractionCard extraction={message.structured_data.tender_extraction} />
@@ -72,7 +120,52 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           </div>
         ) : (
           <div className="prose prose-sm prose-slate max-w-none">
-            <AnswerRenderer content={message.text} question="" />
+            <AnswerRenderer content={sanitizedText} question="" />
+          </div>
+        )}
+
+        {/* Optional Detailed Analysis Toggle for Tender Intelligence */}
+        {hasTenderIntelligence && (
+          <div className="pt-2">
+            <button
+              onClick={() => setShowDetailedAnalysis(prev => !prev)}
+              className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/80 px-3.5 py-1.5 text-xs font-semibold text-indigo-900 transition-all shadow-2xs"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{showDetailedAnalysis ? 'Hide Detailed Analysis' : '📊 View Detailed Tender Analysis (11 Dimensions)'}</span>
+              {showDetailedAnalysis ? (
+                <ChevronUp className="w-3.5 h-3.5 text-indigo-600" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5 text-indigo-600" />
+              )}
+            </button>
+
+            {showDetailedAnalysis && (
+              <div className="mt-3 p-2 rounded-xl border border-slate-200 bg-slate-50/50 shadow-inner">
+                <TenderIntelligenceCard report={message.structured_data.tender_intelligence} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Dynamic Suggested Questions */}
+        {suggestions.length > 0 && (
+          <div className="pt-3 border-t border-slate-100 mt-2 space-y-2">
+            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-blue-600" />
+              <span>Suggested Questions</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {suggestions.map((q, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => onSelectSuggestion && onSelectSuggestion(q)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-800 bg-blue-50/80 hover:bg-blue-100 hover:text-blue-950 border border-blue-200/90 rounded-full px-3 py-1.5 transition-all text-left shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                >
+                  <span>{q}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

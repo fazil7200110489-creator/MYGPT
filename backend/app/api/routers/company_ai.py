@@ -4,8 +4,11 @@ Provides endpoints for natural-language request routing, department metadata, an
 
 import re
 import time
+import json
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form, Query
+from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form, Query, Request
+from fastapi.responses import StreamingResponse
 from loguru import logger
 
 from backend.app.schemas.department import (
@@ -21,6 +24,7 @@ from backend.app.services.rag.department_rag import department_rag
 from backend.app.services.company_ai_service import company_ai_service
 from backend.app.services.document_manager import document_manager
 from backend.app.services.document_parser import document_parser
+from backend.app.services.processing_progress_tracker import processing_progress_tracker
 from backend.app.services.conversation_context_manager import conversation_context_manager
 from backend.app.services.excel.workbook_detector import workbook_detector
 from backend.app.services.excel.excel_aggregator import excel_aggregator
@@ -179,9 +183,15 @@ def _process_single_upload(
     user_id: str = "dev_user",
     department: Optional[str] = None,
     nas_path: Optional[str] = None,
+    task_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Internal helper to save, parse once (with hash caching), classify, and register an uploaded file."""
     t_save0 = time.perf_counter()
+    if task_id:
+        processing_progress_tracker.update_stage(
+            task_id, "receiving_document", f"Receiving tender document '{filename}'", status="completed", session_id=session_id
+        )
+
     # 1. Save document once without redundant pre-parse (we parse cleanly right below)
     doc_meta = document_manager.upload_document(filename, content_bytes, pre_parse=False)
     doc_id = doc_meta["id"]
@@ -189,6 +199,15 @@ def _process_single_upload(
     file_type = doc_meta["file_type"]
     file_hash = doc_meta.get("file_hash")
     save_ms = round((time.perf_counter() - t_save0) * 1000, 2)
+
+    if task_id:
+        mb_size = round(len(content_bytes) / (1024 * 1024), 2)
+        processing_progress_tracker.update_stage(
+            task_id, "upload_completed", f"Upload completed ({mb_size} MB)", status="completed", session_id=session_id, document_id=doc_id
+        )
+        processing_progress_tracker.update_stage(
+            task_id, "extracting_pdf", f"Extracting PDF content from '{filename}'...", status="running", session_id=session_id, document_id=doc_id
+        )
 
     # 2. Extract text + full per-page/sheet metadata via document_parser (single pass + cache)
     t_parse0 = time.perf_counter()
@@ -198,8 +217,20 @@ def _process_single_upload(
     try:
         parsed = document_parser.parse(filepath, file_hash=file_hash)
         extracted_text = parsed.get("text", "")
+        pages_count = parsed.get("total_pages") or len(parsed.get("pages") or [])
+        if task_id:
+            processing_progress_tracker.update_stage(
+                task_id, "extracting_pdf", f"Extracted content from '{filename}'", status="completed", session_id=session_id, document_id=doc_id
+            )
+            processing_progress_tracker.update_stage(
+                task_id, "reading_pages", f"Reading document pages and tables ({pages_count} pages extracted)", status="completed", session_id=session_id, document_id=doc_id
+            )
     except Exception as parse_err:
         parse_error = str(parse_err)
+        if task_id:
+            processing_progress_tracker.fail_task(
+                task_id, "extracting_pdf", f"Unable to extract the document content: {parse_err}", document_id=doc_id
+            )
         logger.warning(f"document_parser failed on {filename}: {parse_err}, attempting fallback")
         if file_type in [".txt", ".md", ".csv", ".json"] or file_type in {
             ".php", ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".cs",
@@ -465,23 +496,50 @@ async def upload_multiple_company_documents(
     user_id: str = Form("dev_user"),
     department: Optional[str] = Form(None),
     nas_path: Optional[str] = Form(None),
+    is_tender_package: bool = Form(False),
+    package_name: Optional[str] = Form(None),
+    task_id: Optional[str] = Form(None),
 ) -> Dict[str, Any]:
-    """Uploads multiple company documents simultaneously and registers all of them into active conversation context."""
+    """Uploads multiple company documents and registers them with strict document isolation."""
     try:
+        if task_id:
+            processing_progress_tracker.start_task(
+                task_id,
+                task_type="tender_upload",
+                session_id=session_id,
+                initial_stage="receiving_document",
+                initial_message=f"Receiving {len(files)} document(s)...",
+            )
         results = []
         for file in files:
             content_bytes = await file.read()
             fname = file.filename or "uploaded_file.bin"
-            res = _process_single_upload(fname, content_bytes, session_id, user_role, user_id, department, nas_path=nas_path)
+            res = _process_single_upload(
+                fname, content_bytes, session_id, user_role, user_id, department, nas_path=nas_path, task_id=task_id
+            )
             results.append(res)
 
         batch_ids = [r["doc_id"] for r in results if r.get("doc_id")]
-        state = conversation_context_manager.get_state(session_id)
+        db = document_manager._read_metadata()
+        batch_metas = [db[did] for did in batch_ids if did in db]
+
         if batch_ids:
-            state.active_document_ids = batch_ids
-            # If any file in the uploaded bundle is a tender document, promote session bundle type to TENDER
-            if any(r.get("document_type") == "TENDER" for r in results):
-                state.active_document_type = "TENDER"
+            if is_tender_package:
+                # User explicitly declared these files belong to the same tender package
+                conversation_context_manager.set_tender_package(
+                    session_id, batch_metas, package_name=package_name
+                )
+            else:
+                # Unrelated uploads: do not combine; isolate each document independently
+                last_doc = batch_metas[-1] if batch_metas else results[-1]
+                conversation_context_manager.set_active_document(
+                    session_id, last_doc, is_explicit_package=False
+                )
+
+        if task_id:
+            processing_progress_tracker.complete_task(
+                task_id, message=f"Successfully uploaded and indexed {len(results)} document(s)."
+            )
 
         return {
             "success": True,
@@ -489,10 +547,13 @@ async def upload_multiple_company_documents(
             "documents": results,
             "batch_document_ids": batch_ids,
             "session_id": session_id,
+            "task_id": task_id,
             "message": f"Successfully uploaded and indexed {len(results)} documents for session '{session_id}'."
         }
     except Exception as e:
         logger.error(f"Failed in upload-multiple: {e}")
+        if task_id:
+            processing_progress_tracker.fail_task(task_id, "upload_completed", f"Multiple upload failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Multiple upload failed: {str(e)}"
@@ -507,18 +568,91 @@ async def upload_company_document(
     user_id: str = Form("dev_user"),
     department: Optional[str] = Form(None),
     nas_path: Optional[str] = Form(None),
+    task_id: Optional[str] = Form(None),
 ) -> Dict[str, Any]:
     """Uploads a single company document and registers it in the active conversation context."""
     try:
+        if task_id:
+            processing_progress_tracker.start_task(
+                task_id,
+                task_type="tender_upload",
+                session_id=session_id,
+                initial_stage="receiving_document",
+                initial_message=f"Receiving {file.filename or 'document'}...",
+            )
         content_bytes = await file.read()
         filename = file.filename or "uploaded_file.bin"
-        return _process_single_upload(filename, content_bytes, session_id, user_role, user_id, department, nas_path=nas_path)
+        res = _process_single_upload(
+            filename, content_bytes, session_id, user_role, user_id, department, nas_path=nas_path, task_id=task_id
+        )
+        if task_id:
+            processing_progress_tracker.complete_task(
+                task_id, message=f"Uploaded and indexed {filename} successfully."
+            )
+        return res
     except Exception as e:
         logger.error(f"Failed to upload document: {e}")
+        if task_id:
+            processing_progress_tracker.fail_task(task_id, "upload_completed", f"Upload failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Upload processing failed: {str(e)}"
         )
+
+
+# =========================================================================
+# REAL-TIME TASK PROCESSING PROGRESS ENDPOINTS (SSE + SNAPSHOT)
+# =========================================================================
+
+@router.get("/tasks/{task_id}/events")
+async def stream_task_events(task_id: str, request: Request):
+    """Server-Sent Events (SSE) progress stream for real-time AI processing stages."""
+    async def event_generator():
+        async for event in processing_progress_tracker.subscribe(task_id, request):
+            if event.get("type") == "ping":
+                yield ": keepalive\n\n"
+            else:
+                yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.get("/tasks/{task_id}/status")
+async def get_task_status_endpoint(task_id: str) -> Dict[str, Any]:
+    """Returns a snapshot of the current processing status and completed stage history."""
+    status_data = processing_progress_tracker.get_task_status(task_id)
+    if not status_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task '{task_id}' not found or has expired.",
+        )
+    return status_data
+
+
+@router.get("/sessions/{session_id}/status")
+async def get_session_task_status_endpoint(session_id: str) -> Dict[str, Any]:
+    """Retrieves current processing progress for a session ID."""
+    tid = processing_progress_tracker._session_to_task.get(session_id)
+    if not tid:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No active task found for session '{session_id}'.",
+        )
+    status_data = processing_progress_tracker.get_task_status(tid)
+    if not status_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task for session '{session_id}' has expired.",
+        )
+    return status_data
 
 
 @router.post("/tender/extract")
@@ -549,6 +683,15 @@ async def extract_tender_fields(
         if not docs:
             raise HTTPException(status_code=404, detail="No uploaded tender documents found for extraction.")
 
+        from backend.app.services.tender_intelligence.document_validator import is_authentic_tender_document
+        is_tender, val_reason = is_authentic_tender_document(docs)
+        if not is_tender:
+            logger.warning(f"[EXTRACTION_ENDPOINT] Rejected non-tender document: {val_reason}")
+            raise HTTPException(
+                status_code=400,
+                detail="This document does not appear to be a tender document. Please upload a valid tender or bid document."
+            )
+
         eff_nas = nas_path or next((d.get("nas_path") for d in docs if d.get("nas_path")), None)
         result = tender_extractor.extract_from_documents(docs, nas_path=eff_nas, use_llm=use_llm)
         return {"success": True, "tender_extraction": result.model_dump()}
@@ -557,6 +700,91 @@ async def extract_tender_fields(
     except Exception as e:
         logger.error(f"Tender extraction endpoint error: {e}")
         raise HTTPException(status_code=500, detail=f"Tender extraction failed: {str(e)}")
+
+
+class TenderConsultantRequest(BaseModel):
+    document_ids: Optional[List[str]] = None
+    session_id: str = "default_session"
+    force_refresh: bool = False
+    is_tender_package: bool = False
+    package_name: Optional[str] = None
+
+
+@router.post("/tender/consultant")
+async def evaluate_tender_consultant_endpoint(
+    request: Optional[TenderConsultantRequest] = None,
+    document_ids: Optional[List[str]] = Query(None),
+    session_id: str = Query("default_session"),
+    force_refresh: bool = Query(False),
+    is_tender_package: bool = Query(False),
+) -> Dict[str, Any]:
+    """Generates a comprehensive AI Tender Consultant evaluation and bid strategy report with strict document isolation."""
+    try:
+        from backend.app.services.tender_intelligence import tender_intelligence_engine
+
+        eff_doc_ids = request.document_ids if (request and request.document_ids is not None) else document_ids
+        eff_session_id = request.session_id if request else session_id
+        eff_force_refresh = request.force_refresh if request else force_refresh
+        eff_is_pkg = request.is_tender_package if (request and hasattr(request, "is_tender_package")) else is_tender_package
+        eff_pkg_name = request.package_name if request else None
+
+        db = document_manager._read_metadata()
+        docs: List[Dict[str, Any]] = []
+        if eff_doc_ids:
+            for did in eff_doc_ids:
+                if did in db:
+                    docs.append(db[did])
+            # Strict isolation: Never combine unrelated documents automatically unless explicitly confirmed as a tender package
+            if len(docs) > 1 and not eff_is_pkg:
+                logger.warning(
+                    f"[DOCUMENT_ISOLATION] Multiple documents ({len(docs)}) requested without explicit package flag. "
+                    f"Isolating evaluation strictly to primary document '{docs[0].get('filename')}'."
+                )
+                docs = [docs[0]]
+        else:
+            state = conversation_context_manager.get_state(eff_session_id)
+            if getattr(state, "is_explicit_package", False) and state.active_document_ids:
+                for did in state.active_document_ids:
+                    if did in db:
+                        docs.append(db[did])
+            elif state.active_document_id and state.active_document_id in db:
+                docs.append(db[state.active_document_id])
+            elif state.active_document:
+                docs.append(state.active_document)
+
+        if not docs:
+            raise HTTPException(status_code=404, detail="No uploaded tender documents found for consultant evaluation.")
+
+        from backend.app.services.tender_intelligence.document_validator import is_authentic_tender_document
+        is_tender, val_reason = is_authentic_tender_document(docs)
+        if not is_tender:
+            logger.warning(f"[CONSULTANT_ENDPOINT] Rejected non-tender document: {val_reason}")
+            raise HTTPException(
+                status_code=400,
+                detail="This document does not appear to be a tender document. Please upload a valid tender or bid document."
+            )
+
+        report = tender_intelligence_engine.evaluate_tender(
+            docs, force_refresh=eff_force_refresh, is_multi_document_package=eff_is_pkg, package_name=eff_pkg_name
+        )
+        return {
+            "success": True,
+            "tender_intelligence": report.model_dump(),
+            "executive_summary": report.executive_summary_markdown,
+            "full_report_markdown": report.full_report_markdown,
+        }
+    except HTTPException:
+        raise
+    except ValueError as ve:
+        if "not appear to be a tender" in str(ve).lower():
+            raise HTTPException(
+                status_code=400,
+                detail="This document does not appear to be a tender document. Please upload a valid tender or bid document."
+            )
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        logger.error(f"Tender consultant endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=f"Tender consultant evaluation failed: {str(e)}")
 
 
 @router.get("/files/{file_id}/download")

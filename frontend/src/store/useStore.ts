@@ -64,7 +64,7 @@ interface AppState {
 }
 
 export const useStore = create<AppState>((set) => ({
-  activeTab: 'dashboard',
+  activeTab: 'chat',
   wsConnected: false,
   isTraining: false,
   stats: null,

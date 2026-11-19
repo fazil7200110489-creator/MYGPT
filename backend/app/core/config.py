@@ -54,6 +54,8 @@ class Settings:
     TENDER_JOB_DIR: str = os.environ.get("MYGPT_TENDER_JOB_DIR", os.path.join(DATA_DIR, "tender_jobs"))
     TENDER_JOB_TTL_SECONDS: int = int(os.environ.get("MYGPT_TENDER_JOB_TTL_SECONDS", "86400"))
     TENDER_MAX_UPLOAD_MB: int = int(os.environ.get("MYGPT_TENDER_MAX_UPLOAD_MB", "200"))
+    TENDER_STORAGE_MAX_MB: int = int(os.environ.get("MYGPT_TENDER_STORAGE_MAX_MB", "200"))
+    TENDER_STORAGE_MAX_DOCUMENTS: int = int(os.environ.get("MYGPT_TENDER_STORAGE_MAX_DOCUMENTS", "5"))
 
 
 settings = Settings()

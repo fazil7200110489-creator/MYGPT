@@ -27,8 +27,8 @@ interface Toast {
 export default function App() {
   const {
     activeTab, setActiveTab, wsConnected, setWsConnected,
-    isTraining, stats, updateStats, settings, updateSettings,
-    logs, addLog, losses, setLosses, valLosses, setValLosses
+    isTraining, stats, settings, updateSettings,
+    logs, losses, valLosses
   } = useStore()
 
   // Local component states
@@ -57,90 +57,20 @@ export default function App() {
     }, 4000)
   }
 
-  // 2. Poll Dashboard Stats and settings
-  const fetchStats = async () => {
-    try {
-      const info = await api.getDashboard()
-      updateStats(info)
-    } catch (err: any) {
-      console.error(err)
-    }
-  }
-
+  // 2. Initial static settings initialization
   const fetchSettings = async () => {
     try {
       const cfg = await api.getSettings()
-      updateSettings(cfg.settings)
+      if (cfg?.settings) {
+        updateSettings(cfg.settings)
+      }
     } catch (err: any) {
       console.error(err)
     }
   }
 
   useEffect(() => {
-    fetchStats()
-    fetchSettings()
-    const interval = setInterval(fetchStats, 30000) // Poll every 30s (was 3s — reduced to avoid interfering with chat)
-    return () => clearInterval(interval)
-  }, [])
-
-
-  // 3. WebSockets Training Stream handler
-  useEffect(() => {
-    let ws: WebSocket | null = null
-    const connectWS = () => {
-      if (ws) {
-        try {
-          ws.close()
-        } catch (e) {}
-      }
-      ws = new WebSocket('ws://127.0.0.1:8000/ws/training')
-      
-      ws.onopen = () => {
-        setWsConnected(true)
-        showToast('WebSocket connected to live training feed.', 'success')
-      }
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-          // Bulk update stats
-          updateStats({
-            is_training: data.is_training,
-            current_epoch: data.current_epoch,
-            current_step: data.current_step
-          })
-          
-          if (data.new_losses && data.new_losses.length > 0) {
-            // Append new losses dynamically using getState to avoid stale closure references
-            const currentLosses = useStore.getState().losses
-            setLosses([...currentLosses, ...data.new_losses])
-          }
-          if (data.val_losses) {
-            setValLosses(data.val_losses)
-          }
-          if (data.logs && data.logs.length > 0) {
-            data.logs.forEach((logLine: string) => addLog(logLine))
-          }
-        } catch (err) {
-          console.error('WS parse error:', err)
-        }
-      }
-
-      ws.onclose = () => {
-        setWsConnected(false)
-        // Retry after 5s
-        setTimeout(connectWS, 5000)
-      }
-
-      ws.onerror = () => {
-        setWsConnected(false)
-      }
-    }
-
-    connectWS()
-    return () => {
-      if (ws) ws.close()
-    }
+    setWsConnected(false)
   }, [])
 
   return (

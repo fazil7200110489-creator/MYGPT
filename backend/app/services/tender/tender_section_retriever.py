@@ -23,6 +23,7 @@ class PageRecord:
     file_type: str
     page_number: int
     text: str
+    file_hash: Optional[str] = None
     sheet_name: Optional[str] = None
     extraction_method: str = "text"
     ocr_confidence: Optional[float] = None
@@ -69,12 +70,13 @@ SUMMARY_ELIGIBILITY_KEYWORDS = [
 
 
 def collect_page_records(documents: List[Dict[str, Any]]) -> List[PageRecord]:
-    """Converts uploaded document metadata records into ordered PageRecord slices."""
+    """Converts uploaded document metadata records into ordered PageRecord slices with strict document isolation."""
     records: List[PageRecord] = []
     for doc in documents:
-        doc_id = str(doc.get("document_id") or "")
+        doc_id = str(doc.get("document_id") or doc.get("id") or doc.get("doc_id") or "")
         filename = str(doc.get("filename") or doc.get("original_filename") or "uploaded_document")
         file_type = str(doc.get("extension") or doc.get("file_type") or "").lower()
+        file_hash = str(doc.get("file_hash") or "")
         pages = doc.get("pages") or []
 
         if not pages and doc.get("extracted_text"):
@@ -93,6 +95,7 @@ def collect_page_records(documents: List[Dict[str, Any]]) -> List[PageRecord]:
                             file_type=file_type,
                             page_number=p_num,
                             text=p_txt,
+                            file_hash=file_hash,
                         )
                     )
                     idx += 2
@@ -104,6 +107,7 @@ def collect_page_records(documents: List[Dict[str, Any]]) -> List[PageRecord]:
                         file_type=file_type,
                         page_number=1,
                         text=raw_text,
+                        file_hash=file_hash,
                     )
                 )
             continue
@@ -120,6 +124,7 @@ def collect_page_records(documents: List[Dict[str, Any]]) -> List[PageRecord]:
                     file_type=file_type,
                     page_number=p_num,
                     text=p_text,
+                    file_hash=file_hash,
                     sheet_name=sheet_name,
                     extraction_method=method,
                     ocr_confidence=p.get("ocr_confidence"),
@@ -165,23 +170,38 @@ FIELD_SPECIFIC_KEYWORDS: Dict[str, List[str]] = {
 
 
 def compute_bundle_signature(documents: List[Dict[str, Any]]) -> str:
-    """Stable SHA-256 signature over a bundle of documents (file hashes + text lengths + names)."""
-    h = hashlib.sha256()
-    for doc in documents:
-        doc_hash = str(doc.get("file_hash") or "")
-        fname = str(doc.get("filename") or doc.get("original_filename") or "")
-        doc_id = str(doc.get("document_id") or "")
-        if doc_hash:
-            part = f"{fname}|{doc_hash}"
-        else:
-            pages = doc.get("pages") or []
+    """Stable SHA-256 content signature over a bundle of documents based strictly on SHA-256 content hashes.
+    
+    Guarantees:
+    1. Two different PDFs (even with identical filenames) produce different signatures.
+    2. The exact same PDF uploaded again produces the identical signature for safe cache reuse.
+    3. Multi-document packages produce deterministic signatures regardless of document list order.
+    """
+    import os
+
+    def _ensure_doc_hash(d: Dict[str, Any]) -> str:
+        dh = str(d.get("file_hash") or "").strip()
+        if not dh and d.get("file_path") and os.path.exists(str(d["file_path"])):
+            try:
+                with open(str(d["file_path"]), "rb") as f:
+                    dh = hashlib.sha256(f.read()).hexdigest()
+                d["file_hash"] = dh
+            except Exception:
+                pass
+        if not dh:
+            pages = d.get("pages") or []
             p_text_concat = "\n".join(str(p.get("text") or "") for p in pages)
             if not p_text_concat:
-                p_text_concat = str(doc.get("extracted_text") or "")
-            t_digest = hashlib.sha256(p_text_concat.encode("utf-8", errors="ignore")).hexdigest()[:16]
-            part = f"{fname}|{doc_id}|{len(pages)}:{t_digest}"
-        h.update(part.encode("utf-8", errors="ignore"))
-        h.update(b"\n")
+                p_text_concat = str(d.get("extracted_text") or "")
+            dh = hashlib.sha256(p_text_concat.encode("utf-8", errors="ignore")).hexdigest()
+            d["file_hash"] = dh
+        return dh
+
+    h = hashlib.sha256()
+    # Sort hashes to ensure deterministic bundle signature regardless of input list order
+    sorted_hashes = sorted([_ensure_doc_hash(d) for d in documents if isinstance(d, dict)])
+    for dh in sorted_hashes:
+        h.update(f"content_sha256:{dh}\n".encode("utf-8"))
     return h.hexdigest()
 
 
@@ -220,7 +240,7 @@ class TenderDocumentIndex:
         self,
         keywords: List[str],
         candidate_indices: Optional[List[int]] = None,
-        max_chars: int = 1600,
+        max_chars: int = 4500,
         max_lines_per_page: int = 10,
     ) -> str:
         """Extracts high-signal lines (+1 neighbor line) across indexed pages without blind slicing."""

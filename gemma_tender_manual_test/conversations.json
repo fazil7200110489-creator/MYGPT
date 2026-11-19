@@ -1,0 +1,444 @@
+{
+  "active_id": "7151807d",
+  "conversations": {
+    "1e9d91d0": {
+      "id": "1e9d91d0",
+      "title": "What is the EMD (Earnest Money Depo...",
+      "created_at": 1794568027.0245893,
+      "doc_id": "68e78b4f",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the EMD (Earnest Money Deposit) amount?",
+          "timestamp": 1794568027.0298753,
+          "doc_id": "68e78b4f"
+        },
+        {
+          "role": "assistant",
+          "content": "\n[Error: Generation error: Requested tokens (3140) exceed context window of 3072]",
+          "timestamp": 1794568027.083298,
+          "performance": {}
+        }
+      ]
+    },
+    "5b61d262": {
+      "id": "5b61d262",
+      "title": "What is the EMD amount?",
+      "created_at": 1794568044.0624833,
+      "doc_id": "68e78b4f",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the EMD amount?",
+          "timestamp": 1794568044.066904,
+          "doc_id": "68e78b4f"
+        },
+        {
+          "role": "assistant",
+          "content": "\n[Error: Generation error: Requested tokens (3134) exceed context window of 3072]",
+          "timestamp": 1794568044.1140587,
+          "performance": {}
+        }
+      ]
+    },
+    "9fc31977": {
+      "id": "9fc31977",
+      "title": "What is the EMD (Earnest Money Depo...",
+      "created_at": 1794568140.5614767,
+      "doc_id": "c6d537c6",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the EMD (Earnest Money Deposit) amount and payment details?",
+          "timestamp": 1794568140.5651293,
+          "doc_id": "c6d537c6"
+        },
+        {
+          "role": "assistant",
+          "content": "- Extracted Value: multiple syslog server for remote logging\n- Status: FOUND\n- PDF Page: 6\n- Supporting Evidence: The proposed solution should support multiple syslog server for remote logging\n- Explanation: This is a requirement listed in the table and the main text of the excerpt.",
+          "timestamp": 1794568376.9145687,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 2475,
+            "completion_tokens": 59,
+            "ttft_seconds": 208.85,
+            "generation_time_seconds": 16.682,
+            "total_time_seconds": 225.532,
+            "tokens_per_second": 3.54,
+            "process_ram_mb": 2837.55,
+            "cpu_percent": 225.3,
+            "pdf_prep_time_seconds": 12.714,
+            "chunks_processed": 2,
+            "referenced_pages": [
+              6,
+              13
+            ],
+            "referenced_chunks": [
+              4,
+              10
+            ]
+          }
+        }
+      ]
+    },
+    "6177820c": {
+      "id": "6177820c",
+      "title": "What is the EMD (Earnest Money Depo...",
+      "created_at": 1794568715.5967155,
+      "doc_id": "265f816f",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the EMD (Earnest Money Deposit) amount and payment details?",
+          "timestamp": 1794568715.6022801,
+          "doc_id": "265f816f"
+        },
+        {
+          "role": "assistant",
+          "content": "- Extracted Value: Rs. 5,00,000/- (Rupees Five Lakh only)\n- Status: FOUND\n- PDF Page: 15\n- Supporting Evidence: An EMD/Bid Security of Rs. 5,00,000/- (Rupees Five Lakh only) shall be paid through RTGS/NEFT. A scanned copy of the payment proof shall be uploaded along with the tender documents.\n- Explanation: The document specifies the amount of the EMD/Bid Security and the method of payment (RTGS/NEFT). The bank details for payment are provided separately.",
+          "timestamp": 1794568938.8951354,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 2146,
+            "completion_tokens": 131,
+            "ttft_seconds": 191.67,
+            "generation_time_seconds": 31.532,
+            "total_time_seconds": 223.202,
+            "tokens_per_second": 4.15,
+            "process_ram_mb": 2841.41,
+            "cpu_percent": 211.4,
+            "pdf_prep_time_seconds": 20.423,
+            "chunks_processed": 2,
+            "referenced_pages": [
+              15,
+              20
+            ],
+            "referenced_chunks": [
+              12,
+              15
+            ]
+          }
+        }
+      ]
+    },
+    "e2724f51": {
+      "id": "e2724f51",
+      "title": "Extract all 20 required tender fiel...",
+      "created_at": 1794569083.9835913,
+      "doc_id": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Extract all 20 required tender fields with page numbers and quotations.",
+          "timestamp": 1794569083.9836059,
+          "doc_id": null
+        },
+        {
+          "role": "assistant",
+          "content": "As an expert AI assistant specializing in tender documents, procurement contracts, and document comprehension, I understand your request.\n\n**To fulfill your request, I need the tender document(s) you are referring to.**\n\nPlease provide the document(s) so I can accurately extract the 20 required tender fields, along with their corresponding page numbers and exact quotations.\n\nOnce you provide the document(s), I will process the information and provide you with a clear, structured extraction in the following format:\n\n| Field No. | Tender Field Description | Page Number | Quotation |\n| :---: | :--- | :---: | :--- |\n| 1 | [Description of Field 1] | [Page X] | \"[Exact text extracted]\" |\n| 2 | [Description of Field 2] | [Page Y] | \"[Exact text extracted]\" |\n| ... | ... | ... | ... |\n| 20 | [Description of Field 20] | [Page Z] | \"[Exact text extracted]\" |\n\n**I look forward to receiving your document(s)!**",
+          "timestamp": 1794569149.1437917,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 73,
+            "completion_tokens": 230,
+            "ttft_seconds": 4.112,
+            "generation_time_seconds": 61.038,
+            "total_time_seconds": 65.15,
+            "tokens_per_second": 3.77,
+            "process_ram_mb": 2840.86,
+            "cpu_percent": 211.6,
+            "pdf_prep_time_seconds": 0.0,
+            "chunks_processed": 0,
+            "referenced_pages": [],
+            "referenced_chunks": []
+          }
+        },
+        {
+          "role": "user",
+          "content": "Extract all 20 required tender fields with exact values, page numbers, and quotations",
+          "timestamp": 1794569153.5340865,
+          "doc_id": "78d21ae2"
+        },
+        {
+          "role": "assistant",
+          "content": "[Error: Gemma produced no response. The selected page excerpt contained no extractable text.]",
+          "timestamp": 1794569341.0703654,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 2530,
+            "completion_tokens": 0,
+            "ttft_seconds": 187.518,
+            "generation_time_seconds": 187.518,
+            "total_time_seconds": 187.518,
+            "tokens_per_second": 0.0,
+            "process_ram_mb": 2849.89,
+            "cpu_percent": 222.9,
+            "pdf_prep_time_seconds": 18.399,
+            "chunks_processed": 3,
+            "referenced_pages": [
+              1,
+              2,
+              3
+            ],
+            "referenced_chunks": [
+              1,
+              2,
+              3
+            ]
+          }
+        }
+      ]
+    },
+    "25467e2a": {
+      "id": "25467e2a",
+      "title": "New Tender Chat",
+      "created_at": 1794569528.9150527,
+      "doc_id": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Extract all 20 required tender fields with exact values, page numbers, and quotations.",
+          "timestamp": 1794569530.430684,
+          "doc_id": "db80c1b9"
+        },
+        {
+          "role": "assistant",
+          "content": "[Error: Gemma produced no response. The selected page excerpt contained no extractable text.]",
+          "timestamp": 1794569530.4583755,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 595,
+            "completion_tokens": 0,
+            "ttft_seconds": 0.007,
+            "generation_time_seconds": 0.007,
+            "total_time_seconds": 0.007,
+            "tokens_per_second": 0.0,
+            "process_ram_mb": 2860.0,
+            "cpu_percent": 0.0,
+            "pdf_prep_time_seconds": 0.141,
+            "chunks_processed": 1,
+            "referenced_pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24
+            ],
+            "referenced_chunks": [
+              1
+            ]
+          }
+        },
+        {
+          "role": "user",
+          "content": "extract he emd value frm the file",
+          "timestamp": 1794569650.880918,
+          "doc_id": "db80c1b9"
+        },
+        {
+          "role": "assistant",
+          "content": "[Error: Gemma produced no response. The selected page excerpt contained no extractable text.]",
+          "timestamp": 1794569650.909651,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 595,
+            "completion_tokens": 0,
+            "ttft_seconds": 0.007,
+            "generation_time_seconds": 0.007,
+            "total_time_seconds": 0.007,
+            "tokens_per_second": 0.0,
+            "process_ram_mb": 2863.63,
+            "cpu_percent": 149.3,
+            "pdf_prep_time_seconds": 0.141,
+            "chunks_processed": 1,
+            "referenced_pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24
+            ],
+            "referenced_chunks": [
+              1
+            ]
+          }
+        },
+        {
+          "role": "user",
+          "content": "Extract all 20 required tender fields with exact values, page numbers, and quotations.",
+          "timestamp": 1794569694.4959862,
+          "doc_id": "b4a9efef"
+        },
+        {
+          "role": "assistant",
+          "content": "[Error: Gemma produced no response. The selected page excerpt contained no extractable text.]",
+          "timestamp": 1794569710.763191,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 628,
+            "completion_tokens": 0,
+            "ttft_seconds": 16.253,
+            "generation_time_seconds": 16.253,
+            "total_time_seconds": 16.253,
+            "tokens_per_second": 0.0,
+            "process_ram_mb": 2859.07,
+            "cpu_percent": 312.1,
+            "pdf_prep_time_seconds": 6.38,
+            "chunks_processed": 1,
+            "referenced_pages": [
+              33
+            ],
+            "referenced_chunks": [
+              26
+            ]
+          }
+        }
+      ]
+    },
+    "95f7ce31": {
+      "id": "95f7ce31",
+      "title": "What is the EMD (Earnest Money Depo...",
+      "created_at": 1794571558.5455432,
+      "doc_id": "d09f4d06",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the EMD (Earnest Money Deposit) amount and payment details?",
+          "timestamp": 1794571558.547438,
+          "doc_id": "d09f4d06"
+        }
+      ]
+    },
+    "f38c8ce9": {
+      "id": "f38c8ce9",
+      "title": "Extract all 20 required tender fiel...",
+      "created_at": 1794571641.4291775,
+      "doc_id": "eebf65b2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Extract all 20 required tender fields with exact values, page numbers, and quotations.",
+          "timestamp": 1794571641.4292808,
+          "doc_id": "eebf65b2"
+        }
+      ]
+    },
+    "8ee09a17": {
+      "id": "8ee09a17",
+      "title": "What is the EMD (Earnest Money Depo...",
+      "created_at": 1794571804.6749575,
+      "doc_id": "7d11334e",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the EMD (Earnest Money Deposit) amount and payment details?",
+          "timestamp": 1794571804.6776834,
+          "doc_id": "7d11334e"
+        },
+        {
+          "role": "assistant",
+          "content": "- Extracted Value: Rs. 5,00,000/- (Rupees Five Lakh only)\n- Status: FOUND\n- PDF Page: 15\n- Supporting Evidence: An EMD/Bid Security of Rs. 5,00,000/- (Rupees Five Lakh only) shall be paid through RTGS/NEFT.\n- Explanation: The amount of the EMD/Bid Security is clearly stated. The payment method is specified as RTGS/NEFT. The bank details for payment are provided immediately following the mention of the",
+          "timestamp": 1794571913.5117576,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 969,
+            "completion_tokens": 120,
+            "ttft_seconds": 62.666,
+            "generation_time_seconds": 46.139,
+            "total_time_seconds": 108.805,
+            "tokens_per_second": 2.6,
+            "process_ram_mb": 2836.38,
+            "cpu_percent": 176.0,
+            "pdf_prep_time_seconds": 17.069,
+            "chunks_processed": 1,
+            "referenced_pages": [
+              15
+            ],
+            "referenced_chunks": [
+              12
+            ]
+          }
+        }
+      ]
+    },
+    "cd70b204": {
+      "id": "cd70b204",
+      "title": "Extract all 20 required tender fiel...",
+      "created_at": 1794572396.6845994,
+      "doc_id": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Extract all 20 required tender fields with page numbers and quotations.",
+          "timestamp": 1794572396.6846175,
+          "doc_id": null
+        },
+        {
+          "role": "assistant",
+          "content": "As an expert AI assistant specializing in tender documents, procurement contracts, and document comprehension, I understand your request.\n\n**To fulfill your request, I need the tender document(s) you are referring to.**\n\nPlease provide the document(s) so I can accurately extract the 20 required tender fields, along with their corresponding page numbers and exact quotations.\n\nOnce you provide the document(s), I will process the information and provide you with a clear, structured extraction in the following format:\n\n| Field No. | Tender Field Description | Page Number | Quotation |\n| :---: | :--- | :---: | :--- |\n| 1 | [Description of Field 1] | [Page X] | \"[Exact text extracted]\" |\n| 2 | [Description of Field 2] | [Page Y] | \"[Exact text extracted]\" |\n| ... | ... | ... | ... |\n| 20 | [Description of Field 20] | [Page Z] | \"[Exact text extracted]\" |\n\n**I look forward to receiving your document(s)!**",
+          "timestamp": 1794572483.3837707,
+          "performance": {
+            "type": "metrics",
+            "prompt_tokens": 73,
+            "completion_tokens": 230,
+            "ttft_seconds": 4.266,
+            "generation_time_seconds": 82.408,
+            "total_time_seconds": 86.674,
+            "tokens_per_second": 2.79,
+            "process_ram_mb": 2842.22,
+            "cpu_percent": 142.8,
+            "pdf_prep_time_seconds": 0.0,
+            "chunks_processed": 0,
+            "referenced_pages": [],
+            "referenced_chunks": []
+          }
+        }
+      ]
+    },
+    "7151807d": {
+      "id": "7151807d",
+      "title": "New Tender Chat",
+      "created_at": 1794572396.7349353,
+      "doc_id": null,
+      "messages": []
+    }
+  }
+}

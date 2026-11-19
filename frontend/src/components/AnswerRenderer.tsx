@@ -15,7 +15,39 @@ export interface AnswerRendererProps {
 
 export function AnswerRenderer({ content, question, metadata }: AnswerRendererProps) {
   const q = question.toLowerCase().trim()
-  const c = content.trim()
+  let c = (content || '').trim()
+
+  // Guard against raw JSON or serialized objects
+  if (c.startsWith('{') && c.includes('}')) {
+    try {
+      const jsonMatch = c.match(/(\{[\s\S]*\})/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[1])
+        if (typeof parsed === 'object' && parsed !== null) {
+          const ans = parsed.answer || parsed.direct_answer || parsed.performance_security_requirement || parsed.pbg_requirement || parsed.response || parsed.summary || ''
+          const ev = parsed.tender_evidence || parsed.evidence || (Array.isArray(parsed.sources) ? parsed.sources.map((s: any) => `Page ${s.page_number || s}`).join(', ') : parsed.sources) || ''
+          const interp = parsed.consultant_interpretation || parsed.interpretation || parsed.implication || ''
+          const act = parsed.recommended_action || parsed.action || parsed.recommendation || ''
+
+          let ansText = ans
+          if (!ansText) {
+            const parts: string[] = []
+            for (const [k, v] of Object.entries(parsed)) {
+              if (!['sources', 'page', 'evidence', 'interpretation', 'action'].includes(k.toLowerCase())) {
+                parts.push(`- **${k.replace(/_/g, ' ')}**: ${v}`)
+              }
+            }
+            ansText = parts.join('\n')
+          }
+
+          c = `### 📌 Answer\n${ansText}\n\n### 📄 Tender Evidence\n${ev || 'Tender Document Clauses'}\n\n### 💡 Consultant Interpretation\n${interp || 'Bidders must verify compliance strictly against tender clauses to avoid pre-qualification disqualification.'}\n\n### 🎯 Recommended Action\n${act || 'Verify mandatory requirements and seek formal pre-bid clarification if needed.'}`
+        }
+      }
+    } catch {
+      // Not JSON, continue with normal text
+    }
+  }
+
   const lowerContent = c.toLowerCase()
 
   // 1. Role Suitability / Role Match Card
@@ -339,33 +371,55 @@ export function AnswerRenderer({ content, question, metadata }: AnswerRendererPr
     )
   }
 
+  const renderFormattedInline = (str: string) => {
+    const parts = str.split(/(\*\*[^*]+\*\*)/g)
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={i} className="font-bold text-slate-900">
+            {part.slice(2, -2)}
+          </strong>
+        )
+      }
+      return part
+    })
+  }
+
   return (
     <div className="flex flex-col gap-2 my-1 text-xs text-slate-800 font-medium leading-relaxed">
       {rawLines.map((line, idx) => {
         if (line.startsWith('### ') || line.startsWith('#### ') || line.startsWith('## ')) {
           const headingText = line.replace(/^#+\s*/, '')
           return (
-            <h3 key={idx} className="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-200 pb-1 mt-1 mb-0.5 flex items-center gap-1.5 text-purple-900">
+            <h3 key={idx} className="font-extrabold text-blue-900 text-xs uppercase tracking-wider border-b border-slate-200 pb-1 mt-1 mb-0.5 flex items-center gap-1.5">
               {headingText}
             </h3>
           )
         }
 
         const isBullet = line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || /^\d+[\.\)]/.test(line)
-        const cleanLine = line.replace(/^[•\-\*\d\.\)\s]+/, '').replace(/\*\*/g, '').trim()
 
         if (isBullet) {
+          const bulletContent = line.replace(/^[•\-\*\d\.\)\s]+/, '').trim()
           return (
             <div key={idx} className="flex items-start gap-2 text-xs font-medium text-slate-800 leading-relaxed pl-1">
-              <span className="text-purple-600 font-bold">•</span>
-              <span>{cleanLine}</span>
+              <span className="text-blue-600 font-bold">•</span>
+              <span>{renderFormattedInline(bulletContent)}</span>
+            </div>
+          )
+        }
+
+        if (line.startsWith('> ')) {
+          return (
+            <div key={idx} className="pl-3 py-1 my-1 border-l-2 border-blue-400 bg-blue-50/50 rounded-r text-xs text-slate-700 italic">
+              {renderFormattedInline(line.replace(/^>\s*/, ''))}
             </div>
           )
         }
 
         return (
           <p key={idx} className="text-xs font-medium text-slate-800 leading-relaxed">
-            {line.replace(/\*\*/g, '')}
+            {renderFormattedInline(line)}
           </p>
         )
       })}

@@ -1,0 +1,561 @@
+{
+  "NITK_Desktop_41p": {
+    "total_pages": 41,
+    "anchors": {
+      "bid_title": "NOT_FOUND",
+      "authority": "DEPARTMENT OF MECHANICAL ENGINEERING",
+      "tender_id": "NITK/DPD/OH35-MECH/2024-25/A9-4",
+      "estimated_value": "\u20b9 47,25,000.00 (Including GST)",
+      "emd_value": "Rs. 94,500.00",
+      "submission_deadline": "13/03/2025",
+      "category": "IT & Software Services",
+      "state": "Karnataka"
+    },
+    "overview": {
+      "tender_title": "High End Desktop",
+      "tender_reference_number": "NITK/DPD/OH35-MECH/2024-25/A9-4",
+      "department_organization": "Department of Mechanical Engineering",
+      "sub_department_consignee": null,
+      "tender_inviting_authority": "Department of Mechanical Engineering",
+      "end_user_beneficiary": null,
+      "tender_publishing_date": null,
+      "bid_submission_deadline": null,
+      "bid_opening_date": null,
+      "estimated_project_value": "\u20b9 47,25,000.00 (Including GST)",
+      "emd_value": null,
+      "tender_fee": "Nil / Free (No tender fee required)",
+      "delivery_implementation_period": "NOT FOUND",
+      "contract_duration": "NOT FOUND",
+      "warranty_maintenance_period": "5-Years Comprehensive Onsite Warranty"
+    },
+    "eligibility": {
+      "annual_turnover": "Turnover must be 30% of the estimated cost",
+      "average_turnover": "Turnover must be 30% of the estimated cost",
+      "main_bidder_turnover": "Turnover must be 30% of the estimated cost",
+      "oem_turnover": "NOT FOUND",
+      "similar_work_experience": "NOT FOUND",
+      "minimum_project_value": "NOT FOUND",
+      "completed_projects_count": "As per tender qualification schedule",
+      "oem_authorization_mandatory": false,
+      "conditions_count": 2,
+      "top_conditions": [
+        {
+          "cat": "Statutory Compliance",
+          "dept_req": "Valid GSTIN and PAN registration",
+          "verbatim": "Copy of GST Registration and PAN Card required",
+          "role": "Main Bidder",
+          "page": 1
+        },
+        {
+          "cat": "Annual Turnover",
+          "dept_req": "Turnover must be 30% of the estimated cost",
+          "verbatim": "g A/c for the last 3 years should be enclosed and the turnover must be 30% of the estimated cost. k)",
+          "role": "Main Bidder",
+          "page": 6
+        }
+      ]
+    },
+    "specs_and_scope": {
+      "specs_count": 52,
+      "subsystems_count": 13,
+      "sample_specs": [
+        {
+          "item": "NameofGoods",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "HighEndDesktop",
+          "page": 1
+        },
+        {
+          "item": "TheestimatedamountputtoTender",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "\u20b9472500000(IncludingGST)(ReferSection1B37) , , . ,",
+          "page": 1
+        },
+        {
+          "item": "EMDAmount(2%ofestimatedamount)",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "Rs 9450000 . , .",
+          "page": 1
+        },
+        {
+          "item": "TimeforSupplyofitem",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "Onemonth",
+          "page": 1
+        }
+      ],
+      "scope_items_count": 4,
+      "sample_scope": [
+        {
+          "area": "Hardware Supply & Delivery",
+          "desc": "High End Desktop",
+          "page": 1
+        },
+        {
+          "area": "Installation & Commissioning",
+          "desc": "of successful installation and commissioning. The OEMs/Authorized Distributors a",
+          "page": 9
+        },
+        {
+          "area": "Software, Licenses & Integration",
+          "desc": "b) License certificate for manufacture /supply of the item &Factory license",
+          "page": 6
+        },
+        {
+          "area": "Warranty, Maintenance & SLA",
+          "desc": "14. Warranty/Guarantee & On-site skill support: On-site comprehensive warranty w",
+          "page": 9
+        }
+      ]
+    },
+    "commercial_and_legal": {
+      "estimated_value": "\u20b9 47,25,000.00 (Including GST)",
+      "emd_amount": null,
+      "emd_amount_and_mode": "Rs. 94,500.00",
+      "pbg": "Performance Security amounting to 3%of the purchase order value in favor of \"The Director, NITK Surathkal\"",
+      "security_deposit": "Performance Security amounting to 3%of the purchase order value in favor of \"The Director, NITK Surathkal\"",
+      "payment_terms": "Payment within 30 days from the date of delivery,installation andacceptance certificate of concerned Department/Section/Purchase Section",
+      "advance_payment_allowed": "No advance payment will be made",
+      "liquidated_damages": "Liquidated Damages for the delay, unless covered under Force Majeure conditions aforesaid, @ 1% per week or part of the week of the delayed period as pre-estimated damages not exceeding 5% of the contract value without any controversy/dispute of any sort whatsoever",
+      "delivery_obligations": "Time for Supply of item One month Date, Time& Venue of Pre-Bid Conference (Refer Section 1 B, Clause No",
+      "contract_duration": "NOT FOUND",
+      "delay_penalties": "Liquidated Damages for the delay, unless covered under Force Majeure conditions aforesaid, @ 1% per week or part of the week of the delayed period as pre-estimated damages not exceeding 5% of the contract value without any controversy/dispute of any sort whatsoever"
+    }
+  },
+  "Women_Safety_CCTV_170p": {
+    "total_pages": 170,
+    "anchors": {
+      "bid_title": "NOT_FOUND",
+      "authority": "control room operators, supervisory officers and technical support staff",
+      "tender_id": "Rc. No. L1/MPF/PTB/10916/2026 dt.09.10.2026 Office of the Deputy Inspector General of Police, Technical Services, DGP Office complex, Kamarajar Salai, Chennai-600 004",
+      "estimated_value": "NOT_FOUND",
+      "emd_value": "Rs.70,00,000/- (Seventy Lakhs only)",
+      "submission_deadline": "NOT_FOUND",
+      "category": "IT / Security & CCTV Surveillance",
+      "state": "Tamil Nadu"
+    },
+    "overview": {
+      "tender_title": "INTEGRATED CCTV SURVEILLANCE SOLUTION ACROSS STRATEGIC LOCATIONS FOR CHENNAI, TAMBARAM, AVADI, MADURAI, TRICHY & COIMBAORE CITIES FOR WOMEN SAFETY",
+      "tender_reference_number": "Rc. No. L1/MPF/PTB/10916/2026 dt.09.10.2026 Office of the Deputy Inspector General of Police, Technical Services, DGP Office complex, Kamarajar Salai, Chennai-600 004",
+      "department_organization": "Office of the Deputy Inspector General of Police, Technical Services, DGP Office complex, Kamarajar salai",
+      "sub_department_consignee": null,
+      "tender_inviting_authority": "the Deputy Inspector General of Police, Technical Services",
+      "end_user_beneficiary": null,
+      "tender_publishing_date": null,
+      "bid_submission_deadline": null,
+      "bid_opening_date": null,
+      "estimated_project_value": "NOT_FOUND",
+      "emd_value": "Rs. 70,00,000",
+      "tender_fee": null,
+      "delivery_implementation_period": "NOT FOUND",
+      "contract_duration": "NOT FOUND",
+      "warranty_maintenance_period": "3 years onsite warranty"
+    },
+    "eligibility": {
+      "annual_turnover": "Minimum Annual Average Turnover of the bidders should not be less than Rs.60.00 Crs.",
+      "average_turnover": "Minimum Annual Average Turnover of the bidders should not be less than Rs.60.00 Crs.",
+      "main_bidder_turnover": "Minimum Annual Average Turnover of the bidders should not be less than Rs.60.00 Crs.",
+      "oem_turnover": "NOT FOUND",
+      "similar_work_experience": "NOT FOUND",
+      "minimum_project_value": "NOT FOUND",
+      "completed_projects_count": "As per tender qualification schedule",
+      "oem_authorization_mandatory": true,
+      "conditions_count": 5,
+      "top_conditions": [
+        {
+          "cat": "Statutory Compliance",
+          "dept_req": "Valid GSTIN and PAN registration",
+          "verbatim": "Copy of GST Registration and PAN Card required",
+          "role": "Main Bidder",
+          "page": 2
+        },
+        {
+          "cat": "Average Annual Turnover",
+          "dept_req": "Minimum Annual Average Turnover of the bidders should not be less than Rs.60.00 Crs.",
+          "verbatim": "(ii) Copy of PAN card available in the name of the company or authorized taxpaying authorities. 3. T",
+          "role": "Main Bidder",
+          "page": 10
+        },
+        {
+          "cat": "Consortium / Joint Venture",
+          "dept_req": "Consortium of Bidder Consortium is Not allowed",
+          "verbatim": "025, and 2025-2026). Needs to Submit Form - 8 certified by the auditor with details as required in t",
+          "role": "Main Bidder",
+          "page": 10
+        },
+        {
+          "cat": "OEM Authorization (MAF)",
+          "dept_req": "Mandatory Manufacturer Authorization Form (MAF) confirming genuine supply and direct warranty suppor",
+          "verbatim": "Manufacturer Authorization Form (MAF) signed by OEM authorized signatory with warranty backing",
+          "role": "OEM / Manufacturer",
+          "page": 11
+        }
+      ]
+    },
+    "specs_and_scope": {
+      "specs_count": 949,
+      "subsystems_count": 65,
+      "sample_specs": [
+        {
+          "item": "4MP IP Bullet Camera for Surveillance with connectivity",
+          "qty": "1459 Nos",
+          "unit": "Nos",
+          "subsystem": "Hardware",
+          "spec": "4MP IP Bullet Camera for Surveillance with connectivity",
+          "page": 168
+        },
+        {
+          "item": "MP IP Bullet Camera for FRS with provision of OFC connectivity",
+          "qty": "158 Nos",
+          "unit": "Nos",
+          "subsystem": "Hardware",
+          "spec": "MP IP Bullet Camera for FRS with provision of OFC connectivity",
+          "page": 168
+        },
+        {
+          "item": "Camera Pole for ANPR",
+          "qty": "6 Nos",
+          "unit": "Nos",
+          "subsystem": "Hardware",
+          "spec": "Camera Pole for ANPR",
+          "page": 168
+        },
+        {
+          "item": "7 Camera Pole for Surveillance",
+          "qty": "679 Nos",
+          "unit": "Nos",
+          "subsystem": "Hardware",
+          "spec": "7 Camera Pole for Surveillance",
+          "page": 168
+        }
+      ],
+      "scope_items_count": 4,
+      "sample_scope": [
+        {
+          "area": "Hardware Supply & Delivery",
+          "desc": "1. Specification for OFC Cameras (ANPR, FRS & Surveillance) . 16",
+          "page": 2
+        },
+        {
+          "area": "Installation & Commissioning",
+          "desc": "Schedule XI. Undertaking for Supply, installation and Commissioning of Equipment",
+          "page": 3
+        },
+        {
+          "area": "Software, Licenses & Integration",
+          "desc": "12. Specification for Video Management Systems software. 26",
+          "page": 2
+        },
+        {
+          "area": "Warranty, Maintenance & SLA",
+          "desc": "Schedule VII Servicing and Maintenance Infrastructure . 76",
+          "page": 2
+        }
+      ]
+    },
+    "commercial_and_legal": {
+      "estimated_value": "NOT_FOUND",
+      "emd_amount": null,
+      "emd_amount_and_mode": "Rs.70,00,000/- (Seventy Lakhs only)",
+      "pbg": "NOT SPECIFIED / Governed by Security Deposit (5% retained as performance guarantee)",
+      "security_deposit": "Security Deposit (SD) equivalent to 5% of the total value of the Purchase order, valid for a period of 39 months",
+      "payment_terms": "NOT FOUND",
+      "advance_payment_allowed": "No advance payment or part payment will be made",
+      "liquidated_damages": "Delay for Supply & installation of the equipment Rate of penalty Delay up to 1 week after allowable time schedule. 0.5 % of the product cost which are yet to be supplied. Up to 2nd week after allowable time limit. 1% of the product cost which are yet to be supplied Up to 3rd week after 2 % of the product cost which are yet to be Up to 4th week after 3 % of the product cost which are yet to be 5th 4 % of the product cost which are yet to be More than 5 weeks after 5% of the product cost which are yet to be \"The maximum penalty for delay in completion of supply shall be restricted to 5% of the cost of the products remaining to be supplied / installed.\" (b) Penalty for non-fulfillment of tender conditions: Penalty will be levied at 5% on the total value of project cost or the actual loss incurred to the Department whichever is higher if the Scope of the project is not achieved and conditions stipulated in the Contract Agreement are not fulfilled. (c) Penalty for breakdown during warranty period: Any defect, malfunction or failure in the CCTV system and its related equipment/components supplied, installed and commissioned under this project shall be attended to by the vendor on the same day of receipt of the complaint from the Department. The supplier shall ensure 100% rectification and restoration of the defective/non-functional equipment or system within a maximum period of 48 hours from the time of receipt of the complaint, either by repairing the equipment, replacing the defective component/item, or taking such corrective action as may be required. Other wise penalty will be levied as detailed below: Breakdown Period Up to 1 week Nil [Table 1] DelayforSupply & installationofthe equipment | Rateofpenalty Delay up to 1 week after allowable timeschedule . | 0 5 % of the product cost which are yet to be . supplied . Up to 2nd week after allowabletimelimit . | 1% of the product cost which are yet to be supplied Up to 3rd week after allowabletimelimit . | 2 % of the product cost which are yet to be supplied Up to 4th week after allowabletimelimit . | 3 % of the product cost which are yet to be supplied Up to 5th week after allowabletimelimit . | 4 % of the product cost which are yet to be supplied More than 5 weeks after allowabletimelimit . | 5% of the product cost which are yet to be supplied \"Themaximumpenaltyfordelayincompletionofsupplyshallberestricted to 5%ofthecostofthe productsremaining to besupplied /installed \" . | [Table 2] BreakdownPeriod | | Rateofpenalty Up to1week | Nil |",
+      "delivery_obligations": "NOT FOUND",
+      "contract_duration": "NOT FOUND",
+      "delay_penalties": "Delay for Supply & installation of the equipment Rate of penalty Delay up to 1 week after allowable time schedule. 0.5 % of the product cost which are yet to be supplied. Up to 2nd week after allowable time limit. 1% of the product cost which are yet to be supplied Up to 3rd week after 2 % of the product cost which are yet to be Up to 4th week after 3 % of the product cost which are yet to be 5th 4 % of the product cost which are yet to be More than 5 weeks after 5% of the product cost which are yet to be \"The maximum penalty for delay in completion of supply shall be restricted to 5% of the cost of the products remaining to be supplied / installed.\" (b) Penalty for non-fulfillment of tender conditions: Penalty will be levied at 5% on the total value of project cost or the actual loss incurred to the Department whichever is higher if the Scope of the project is not achieved and conditions stipulated in the Contract Agreement are not fulfilled. (c) Penalty for breakdown during warranty period: Any defect, malfunction or failure in the CCTV system and its related equipment/components supplied, installed and commissioned under this project shall be attended to by the vendor on the same day of receipt of the complaint from the Department. The supplier shall ensure 100% rectification and restoration of the defective/non-functional equipment or system within a maximum period of 48 hours from the time of receipt of the complaint, either by repairing the equipment, replacing the defective component/item, or taking such corrective action as may be required. Other wise penalty will be levied as detailed below: Breakdown Period Up to 1 week Nil [Table 1] DelayforSupply & installationofthe equipment | Rateofpenalty Delay up to 1 week after allowable timeschedule . | 0 5 % of the product cost which are yet to be . supplied . Up to 2nd week after allowabletimelimit . | 1% of the product cost which are yet to be supplied Up to 3rd week after allowabletimelimit . | 2 % of the product cost which are yet to be supplied Up to 4th week after allowabletimelimit . | 3 % of the product cost which are yet to be supplied Up to 5th week after allowabletimelimit . | 4 % of the product cost which are yet to be supplied More than 5 weeks after allowabletimelimit . | 5% of the product cost which are yet to be supplied \"Themaximumpenaltyfordelayincompletionofsupplyshallberestricted to 5%ofthecostofthe productsremaining to besupplied /installed \" . | [Table 2] BreakdownPeriod | | Rateofpenalty Up to1week | Nil |"
+    }
+  },
+  "EESL_Energy_149p": {
+    "total_pages": 149,
+    "anchors": {
+      "bid_title": "\"Empanelment of agencies for design, supply, installation, integration, commissioning",
+      "authority": "Bidder to submit a Declaration on Company's Letter Head as per relevant Attachment of the RfP Document",
+      "tender_id": "27/OTE/2627019",
+      "estimated_value": "NOT_FOUND",
+      "emd_value": "NOT_FOUND",
+      "submission_deadline": "NOT_FOUND",
+      "category": "IT & Software Services",
+      "state": "Uttar Pradesh"
+    },
+    "overview": {
+      "tender_title": "Empanelment of agencies for design, supply, installation, integration, commissioning, operation, and maintenance of AI-Native Energy Monitoring & Supervision Technology (EMST) Platform for Public & Private Infrastructure.",
+      "tender_reference_number": "EESL/CC/06/CDP/Empanelment",
+      "department_organization": "till the deadline for submission of the same prescribed by the Employer, but the bidder has uploaded the soft copy part",
+      "sub_department_consignee": null,
+      "tender_inviting_authority": "till the deadline for submission of the same prescribed by the Employer, but the bidder has uploaded the soft copy part",
+      "end_user_beneficiary": null,
+      "tender_publishing_date": null,
+      "bid_submission_deadline": null,
+      "bid_opening_date": null,
+      "estimated_project_value": "NOT_FOUND",
+      "emd_value": null,
+      "tender_fee": "Rs. 20,000/-",
+      "delivery_implementation_period": "NOT FOUND",
+      "contract_duration": "NOT FOUND",
+      "warranty_maintenance_period": "NOT FOUND"
+    },
+    "eligibility": {
+      "annual_turnover": "Category 1: Rs. 1.50 Crore, Category 2: Rs. 3.00 Crore (Average Annual Turnover)",
+      "average_turnover": "Category 1: Rs. 1.50 Crore, Category 2: Rs. 3.00 Crore (Average Annual Turnover)",
+      "main_bidder_turnover": "Category 1: Rs. 1.50 Crore, Category 2: Rs. 3.00 Crore (Average Annual Turnover)",
+      "oem_turnover": "NOT FOUND",
+      "similar_work_experience": "NOT FOUND",
+      "minimum_project_value": "NOT FOUND",
+      "completed_projects_count": "As per tender qualification schedule",
+      "oem_authorization_mandatory": false,
+      "conditions_count": 3,
+      "top_conditions": [
+        {
+          "cat": "Statutory Compliance",
+          "dept_req": "Valid GSTIN and PAN registration",
+          "verbatim": "Copy of GST Registration and PAN Card required",
+          "role": "Main Bidder",
+          "page": 1
+        },
+        {
+          "cat": "Consortium / Joint Venture",
+          "dept_req": "Consortium is not allowed",
+          "verbatim": "Replace ITB 2.16 with the following: Consortium is not allowed for the subject tender 8. ITB 2.9 To ",
+          "role": "Main Bidder",
+          "page": 59
+        },
+        {
+          "cat": "Average Annual Turnover",
+          "dept_req": "Category 1: Rs. 1.50 Crore, Category 2: Rs. 3.00 Crore (Average Annual Turnover)",
+          "verbatim": "Bidders should have an Average Annual Turnover (ATO) of at least: Category 1: Rs. 1.50 Crore, Catego",
+          "role": "Main Bidder",
+          "page": 67
+        }
+      ]
+    },
+    "specs_and_scope": {
+      "specs_count": 275,
+      "subsystems_count": 45,
+      "sample_specs": [
+        {
+          "item": "1 .",
+          "qty": null,
+          "unit": null,
+          "subsystem": "the e-Bidding) .",
+          "spec": "DateofissuanceofIFB",
+          "page": 2
+        },
+        {
+          "item": "2 .",
+          "qty": null,
+          "unit": null,
+          "subsystem": "the e-Bidding) .",
+          "spec": "NIT/BidDocumentNo: .",
+          "page": 2
+        },
+        {
+          "item": "3 .",
+          "qty": null,
+          "unit": null,
+          "subsystem": "the e-Bidding) .",
+          "spec": "Funding",
+          "page": 2
+        },
+        {
+          "item": "4 .",
+          "qty": null,
+          "unit": null,
+          "subsystem": "the e-Bidding) .",
+          "spec": "Name of the Employer/ Buyer/Owner",
+          "page": 2
+        }
+      ],
+      "scope_items_count": 4,
+      "sample_scope": [
+        {
+          "area": "Hardware Supply & Delivery",
+          "desc": "Name of Work: \"Empanelment of agencies for design, supply, installation, integra",
+          "page": 2
+        },
+        {
+          "area": "Installation & Commissioning",
+          "desc": "Name of Work: \"Empanelment of agencies for design, supply, installation, integra",
+          "page": 2
+        },
+        {
+          "area": "Software, Licenses & Integration",
+          "desc": "Name of Work: \"Empanelment of agencies for design, supply, installation, integra",
+          "page": 2
+        },
+        {
+          "area": "Warranty, Maintenance & SLA",
+          "desc": "operation, and maintenance of AI-Native Energy Monitoring & Supervision Technolo",
+          "page": 2
+        }
+      ]
+    },
+    "commercial_and_legal": {
+      "estimated_value": "NOT_FOUND",
+      "emd_amount": null,
+      "emd_amount_and_mode": "NOT_FOUND",
+      "pbg": "NOT SPECIFIED / Governed by Security Deposit (5% retained as performance guarantee)",
+      "security_deposit": "Security Deposit (SD)/Contract Performance Guarantee (CPG) in the form of a DD/Bank Guarantee (BG)/Insurance surety bond of value equal to 5% of the total Contract value",
+      "payment_terms": "Payment to the selected bidder shall be made on a back-to-back basis, subject to receipt of the corresponding payment from the Client and fulfilment of applicable contractual milestones, deliverables, and conditions",
+      "advance_payment_allowed": "No advance payment shall be made",
+      "liquidated_damages": "liquidated damages, certification of relation clause no",
+      "delivery_obligations": "NOT FOUND",
+      "contract_duration": "NOT FOUND",
+      "delay_penalties": "liquidated damages, certification of relation clause no"
+    }
+  },
+  "Tripura_WiFi_33p": {
+    "total_pages": 33,
+    "anchors": {
+      "bid_title": "Design, Supply, Installation, Testing, Commissioning, Configuration, and Comprehensive Maintenance of an Enterprise-Grade Campus-Wide Wi-Fi Network, including all required Active and Passive Network Components, Controllers/Cloud Management, Network Security, Structured Cabling, Power Supply, Integration, Testing, Documentation, and Technical Support at Tripura University, Suryamaninagar",
+      "authority": "TRIPURA UNIVERSITY",
+      "tender_id": "No.F.TU/FIN/Wi-Fi/Vol-I/2025",
+      "estimated_value": "NOT_FOUND",
+      "emd_value": "Rs. 5,00,000/- (Rupees Five Lakh only)",
+      "submission_deadline": "17-11-2026 upto 10.30 AM",
+      "category": "IT / Networking & Wi-Fi Infrastructure",
+      "state": "Tripura"
+    },
+    "overview": {
+      "tender_title": "Design, Supply, Installation, Testing, Commissioning, Configuration, and Comprehensive Maintenance of an Enterprise-Grade Campus-Wide Wi-Fi Network, including all required Active and Passive Network Components, Controllers/Cloud Management, Network Security, Structured Cabling, Power",
+      "tender_reference_number": "No.F.TU/FIN/Wi-Fi/Vol-I/2025",
+      "department_organization": "Tripura University",
+      "sub_department_consignee": null,
+      "tender_inviting_authority": "Tripura University",
+      "end_user_beneficiary": null,
+      "tender_publishing_date": null,
+      "bid_submission_deadline": null,
+      "bid_opening_date": null,
+      "estimated_project_value": "NOT_FOUND",
+      "emd_value": null,
+      "tender_fee": null,
+      "delivery_implementation_period": "NOT FOUND",
+      "contract_duration": "NOT FOUND",
+      "warranty_maintenance_period": "NOT FOUND"
+    },
+    "eligibility": {
+      "annual_turnover": "Minimum average annual turnover of Rs.10.00 Crore",
+      "average_turnover": "Minimum average annual turnover of Rs.10.00 Crore",
+      "main_bidder_turnover": "Minimum average annual turnover of Rs.10.00 Crore",
+      "oem_turnover": "NOT FOUND",
+      "similar_work_experience": "similar projects, each involving the supply and installation of Wi-Fi, Firewall/UTM, and/or IT Electronic Security Solutions, with a minimum project value of Rs. 45.00 Lakh",
+      "minimum_project_value": "NOT FOUND",
+      "completed_projects_count": "As per tender qualification schedule",
+      "oem_authorization_mandatory": true,
+      "conditions_count": 4,
+      "top_conditions": [
+        {
+          "cat": "Statutory Compliance",
+          "dept_req": "Valid GSTIN and PAN registration",
+          "verbatim": "Copy of GST Registration and PAN Card required",
+          "role": "Main Bidder",
+          "page": 4
+        },
+        {
+          "cat": "Average Annual Turnover",
+          "dept_req": "Minimum average annual turnover of Rs.10.00 Crore",
+          "verbatim": "mercial Bid. b. The bidder must have achieved a minimum average annual turnover of Rs.10.00 Crore (R",
+          "role": "Main Bidder",
+          "page": 8
+        },
+        {
+          "cat": "Past Work Experience (Value Thresholds)",
+          "dept_req": "similar projects, each involving the supply and installation of Wi-Fi, Firewall/UTM, and/or IT Elect",
+          "verbatim": "must have successfully completed at least 2 (two) similar projects, each involving the supply and in",
+          "role": "Main Bidder",
+          "page": 8
+        },
+        {
+          "cat": "OEM Authorization (MAF)",
+          "dept_req": "Mandatory Manufacturer Authorization Form (MAF) confirming genuine supply and direct warranty suppor",
+          "verbatim": "Manufacturer Authorization Form (MAF) signed by OEM authorized signatory with warranty backing",
+          "role": "OEM / Manufacturer",
+          "page": 8
+        }
+      ]
+    },
+    "specs_and_scope": {
+      "specs_count": 61,
+      "subsystems_count": 8,
+      "sample_specs": [
+        {
+          "item": "Section - I",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "List of Dates, Tender Details and",
+          "page": 2
+        },
+        {
+          "item": "Section-II",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "Eligibility Criteria General Instruction, Scop of the works Etc.",
+          "page": 2
+        },
+        {
+          "item": "Section-III",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "General Terms & Conditions",
+          "page": 2
+        },
+        {
+          "item": "Section - IV",
+          "qty": null,
+          "unit": null,
+          "subsystem": "General Technical Specifications",
+          "spec": "Instruction to Bidder",
+          "page": 2
+        }
+      ],
+      "scope_items_count": 4,
+      "sample_scope": [
+        {
+          "area": "Hardware Supply & Delivery",
+          "desc": "Design, Supply, Installation, Testing, Commissioning, Configuration, and",
+          "page": 1
+        },
+        {
+          "area": "Installation & Commissioning",
+          "desc": "Design, Supply, Installation, Testing, Commissioning, Configuration, and",
+          "page": 1
+        },
+        {
+          "area": "Software, Licenses & Integration",
+          "desc": "Supply, Integration, Testing, Documentation, and Technical Support at Tripura",
+          "page": 1
+        },
+        {
+          "area": "Warranty, Maintenance & SLA",
+          "desc": "Comprehensive Maintenance of an Enterprise-Grade Campus-Wide Wi-Fi",
+          "page": 1
+        }
+      ]
+    },
+    "commercial_and_legal": {
+      "estimated_value": "NOT_FOUND",
+      "emd_amount": null,
+      "emd_amount_and_mode": "Rs. 5,00,000/- (Rupees Five Lakh only)",
+      "pbg": "NOT FOUND",
+      "security_deposit": "NOT FOUND",
+      "payment_terms": "NOT FOUND",
+      "advance_payment_allowed": "No advance payment shall be made for manpower services",
+      "liquidated_damages": "liquidated damages (LD) shall be levied at the rate of 0",
+      "delivery_obligations": "delivery of all Products within 8-12 weeks from the date of issuance of the formal Purchase Order by Tripura University",
+      "contract_duration": "contractual period of three (3) years",
+      "delay_penalties": "liquidated damages (LD) shall be levied at the rate of 0"
+    }
+  }
+}

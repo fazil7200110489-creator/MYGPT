@@ -5,13 +5,27 @@ import os
 import uuid
 import time
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Set
 from loguru import logger
 from backend.app.core.config import settings
 
 
 class DocumentManager:
     """Manages document uploads, listings, deletions, and metadata sessions."""
+
+    # Essential test fixtures and baseline files that must never be auto-deleted
+    PROTECTED_FILENAMES: Set[str] = {
+        "0aaa92a2-f665-4d5e-98ba-c39ce650f525.pdf",
+        "1a5fa635-e77b-4d14-85b9-64b0878e8549.pdf",
+        "2958370a-b714-47c0-9efa-9adfa6403d30.pdf",
+        "44ab4ecc-f6a6-407d-829f-809c547be6c4.pdf",
+        "4f8eac53-a110-440b-8b98-019b3c1e4dfd.pdf",
+        "6b8939a2-0379-44ba-8ab5-1fdf791d4da6.pdf",
+        "89b03245-aa37-4088-b800-3fd4321cd3f5.pdf",
+        "9dd28e45-80d7-4c0d-ae26-b6c28b7cd995.pdf",
+        "e3388f45-7527-48be-bf16-f2610c9b8e03.pdf",
+        "Tender_Document_WiFi.pdf",
+    }
 
     def __init__(self) -> None:
         self.upload_dir = os.path.join(settings.DATA_DIR, "uploads")
@@ -152,7 +166,246 @@ class DocumentManager:
         db[doc_id] = metadata
         self._write_metadata(db)
 
+        # Enforce storage limits (LRU auto-pruning)
+        try:
+            self.enforce_storage_quota(exclude_doc_ids={doc_id})
+        except Exception as quota_err:
+            logger.error(f"Error enforcing storage quota after upload: {quota_err}")
+
         return metadata
+
+    def _clean_parse_cache(self, file_hash: Optional[str]) -> None:
+        """Removes on-disk parsed cache file for a given file hash if no longer referenced."""
+        if not file_hash:
+            return
+        try:
+            cache_file = os.path.join(settings.DATA_DIR, "cache", "parsed", f"{file_hash}.json")
+            if os.path.exists(cache_file):
+                os.remove(cache_file)
+                logger.debug(f"Removed parsed cache: {cache_file}")
+        except Exception as e:
+            logger.warning(f"Could not remove parsed cache for {file_hash}: {e}")
+
+    def enforce_storage_quota(
+        self,
+        max_mb: Optional[int] = None,
+        max_docs: Optional[int] = None,
+        exclude_doc_ids: Optional[Set[str]] = None,
+    ) -> Dict[str, Any]:
+        """Enforces upload directory quota and LRU document retention policy.
+        
+        Prunes old files to guarantee:
+        1. Number of active non-protected documents <= max_docs (default settings.TENDER_STORAGE_MAX_DOCUMENTS).
+        2. Total disk storage in uploads directory <= max_mb (default settings.TENDER_STORAGE_MAX_MB).
+        3. Orphan unreferenced files on disk are removed.
+        4. Protected automated-test fixtures are strictly preserved.
+        5. Associated parsed caches in data/cache/parsed/ are safely cleaned.
+        
+        Args:
+            max_mb: Maximum allowed MB in uploads directory (defaults to settings.TENDER_STORAGE_MAX_MB or 200).
+            max_docs: Maximum allowed active non-protected documents (defaults to settings.TENDER_STORAGE_MAX_DOCUMENTS or 5).
+            exclude_doc_ids: Set of document IDs that must not be deleted in this pass (e.g. newly uploaded).
+            
+        Returns:
+            Dict summary of quota enforcement results.
+        """
+        if max_mb is None:
+            max_mb = getattr(settings, "TENDER_STORAGE_MAX_MB", 200)
+        if max_docs is None:
+            max_docs = getattr(settings, "TENDER_STORAGE_MAX_DOCUMENTS", 5)
+        if exclude_doc_ids is None:
+            exclude_doc_ids = set()
+
+        max_bytes = max_mb * 1024 * 1024
+        freed_bytes = 0
+        deleted_count = 0
+
+        # Read current metadata database
+        db = self._read_metadata()
+
+        # Step 1: Clean up orphan files on disk that are not registered in metadata and not protected
+        if os.path.exists(self.upload_dir):
+            disk_files = set(os.listdir(self.upload_dir))
+            registered_filenames = set()
+            for doc in db.values():
+                fp = doc.get("file_path")
+                if fp:
+                    registered_filenames.add(os.path.basename(fp))
+                orig_name = doc.get("filename")
+                if orig_name:
+                    registered_filenames.add(orig_name)
+
+            for fname in disk_files:
+                if fname in self.PROTECTED_FILENAMES:
+                    continue
+                if fname not in registered_filenames:
+                    fpath = os.path.join(self.upload_dir, fname)
+                    if os.path.isfile(fpath):
+                        try:
+                            sz = os.path.getsize(fpath)
+                            os.remove(fpath)
+                            freed_bytes += sz
+                            deleted_count += 1
+                            logger.info(f"[QUOTA] Cleaned orphan upload file: {fname} ({sz / (1024*1024):.2f} MB)")
+                        except Exception as e:
+                            logger.warning(f"[QUOTA] Failed to remove orphan file {fpath}: {e}")
+
+        # Step 2: Identify non-protected registered documents for LRU evaluation
+        non_protected_docs = []
+        for doc_id, doc in db.items():
+            if doc_id in exclude_doc_ids:
+                continue
+            fp = doc.get("file_path", "")
+            base_name = os.path.basename(fp)
+            orig_name = doc.get("filename", "")
+
+            if base_name in self.PROTECTED_FILENAMES or orig_name in self.PROTECTED_FILENAMES:
+                continue
+
+            # Compute sort timestamp (oldest first)
+            ts = doc.get("upload_timestamp") or doc.get("upload_time")
+            if not ts and fp and os.path.exists(fp):
+                try:
+                    ts = os.path.getmtime(fp)
+                except Exception:
+                    ts = 0
+            if not ts:
+                ts = 0
+
+            sz = doc.get("file_size") or doc.get("size")
+            if not sz and fp and os.path.exists(fp):
+                try:
+                    sz = os.path.getsize(fp)
+                except Exception:
+                    sz = 0
+            if not sz:
+                sz = 0
+
+            non_protected_docs.append({
+                "doc_id": doc_id,
+                "timestamp": ts,
+                "file_path": fp,
+                "file_hash": doc.get("file_hash"),
+                "size": sz,
+                "filename": orig_name or base_name,
+            })
+
+        # Sort non-protected documents ascending by timestamp (oldest first)
+        non_protected_docs.sort(key=lambda d: d["timestamp"])
+
+        metadata_changed = False
+
+        # Step 3: Enforce max_docs limit (keep only the newest max_docs documents)
+        if len(non_protected_docs) > max_docs:
+            excess_count = len(non_protected_docs) - max_docs
+            docs_to_prune = non_protected_docs[:excess_count]
+            non_protected_docs = non_protected_docs[excess_count:]
+
+            for item in docs_to_prune:
+                doc_id = item["doc_id"]
+                fp = item["file_path"]
+                fhash = item["file_hash"]
+
+                if fp and os.path.exists(fp):
+                    try:
+                        sz = os.path.getsize(fp)
+                        os.remove(fp)
+                        freed_bytes += sz
+                        deleted_count += 1
+                        logger.info(f"[QUOTA LRU] Pruned oldest doc {item['filename']} ({doc_id}) [{sz / (1024*1024):.2f} MB]")
+                    except Exception as e:
+                        logger.warning(f"[QUOTA] Failed to delete file {fp}: {e}")
+
+                self._clean_parse_cache(fhash)
+
+                if doc_id in db:
+                    del db[doc_id]
+                    metadata_changed = True
+
+        # Step 4: Enforce max_mb limit on total directory storage
+        def get_total_upload_bytes() -> int:
+            if not os.path.exists(self.upload_dir):
+                return 0
+            total = 0
+            for f in os.listdir(self.upload_dir):
+                p = os.path.join(self.upload_dir, f)
+                if os.path.isfile(p):
+                    try:
+                        total += os.path.getsize(p)
+                    except Exception:
+                        pass
+            return total
+
+        current_total_bytes = get_total_upload_bytes()
+        while current_total_bytes > max_bytes and non_protected_docs:
+            # Pop the oldest remaining non-protected document
+            item = non_protected_docs.pop(0)
+            doc_id = item["doc_id"]
+            fp = item["file_path"]
+            fhash = item["file_hash"]
+
+            if fp and os.path.exists(fp):
+                try:
+                    sz = os.path.getsize(fp)
+                    os.remove(fp)
+                    freed_bytes += sz
+                    deleted_count += 1
+                    logger.info(f"[QUOTA SIZE] Pruned doc for size limit: {item['filename']} ({doc_id}) [{sz / (1024*1024):.2f} MB]")
+                except Exception as e:
+                    logger.warning(f"[QUOTA] Failed to delete file {fp}: {e}")
+
+            self._clean_parse_cache(fhash)
+
+            if doc_id in db:
+                del db[doc_id]
+                metadata_changed = True
+
+            current_total_bytes = get_total_upload_bytes()
+
+        if metadata_changed:
+            self._write_metadata(db)
+
+        final_total_bytes = get_total_upload_bytes()
+        remaining_files = os.listdir(self.upload_dir) if os.path.exists(self.upload_dir) else []
+
+        summary = {
+            "freed_bytes": freed_bytes,
+            "freed_mb": round(freed_bytes / (1024 * 1024), 2),
+            "deleted_files_count": deleted_count,
+            "remaining_files_count": len(remaining_files),
+            "remaining_size_mb": round(final_total_bytes / (1024 * 1024), 2),
+            "max_storage_mb": max_mb,
+            "max_documents": max_docs,
+        }
+        logger.info(
+            f"[QUOTA ENFORCED] Freed {summary['freed_mb']} MB across {deleted_count} files. "
+            f"Remaining: {summary['remaining_size_mb']} MB across {len(remaining_files)} files "
+            f"(Cap: {max_mb} MB, Max Tenders: {max_docs})"
+        )
+        return summary
+
+    def get_storage_stats(self) -> Dict[str, Any]:
+        """Returns statistics on disk usage and stored document quotas."""
+        try:
+            files = os.listdir(self.upload_dir) if os.path.exists(self.upload_dir) else []
+            total_bytes = sum(
+                os.path.getsize(os.path.join(self.upload_dir, f))
+                for f in files
+                if os.path.isfile(os.path.join(self.upload_dir, f))
+            )
+            db = self._read_metadata()
+            return {
+                "upload_dir": self.upload_dir,
+                "total_files": len(files),
+                "total_size_bytes": total_bytes,
+                "total_size_mb": round(total_bytes / (1024 * 1024), 2),
+                "max_storage_mb": getattr(settings, "TENDER_STORAGE_MAX_MB", 200),
+                "max_documents": getattr(settings, "TENDER_STORAGE_MAX_DOCUMENTS", 5),
+                "metadata_records_count": len(db),
+            }
+        except Exception as e:
+            logger.error(f"Failed to calculate storage stats: {e}")
+            return {"error": str(e)}
 
     def get_document(self, doc_id: str) -> Optional[Dict[str, Any]]:
         """Retrieves metadata of a document.
@@ -214,6 +467,9 @@ class DocumentManager:
                 logger.info(f"Removed physical file: {filepath}")
             except Exception as e:
                 logger.error(f"Failed to delete physical file {filepath}: {e}")
+
+        # Clean parse cache if exists
+        self._clean_parse_cache(doc.get("file_hash"))
 
         # Remove from index
         del db[doc_id]

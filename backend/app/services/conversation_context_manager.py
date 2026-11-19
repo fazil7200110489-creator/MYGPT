@@ -13,6 +13,7 @@ NOTE: Conversation context is for conversational steering only. It NEVER grants 
 import os
 import re
 import time
+import uuid
 from typing import Dict, Any, List, Optional, Tuple
 from loguru import logger
 
@@ -211,8 +212,14 @@ class ConversationContextManager:
     # Context State Access & Manipulation
     # ------------------------------------------------------------------
 
-    def set_active_document(self, session_id: str, doc_dict: Dict[str, Any]) -> ConversationState:
-        """Sets the active document in session context and preserves multi-document history."""
+    def set_active_document(
+        self,
+        session_id: str,
+        doc_dict: Dict[str, Any],
+        is_explicit_package: bool = False,
+        package_id: Optional[str] = None,
+    ) -> ConversationState:
+        """Sets the active document in session context and preserves multi-document history while enforcing document isolation."""
         state = self.get_state(session_id)
         new_doc_id = doc_dict.get("id") or doc_dict.get("document_id") or doc_dict.get("doc_id")
         old_doc_id = (state.active_document.get("id") or state.active_document.get("document_id") or state.active_document.get("doc_id")) if state.active_document else None
@@ -240,10 +247,19 @@ class ConversationContextManager:
         if not any((d.get("document_id") == new_doc_id or d.get("id") == new_doc_id) for d in state.documents):
             state.documents.append(doc_dict_normalized)
 
-        if not hasattr(state, "active_document_ids") or state.active_document_ids is None:
-            state.active_document_ids = []
-        if new_doc_id and new_doc_id not in state.active_document_ids:
-            state.active_document_ids.append(new_doc_id)
+        # STRICT ISOLATION: Single-document uploads isolate active_document_ids to just this document
+        # Only explicit multi-PDF packages retain multiple active IDs
+        if is_explicit_package:
+            state.is_explicit_package = True
+            state.package_id = package_id or getattr(state, "package_id", None) or f"pkg_{uuid.uuid4().hex[:8]}"
+            if not hasattr(state, "active_document_ids") or state.active_document_ids is None:
+                state.active_document_ids = []
+            if new_doc_id and new_doc_id not in state.active_document_ids:
+                state.active_document_ids.append(new_doc_id)
+        else:
+            state.is_explicit_package = False
+            state.package_id = None
+            state.active_document_ids = [new_doc_id] if new_doc_id else []
 
         dept = doc_dict.get("department")
         if dept and dept != "GENERAL":
@@ -263,7 +279,38 @@ class ConversationContextManager:
         logger.info(
             f"ContextManager: Set active document for session '{session_id}' -> "
             f"name='{state.active_document_name}' id='{state.active_document_id}' type='{state.active_document_type}' "
-            f"(Total session docs: {len(state.documents)})"
+            f"package={state.is_explicit_package} active_ids={state.active_document_ids}"
+        )
+        return state
+
+    def set_tender_package(
+        self,
+        session_id: str,
+        doc_dicts: List[Dict[str, Any]],
+        package_name: Optional[str] = None,
+    ) -> ConversationState:
+        """Explicitly groups multiple PDFs into a single isolated tender package."""
+        state = self.get_state(session_id)
+        pkg_id = f"pkg_{uuid.uuid4().hex[:8]}"
+        state.is_explicit_package = True
+        state.package_id = pkg_id
+        state.package_name = package_name or "Tender Package"
+        batch_ids: List[str] = []
+        for doc in doc_dicts:
+            did = str(doc.get("id") or doc.get("document_id") or doc.get("doc_id") or "")
+            if did:
+                batch_ids.append(did)
+                if not any((d.get("document_id") == did or d.get("id") == did) for d in (state.conversation_documents or [])):
+                    state.conversation_documents.append(dict(doc))
+        state.active_document_ids = batch_ids
+        if doc_dicts:
+            primary = dict(doc_dicts[0])
+            state.active_document = primary
+            state.active_document_id = str(primary.get("id") or primary.get("document_id") or "")
+            state.active_document_name = primary.get("filename") or primary.get("name")
+            state.active_document_type = "TENDER"
+        logger.info(
+            f"ContextManager: Set explicit tender package '{state.package_name}' ({pkg_id}) for session '{session_id}' with {len(batch_ids)} document(s): {batch_ids} (Total session docs: {len(state.documents)})"
         )
         return state
 

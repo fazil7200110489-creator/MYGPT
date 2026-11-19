@@ -53,7 +53,7 @@ BINARY_EXTENSIONS = {
     ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".pptx", ".ppt",
     ".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".webp", ".gif",
 }
-_PARSE_CACHE_VERSION = "v2"
+_PARSE_CACHE_VERSION = "v5"
 _PARSE_CACHE_DIR = os.path.join("data", "cache", "parsed")
 
 
@@ -362,6 +362,8 @@ class DocumentParser:
                 rows = table.extract() or []
             except Exception:
                 continue
+            if not rows:
+                continue
             row_lines: List[str] = []
             for row in rows:
                 cells = [re.sub(r"\s+", " ", str(c or "")).strip() for c in row]
@@ -394,22 +396,29 @@ class DocumentParser:
                     timings["pdf_text_ms"] += (time.time() - t_txt_start) * 1000.0
                     nt_lower = native_text.lower()
 
+                    drawings_count = len(page.get_drawings())
                     if num_pages <= 10:
-                        should_check_tables = len(page.get_drawings()) >= 4
+                        should_check_tables = drawings_count >= 3
                     else:
-                        has_schedule_signal = (
-                            idx <= 2
+                        # Universal table discovery: scan pages with graphical table borders and table signals
+                        has_table_signal = (
+                            idx <= 5
+                            or drawings_count >= 8
                             or any(k in nt_lower for k in (
                                 "critical date", "important date", "date and time",
                                 "bid submission", "tender schedule", "corrigendum",
                                 "addendum", "estimated cost", "earnest money",
+                                "specification", "parameter", "schedule of requirement",
+                                "technical feature", "bill of quantit", "boq",
+                                "pre-qualification", "eligibility", "criteria",
+                                "turnover", "annexure", "make & model", "make / model",
+                                "equipment", "hardware", "item", "quantity", "unit",
+                                "rate", "amount", "scope of work", "deliverable",
+                                "milestone", "penalty", "amc", "warranty", "manpower",
+                                "civil work", "concrete", "drawing", "medical", "hospital"
                             ))
                         )
-                        should_check_tables = (
-                            has_schedule_signal
-                            and table_pages_scanned < 4
-                            and len(page.get_drawings()) >= 8
-                        )
+                        should_check_tables = has_table_signal and drawings_count >= 3
 
                     table_text = ""
                     if should_check_tables:

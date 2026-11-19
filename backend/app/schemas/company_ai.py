@@ -87,6 +87,10 @@ class StructuredRequest(BaseModel):
         default=None,
         description="Currently active document name, ID, or metadata dict"
     )
+    task_id: Optional[str] = Field(
+        default=None,
+        description="Client tracking ID for real-time progress events"
+    )
     project_context_required: bool = Field(
         default=False,
         description="Whether this request requires inspecting actual project codebase"
@@ -246,6 +250,9 @@ class ConversationState(BaseModel):
     active_documents: List[Dict[str, Any]] = Field(default_factory=list, description="List of all active document descriptors in session")
     active_document_name: Optional[str] = Field(default=None, description="Filename of currently active document")
     active_document_type: Optional[str] = Field(default=None, description="Type classification: RESUME | INVOICE | OFFER_LETTER | OFFER_LETTER_TEMPLATE | HR_POLICY | EXPENSE_REPORT | CODE | IMAGE | GENERAL_DOCUMENT")
+    is_explicit_package: bool = Field(default=False, description="Whether active documents form an explicit multi-file package")
+    package_id: Optional[str] = Field(default=None, description="Package identifier if grouped")
+    package_name: Optional[str] = Field(default=None, description="Package name if grouped")
     active_code_document: Optional[Dict[str, Any]] = Field(default=None, description="Currently active code document descriptor")
     active_code_filename: Optional[str] = Field(default=None, description="Filename of currently active code document")
     active_code_language: Optional[str] = Field(default=None, description="Programming language of currently active code document")
@@ -297,6 +304,8 @@ class CompanyAIResult(BaseModel):
     permission_status: str = Field(default="AUTHORIZED", description="Permission evaluation result")
     requires_approval: bool = Field(default=False, description="Whether the planned action requires human approval")
     files: List[Dict[str, Any]] = Field(default_factory=list, description="Generated documents or attachments")
+    suggested_questions: List[str] = Field(default_factory=list, description="Dynamic suggested questions")
+    answer_type: Optional[str] = Field(default="text", description="Display classification")
     pending_action: Optional[str] = Field(default=None, description="Optional pending action to store in conversation context")
     pending_clarification: Optional[Dict[str, Any]] = Field(default=None, description="Optional pending clarification state")
     user_facing_result: Optional[str] = Field(default=None, description="Clean user-facing response text")
@@ -315,6 +324,7 @@ class CompanyAIChatRequest(BaseModel):
     active_document_ids: Optional[List[str]] = Field(default_factory=list, description="IDs of currently active documents")
     user_id: Optional[str] = Field(default="dev_employee", description="Requesting user identifier")
     user_role: Optional[UserRoleEnum] = Field(default=UserRoleEnum.EMPLOYEE, description="User RBAC role")
+    task_id: Optional[str] = Field(default=None, description="Client task tracking ID for real-time progress events")
     capability_override: Optional[str] = Field(default=None, description="Optional capability hint")
     department_override: Optional[DepartmentEnum] = Field(default=None, description="Optional manual department hint")
 
@@ -350,6 +360,7 @@ class CompanyAIChatResponse(BaseModel):
     confidence: float = Field(default=0.90, description="Routing confidence score")
     execution_steps: List[str] = Field(default_factory=list, description="Non-sensitive workflow steps executed")
     tool_results: Dict[str, Any] = Field(default_factory=dict, description="Structured tool results for rich UI card rendering")
+    suggested_questions: Optional[List[str]] = Field(default_factory=list, description="Dynamic suggested questions")
 
     @field_validator("sources", mode="before")
     @classmethod

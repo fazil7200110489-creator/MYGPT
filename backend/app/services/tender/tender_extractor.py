@@ -78,8 +78,8 @@ _CITY_TO_STATE = {
 }
 
 _DATE_VALUE_RE = re.compile(
-    r"(\b\d{1,2}([-/.])\d{1,2}\2\d{2,4}(?:\s*(?:at\.?|upto|on|@)?\s*\d{1,2}(?:[:.]\d{2})?\s*(?:AM|PM|Hrs|Hours|Noon)?)?"
-    r"|\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[\s,]+\d{4}(?:\s*(?:at|upto)?\s*\d{1,2}(?:[:.]\d{2})?\s*(?:AM|PM|Hrs)?)?)",
+    r"(\b\d{1,2}([-/.])\s*\d{1,2}\s*\2\s*\d{2,4}(?:\s*(?:at\.?|upto|on|@|,)?\s*(?:\d{1,2}[:.]\d{2}|\d{4}|\d{1,2})\s*(?:AM|PM|Hrs|Hours|Noon)?)?"
+    r"|\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[\s,]+\d{4}(?:\s*(?:at|upto|on|@|,)?\s*(?:\d{1,2}[:.]\d{2}|\d{4}|\d{1,2})\s*(?:AM|PM|Hrs)?)?)",
     re.I,
 )
 
@@ -218,37 +218,54 @@ class TenderExtractor:
         )
 
     def _classify_date_label(self, label_text: str) -> Optional[str]:
-        ll = re.sub(r"\s+", " ", (label_text or "").lower())
+        ll = re.sub(r"\s+", " ", (label_text or "").lower()).strip()
         if not ll:
             return None
-        if any(k in ll for k in ("corrigendum", "amended")) and "submission" in ll and any(k in ll for k in ("end", "closing", "last", "extended", "revised")):
-            return "bid_submission_end"
-        if any(k in ll for k in ("corrigendum", "amended")) and "technical" in ll and "open" in ll:
-            return "technical_bid_opening_date"
-        if any(k in ll for k in ("date of uploading of n.i.t", "uploading of nit", "tender publication", "date of publication", "nit date", "issue date", "published date", "release date")):
-            return "tender_publication_date"
-        if any(k in ll for k in ("download start", "downloading", "sale start", "document sale / download start", "documents download start")) and "end" not in ll and "close" not in ll:
-            return "document_download_start"
-        if any(k in ll for k in ("download end", "download close", "download closing", "sale end", "document sale / download end")):
-            return "document_download_end"
+        # Corrigendum / amendment overrides
+        if any(k in ll for k in ("corrigendum", "amended")):
+            if any(k in ll for k in ("bid submission end", "submission deadline", "closing date", "last date of submission", "last date & time of submission")):
+                return "bid_submission_end"
+            if "technical" in ll and "open" in ll:
+                return "technical_bid_opening_date"
+        if any(k in ll for k in ("pre-bid meeting", "pre bid meeting", "prebid meeting", "pre-bid conference")):
+            return "prebid_meeting_date"
         if any(k in ll for k in ("query start", "clarification start", "pre-bid clarification start", "prebid query start")):
             return "prebid_query_start"
         if any(k in ll for k in ("query end", "queries end", "clarification end", "reaching wtl by", "last date of pre-bid quer", "pre-bid query closing", "queries by")):
             return "prebid_query_end"
-        if any(k in ll for k in ("pre-bid meeting", "pre bid meeting", "prebid meeting", "pre-bid conference")):
-            return "prebid_meeting_date"
         if any(k in ll for k in ("pre-bid response", "prebid response", "clarification response", "replies to pre-bid")):
             return "prebid_response_date"
-        if any(k in ll for k in ("bid submission start", "submission start", "online bid submission start")):
+        if any(k in ll for k in ("download start", "downloading", "sale start", "document sale / download start", "documents download start")) and "end" not in ll and "close" not in ll:
+            return "document_download_start"
+        if any(k in ll for k in ("download end", "download close", "download closing", "sale end", "document sale / download end")):
+            return "document_download_end"
+        if any(k in ll for k in ("bid submission start", "submission start", "online bid submission start", "start date of submission")):
             return "bid_submission_start"
-        if any(k in ll for k in ("bid submission end", "bid submission closing", "last date & time of bid submission", "last date of bid submission", "closing of submission", "submission deadline", "due date for submission", "last date for submission")):
-            return "bid_submission_end"
         if any(k in ll for k in ("pq bid opening", "pre-qualification bid opening", "prequalification opening", "pq opening")):
             return "pq_bid_opening_date"
-        if any(k in ll for k in ("technical bid opening", "technical proposal", "opening of technical bid", "techno-commercial bid opening", "technical opening")):
+        if any(k in ll for k in ("technical", "techno-commercial", "pre-qualification", "envelope-1", "packet-i", "technical opening")) and ("open" in ll):
             return "technical_bid_opening_date"
-        if any(k in ll for k in ("financial bid opening", "opening of financial bid", "commercial bid opening", "price bid opening", "financial opening")):
+        if any(k in ll for k in ("financial", "price", "commercial", "envelope-2", "packet-ii", "financial opening")) and ("open" in ll):
             return "financial_bid_opening_date"
+        # Submission deadline / closing date
+        if (
+            any(k in ll for k in ("submission", "bids", "tender", "soft copy", "hard copy", "uploading", "receipt"))
+            and any(k in ll for k in ("last date", "closing", "deadline", "due date", "end date", "cut-off", "cutoff", "last date & time", "last date and time"))
+            and not any(k in ll for k in ("open", "start", "commence"))
+        ):
+            return "bid_submission_end"
+        if any(k in ll for k in ("submission deadline", "closing date", "due date for submission", "last date for submission", "bid submission end", "bid submission closing")):
+            return "bid_submission_end"
+        # General bid opening
+        if ("open" in ll or "opening" in ll) and ("bid" in ll or "tender" in ll):
+            return "technical_bid_opening_date"
+        # Tender publication / IFB / NIT date
+        if (
+            any(k in ll for k in ("publish", "issuance", "issue", "release", "uploading of nit", "nit date", "tender date", "notification date", "date of issue", "enquiry date"))
+            and any(k in ll for k in ("tender", "nit", "ifb", "rfp", "bid", "document", "date", "notice"))
+            and not any(k in ll for k in ("submission", "open", "close", "closing", "end", "sale", "download"))
+        ):
+            return "tender_publication_date"
         return None
 
     def _clean_date_match(self, text: str) -> Optional[str]:
@@ -257,12 +274,14 @@ class TenderExtractor:
         # Skip placeholders like "To be intimated later"
         if re.search(r"\b(to be intimated|will be notified|to be announced)\b", text, re.I):
             return None
-        m = _DATE_VALUE_RE.search(text)
+        # Strip leading table or punctuation artifacts like ": | " or ": "
+        cleaned_text = re.sub(r"^[:|\-–\s]+", "", text)
+        m = _DATE_VALUE_RE.search(cleaned_text)
         if not m:
             return None
         val = re.sub(r"\s+", " ", m.group(1)).strip(" ,.;:")
         # Validate numeric dd-mm-yyyy range to prevent tender codes like 26-27/046
-        m_num = re.match(r"^(\d{1,2})([-/.])(\d{1,2})\2(\d{2,4})", val)
+        m_num = re.match(r"^(\d{1,2})([-/.])\s*(\d{1,2})\s*\2\s*(\d{2,4})", val)
         if m_num:
             d, mo = int(m_num.group(1)), int(m_num.group(3))
             if not (1 <= d <= 31 and 1 <= mo <= 12):
@@ -277,17 +296,36 @@ class TenderExtractor:
         # Strip Excel "[Row N]" prefixes so key:value and pipe patterns match spreadsheet rows cleanly
         lines = [re.sub(r"^\[Row\s+\d+(?:\s+Header)?\]\s*", "", ln) for ln in raw_lines]
         inline_kv_re = re.compile(r"^([A-Za-z0-9 &/().,\-]{3,65}?)\s*(?::-|[:\-–]+)\s+(.+)$")
+        leading_colon_re = re.compile(r"^[:\-–]+\s*(.+)$")
 
         for idx, line in enumerate(lines):
+            # 0. Check if this line starts with a colon/dash separator: ": 14.12. 2026 @ 1200 Hrs"
+            m_lead = leading_colon_re.match(line) if not line.lower().startswith("http") else None
+            if m_lead and idx > 0:
+                val = m_lead.group(1).strip()
+                label_parts = []
+                for prev_i in range(idx - 1, max(-1, idx - 3), -1):
+                    prev_l = lines[prev_i]
+                    if "|" in prev_l or leading_colon_re.match(prev_l) or inline_kv_re.match(prev_l):
+                        break
+                    label_parts.insert(0, prev_l)
+                    if prev_l.endswith(":") or len(prev_l) > 65:
+                        break
+                if label_parts:
+                    lbl = " ".join(label_parts).rstrip(":")
+                    if 3 <= len(lbl) <= 90:
+                        pairs.append((lbl, val, f"{lbl} : {val}"))
+
             # 1. Pipe-delimited table row: "Sl. No | Label | Value" or "Label | Value"
             if "|" in line:
                 cells = [c.strip() for c in line.split("|") if c.strip()]
                 if len(cells) >= 3 and re.match(r"^\d+\.?$", cells[0]):
                     label = cells[1]
-                    val = " | ".join(cells[2:])
+                    val = re.sub(r"^[:|\-–\s]+", "", " | ".join(cells[2:])).strip()
                     pairs.append((label, val, line))
                 elif len(cells) >= 2:
-                    pairs.append((cells[0], " | ".join(cells[1:]), line))
+                    val = re.sub(r"^[:|\-–\s]+", "", " | ".join(cells[1:])).strip()
+                    pairs.append((cells[0], val, line))
                 # Also extract individual "Header: Value" fragments inside pipe row
                 for c in cells:
                     if ":" in c and not c.lower().startswith("http"):

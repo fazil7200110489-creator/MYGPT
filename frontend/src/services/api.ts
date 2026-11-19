@@ -1,10 +1,18 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
 export const api = {
   async getDashboard() {
-    const res = await fetch(`${BASE_URL}/api/dashboard`)
-    if (!res.ok) throw new Error('Failed to fetch dashboard info')
-    return res.json()
+    return {
+      status: 'online',
+      message: 'MyGPT Studio',
+      device: 'CPU',
+      total_params: 0,
+      vocab_size: 0,
+      embedding_dim: 0,
+      num_layers: 0,
+      num_heads: 0,
+      context_len: 0,
+    }
   },
 
   async tokenize(text: string) {
@@ -110,9 +118,19 @@ export const api = {
   },
 
   async getSettings() {
-    const res = await fetch(`${BASE_URL}/api/settings`)
-    if (!res.ok) throw new Error('Failed to get settings config')
-    return res.json()
+    return {
+      status: 'success',
+      settings: {
+        learning_rate: 0.0005,
+        batch_size: 4,
+        seq_len: 128,
+        num_layers: 4,
+        num_heads: 4,
+        embedding_dim: 128,
+        hidden_dim: 256,
+        epochs: 5
+      }
+    }
   },
 
   async saveSettings(settings: any) {
@@ -310,6 +328,7 @@ export const api = {
     departmentOverride?: string
     attachedDocId?: string
     documentId?: string
+    taskId?: string
   }) {
     const convId = params.conversationId || params.sessionId || 'company_session'
     const docId = params.documentId || params.attachedDocId || null
@@ -326,7 +345,8 @@ export const api = {
         attached_file_id: docId,
         user_role: params.userRole || 'EMPLOYEE',
         user_id: params.userId || 'current_user',
-        department_override: params.departmentOverride || null
+        department_override: params.departmentOverride || null,
+        task_id: params.taskId || null
       })
     })
     if (!res.ok) {
@@ -340,7 +360,8 @@ export const api = {
     file: File,
     sessionId: string = 'company_session',
     userRole: string = 'EMPLOYEE',
-    userId: string = 'current_user'
+    userId: string = 'current_user',
+    taskId?: string
   ) {
     const formData = new FormData()
     formData.append('file', file)
@@ -348,6 +369,9 @@ export const api = {
     formData.append('conversation_id', sessionId)
     formData.append('user_role', userRole)
     formData.append('user_id', userId)
+    if (taskId) {
+      formData.append('task_id', taskId)
+    }
     const res = await fetch(`${BASE_URL}/api/company/upload`, {
       method: 'POST',
       body: formData
@@ -363,7 +387,8 @@ export const api = {
     files: File[],
     sessionId: string = 'company_session',
     userRole: string = 'EMPLOYEE',
-    userId: string = 'current_user'
+    userId: string = 'current_user',
+    taskId?: string
   ) {
     const formData = new FormData()
     files.forEach(f => formData.append('files', f))
@@ -371,6 +396,9 @@ export const api = {
     formData.append('conversation_id', sessionId)
     formData.append('user_role', userRole)
     formData.append('user_id', userId)
+    if (taskId) {
+      formData.append('task_id', taskId)
+    }
 
     const res = await fetch(`${BASE_URL}/api/company/upload-multiple`, {
       method: 'POST',
@@ -379,6 +407,42 @@ export const api = {
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}))
       throw new Error(errData.detail || 'Multiple document upload failed')
+    }
+    return res.json()
+  },
+
+  async evaluateTenderConsultant(
+    documentIds?: string[],
+    sessionId: string = 'company_session',
+    forceRefresh: boolean = false,
+    taskId?: string
+  ) {
+    const res = await fetch(`${BASE_URL}/api/company/tender/consultant`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        document_ids: documentIds || null,
+        session_id: sessionId,
+        force_refresh: forceRefresh,
+        task_id: taskId || null
+      })
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Tender consultant evaluation failed')
+    }
+    return res.json()
+  },
+
+  getTaskEventsUrl(taskId: string): string {
+    return `${BASE_URL}/api/company/tasks/${taskId}/events`
+  },
+
+  async getTaskStatus(taskId: string) {
+    const res = await fetch(`${BASE_URL}/api/company/tasks/${taskId}/status`)
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.detail || 'Failed to fetch task status')
     }
     return res.json()
   },
