@@ -29,6 +29,7 @@ from .intelligence_extractors import (
     extract_eligibility_conditions,
     extract_technical_specifications,
     extract_commercial_and_legal,
+    build_intelligent_compliance_matrix,
 )
 from .intelligence_prompts import (
     CONSULTANT_QA_PROMPT,
@@ -70,6 +71,8 @@ from .intelligence_validator import intelligence_validator
 from .intelligence_report_builder import intelligence_report_builder
 from .universal_classifier import universal_classifier
 from .contradiction_engine import contradiction_engine
+from .evaluation_lock import tender_evaluation_lock, TenderEvaluationBusyError
+from .resource_monitor import resource_monitor
 
 
 class ConsultantQAResult(tuple):
@@ -111,8 +114,9 @@ class TenderIntelligenceEngine:
         overview: TenderOverview,
         commercial: CommercialFinancialAnalysis,
         legal: ContractualLegalAnalysis,
+        eligibility: Optional[EligibilityAnalysis] = None,
     ) -> None:
-        """Enforces cross-dimension consistency and source of truth across Overview, Commercial, and Legal dimensions."""
+        """Enforces cross-dimension consistency and source of truth across Overview, Commercial, Legal, and Eligibility dimensions."""
         # 1. EMD Amount & Mode
         if overview.emd_value and overview.emd_value not in ("NOT FOUND", "Not specified"):
             if not commercial.emd_amount or commercial.emd_amount in ("NOT FOUND", "Not specified"):
@@ -199,7 +203,13 @@ class TenderIntelligenceEngine:
         logger.info(f"[TENDER_CONSULTANT] Beginning evaluation for {len(documents)} document(s) (pkg={is_multi_document_package})...")
 
         # 1. Prepare Document Index and Page Records
+        t_pdf_start = time.time()
         index, records, enriched_docs = intelligence_retriever.prepare_index(documents)
+        resource_monitor.log_stage(
+            "pdf_extraction",
+            t_pdf_start,
+            extra={"documents": len(documents), "pages": len(records)},
+        )
 
         # Strict Document Validation Guard: Reject non-tender documents
         from backend.app.services.tender_intelligence.document_validator import is_authentic_tender_document
@@ -248,56 +258,58 @@ class TenderIntelligenceEngine:
         else:
             logger.info(f"[TENDER_EVAL_DIAGNOSTIC] CacheAction=BYPASS (force_refresh=True) bundle_signature='{bundle_signature[:16]}'")
 
-        # 2. Extract Anchor Fields from Existing Extractor (Deterministic fast pass, use_llm=False)
-        anchor_data: Dict[str, Any] = {}
-        try:
-            extraction_result = tender_extractor.extract_from_documents(enriched_docs, use_llm=False)
-            flat = extraction_result.all_fields_flat()
-            anchor_data = {
-                "bid_title": flat.get("bid_title", {}).value or "Not specified",
-                "authority": flat.get("department_organization", {}).value or "Not specified",
-                "tender_id": flat.get("tender_id", {}).value or "Not specified",
-                "estimated_value": flat.get("estimated_tender_value", {}).value or "Not specified",
-                "emd_value": flat.get("bid_emd_value", {}).value or "Not specified",
-                "submission_deadline": flat.get("bid_submission_end", {}).value or "Not specified",
-                "technical_bid_opening_date": flat.get("technical_bid_opening_date", {}).value or flat.get("bid_opening_date", {}).value or "Not specified",
-                "tender_publication_date": flat.get("tender_publication_date", {}).value or "Not specified",
-                "category": flat.get("category", {}).value or "Not specified",
-                "state": flat.get("state", {}).value or "Not specified",
-                "summary": extraction_result.detailed_summary,
-            }
-        except Exception as e:
-            logger.warning(f"Existing extractor anchor extraction failed cleanly: {e}")
-            anchor_data = {
-                "bid_title": "Not specified",
-                "authority": "Not specified",
-                "tender_id": "Not specified",
-                "estimated_value": "Not specified",
-                "emd_value": "Not specified",
-                "submission_deadline": "Not specified",
-                "category": "Not specified",
-                "state": "Not specified",
-                "summary": "",
-            }
-
-        eval_mode = (mode or os.getenv("MYGPT_TENDER_CONSULTANT_MODE", "fast")).lower().strip()
-        if eval_mode == "fast":
+        # Acquire exclusive evaluation lock for resource-intensive uncached pipeline
+        with tender_evaluation_lock.acquire(timeout=0.0):
+            # 2. Extract Anchor Fields from Existing Extractor (Deterministic fast pass, use_llm=False)
+            anchor_data: Dict[str, Any] = {}
             try:
-                return self._evaluate_tender_fast(
-                    index, records, enriched_docs, anchor_data, documents, bundle_signature, start_t,
-                    is_multi_document_package=is_multi_document_package, package_name=package_name,
-                    task_id=task_id,
-                )
+                extraction_result = tender_extractor.extract_from_documents(enriched_docs, use_llm=False)
+                flat = extraction_result.all_fields_flat()
+                anchor_data = {
+                    "bid_title": flat.get("bid_title", {}).value or "Not specified",
+                    "authority": flat.get("department_organization", {}).value or "Not specified",
+                    "tender_id": flat.get("tender_id", {}).value or "Not specified",
+                    "estimated_value": flat.get("estimated_tender_value", {}).value or "Not specified",
+                    "emd_value": flat.get("bid_emd_value", {}).value or "Not specified",
+                    "submission_deadline": flat.get("bid_submission_end", {}).value or "Not specified",
+                    "technical_bid_opening_date": flat.get("technical_bid_opening_date", {}).value or flat.get("bid_opening_date", {}).value or "Not specified",
+                    "tender_publication_date": flat.get("tender_publication_date", {}).value or "Not specified",
+                    "category": flat.get("category", {}).value or "Not specified",
+                    "state": flat.get("state", {}).value or "Not specified",
+                    "summary": extraction_result.detailed_summary,
+                }
             except Exception as e:
-                logger.warning(
-                    f"[TENDER_CONSULTANT] Fast hybrid evaluation encountered error ({e}); "
-                    "falling back to 5-stage sequential pipeline..."
-                )
+                logger.warning(f"Existing extractor anchor extraction failed cleanly: {e}")
+                anchor_data = {
+                    "bid_title": "Not specified",
+                    "authority": "Not specified",
+                    "tender_id": "Not specified",
+                    "estimated_value": "Not specified",
+                    "emd_value": "Not specified",
+                    "submission_deadline": "Not specified",
+                    "category": "Not specified",
+                    "state": "Not specified",
+                    "summary": "",
+                }
 
-        return self._evaluate_tender_five_stage(
-            index, records, anchor_data, documents, bundle_signature, start_t,
-            is_multi_document_package=is_multi_document_package, package_name=package_name
-        )
+            eval_mode = (mode or os.getenv("MYGPT_TENDER_CONSULTANT_MODE", "fast")).lower().strip()
+            if eval_mode == "fast":
+                try:
+                    return self._evaluate_tender_fast(
+                        index, records, enriched_docs, anchor_data, documents, bundle_signature, start_t,
+                        is_multi_document_package=is_multi_document_package, package_name=package_name,
+                        task_id=task_id,
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"[TENDER_CONSULTANT] Fast hybrid evaluation encountered error ({e}); "
+                        "falling back to 5-stage sequential pipeline..."
+                    )
+
+            return self._evaluate_tender_five_stage(
+                index, records, anchor_data, documents, bundle_signature, start_t,
+                is_multi_document_package=is_multi_document_package, package_name=package_name
+            )
 
     def _build_gemma_context(
         self,
@@ -312,6 +324,7 @@ class TenderIntelligenceEngine:
         primary_doc_id: str,
         primary_filename: str,
         proc_profile: Optional[Dict[str, Any]] = None,
+        rag_evidence: Optional[List[Any]] = None,
     ) -> str:
         """Constructs high-density, evidence-grounded context optimized for fast LLM prefill."""
         lines: List[str] = []
@@ -321,59 +334,64 @@ class TenderIntelligenceEngine:
         # 1. Document Identity & Overview
         lines.append("=== SECTION 1: TENDER IDENTITY & BASIC PARAMETERS ===")
         lines.append(f"- Current Reference Date: {current_date_str}")
-        lines.append(f"- Tender Title: {overview.tender_title} [Source: Page {ov_page}]")
-        lines.append(f"- Issuing / Execution Authority: {overview.department_organization} [Source: Page {ov_page}]")
+        lines.append(f"- Tender Title: {(overview.tender_title or 'Tender')[:100]} [Page {ov_page}]")
+        lines.append(f"- Authority: {(overview.department_organization or 'Authority')[:60]} [Page {ov_page}]")
         if overview.end_user_beneficiary and overview.end_user_beneficiary not in ("Not specified", "N/A", overview.department_organization):
-            lines.append(f"- Actual End-User / Beneficiary: {overview.end_user_beneficiary} [Source: Page {ov_page}]")
-        lines.append(f"- Tender Reference No: {overview.tender_reference_number}")
-        if proc_profile:
-            lines.append(f"- Category: {proc_profile.get('primary_category')} ({proc_profile.get('contract_type')})")
-        lines.append(f"- Estimated Project Value: {overview.estimated_project_value or 'Not disclosed in NIT'}")
-        lines.append(f"- EMD: {overview.emd_value or commercial.emd_amount or 'Not specified'} [Page {ov_page}] | Fee: {overview.tender_fee or 'Nil'}")
-        lines.append(f"- Bid Submission Deadline: {overview.bid_submission_deadline or 'Not specified'} [Source: Page {ov_page}]")
-        if overview.bid_opening_date:
-            lines.append(f"- Technical Bid Opening Date: {overview.bid_opening_date} [Source: Page {ov_page}]")
-        lines.append(f"- Delivery Period: {overview.delivery_implementation_period or 'As specified'}")
+            lines.append(f"- End-User / Beneficiary: {overview.end_user_beneficiary[:60]} [Page {ov_page}]")
+        lines.append(f"- Ref No: {(overview.tender_reference_number or 'N/A')[:50]}")
+        lines.append(f"- Estimated Value: {overview.estimated_project_value or 'Not disclosed'}")
+        lines.append(f"- EMD: {overview.emd_value or commercial.emd_amount or 'Not specified'} [Page {ov_page}]")
+        lines.append(f"- Submission Deadline: {overview.bid_submission_deadline or 'Not specified'} [Page {ov_page}]")
+        if overview.delivery_implementation_period:
+            lines.append(f"- Delivery Period: {overview.delivery_implementation_period[:60]}")
         if overview.warranty_maintenance_period:
-            lines.append(f"- Warranty: {overview.warranty_maintenance_period[:120]}")
+            lines.append(f"- Warranty: {overview.warranty_maintenance_period[:60]}")
 
         # 2. Bidder Eligibility & Pre-Qualification
         el_page = eligibility.conditions[0].source_page if eligibility.conditions else ov_page
         lines.append("\n=== SECTION 2: BIDDER ELIGIBILITY & PRE-QUALIFICATION ===")
         turnover_val = eligibility.main_bidder_turnover or eligibility.annual_turnover_requirement or "As per tender terms"
-        lines.append(f"- Turnover Requirement: {turnover_val} [Main Bidder | Source: Page {el_page}]")
-        lines.append(f"- Past Similar Experience: {eligibility.similar_work_experience} [Main Bidder | Source: Page {el_page}]")
+        lines.append(f"- Turnover: {turnover_val[:60]} [Page {el_page}]")
+        lines.append(f"- Past Experience: {eligibility.similar_work_experience[:80]} [Page {el_page}]")
         if eligibility.conditions:
-            for cond in eligibility.conditions[:3]:
-                lines.append(f"  * [{cond.category}] {cond.department_requirement[:80]} [Page {cond.source_page}]")
+            for cond in eligibility.conditions[:2]:
+                lines.append(f"  * [{cond.category}] {cond.department_requirement[:60]} [Page {cond.source_page}]")
 
         # 3. Technical Scope & Specifications
         lines.append("\n=== SECTION 3: TECHNICAL SCOPE & BOQ SUMMARY ===")
-        lines.append(f"- Scope: {(scope.overview or overview.scope_of_work_summary or '')[:140]}")
+        lines.append(f"- Scope: {(scope.overview or overview.scope_of_work_summary or '')[:100]}")
         if specs.items:
             lines.append("- Critical BOQ Items:")
-            for item in specs.items[:4]:
+            for item in specs.items[:3]:
                 qty = f" (Qty: {item.required_quantity})" if item.required_quantity else ""
-                lines.append(f"  * {item.item_name}{qty}: {item.technical_specifications[:60]} [Page {item.source_page}]")
+                lines.append(f"  * {item.item_name[:40]}{qty} [Page {item.source_page}]")
 
         # 4. OEM & Consortium Requirements
         oem_page = oem.oem_requirements[0].source_page if oem.oem_requirements else ov_page
+        oem_details = oem.oem_requirements[0].details[:80] if oem.oem_requirements else "Standard"
         lines.append("\n=== SECTION 4: OEM & CONSORTIUM ===")
-        lines.append(f"- OEM Authorization Mandatory: {'Yes (Mandatory MAF required)' if oem.oem_authorization_required else 'Not mandated / Generic'} [Page {oem_page}]")
-        lines.append(f"- Consortium / JV Allowed: {eligibility.consortium_joint_venture_allowed or 'As per tender terms'} [Page {el_page}]")
+        lines.append(f"- OEM Authorization: {'Yes (' + oem_details + ')' if oem.oem_authorization_required else 'Not mandated'} [Page {oem_page}]")
+        lines.append(f"- Consortium / JV Allowed: {(eligibility.consortium_joint_venture_allowed or 'As per tender')[:50]} [Page {el_page}]")
 
         # 5. Commercial Terms & Legal Risk Clauses
         comm_page = commercial.citations[0].page_number if commercial.citations else ov_page
         lines.append("\n=== SECTION 5: COMMERCIAL TERMS & RISKS ===")
-        if commercial.advance_payment_allowed and commercial.advance_payment_allowed != "No":
-            lines.append(f"- Mobilization Advance: {commercial.advance_payment_allowed} [Page {comm_page}]")
-        lines.append(f"- Payment Milestones: {commercial.payment_terms[:140]} [Page {comm_page}]")
-        lines.append(f"- Delay Penalties (LD): {commercial.penalties_and_liquidated_damages[:120]} [Page {comm_page}]")
-        lines.append(f"- PBG / Security Deposit: {commercial.security_deposit or commercial.performance_bank_guarantee_pbg} [Page {comm_page}]")
+        lines.append(f"- Payment Milestones: {(commercial.payment_terms or 'As per tender')[:80]} [Page {comm_page}]")
+        lines.append(f"- Delay Penalties (LD): {(commercial.penalties_and_liquidated_damages or 'As per tender')[:80]} [Page {comm_page}]")
+        lines.append(f"- PBG / Security Deposit: {(commercial.performance_bank_guarantee_pbg or commercial.security_deposit or 'As per tender')[:80]} [Page {comm_page}]")
         if legal.significant_risk_clauses:
             for cl in legal.significant_risk_clauses[:2]:
-                ev = cl.verbatim_evidence[:80] if cl.verbatim_evidence else cl.summary[:80]
+                ev = cl.verbatim_evidence[:60] if cl.verbatim_evidence else cl.summary[:60]
                 lines.append(f"  * [{cl.clause_type}] (Page {cl.source_page}): {ev}")
+
+        # 6. Hybrid RAG Critical Clause Grounding
+        if rag_evidence:
+            lines.append("\n=== SECTION 6: HYBRID RAG RETRIEVED CLAUSES ===")
+            for re_item in rag_evidence[:2]:
+                raw_snip = getattr(re_item, "raw_content", "") or getattr(re_item, "text", "")
+                pg = getattr(re_item, "page_number", ov_page)
+                sec = getattr(re_item, "section_heading", "Clause") or "Clause"
+                lines.append(f"- [Page {pg} | {sec}]: {raw_snip[:90]}")
 
         return "\n".join(lines)
 
@@ -429,6 +447,26 @@ class TenderIntelligenceEngine:
         commercial_obj, legal_obj = extract_commercial_and_legal(records, index, anchors)
         t_extraction = round(time.time() - t_ext_start, 3)
 
+        # Stage 2: Advanced Intelligent 6-Category Compliance Matrix & Readiness Assessment
+        t_cm_start = time.time()
+        compliance_obj = build_intelligent_compliance_matrix(
+            spec_analysis=spec_obj,
+            oem_analysis=oem_obj,
+            eligibility_analysis=eligibility_obj,
+            commercial_analysis=commercial_obj,
+            legal_analysis=legal_obj,
+            records=records,
+            index=index,
+        )
+        resource_monitor.log_stage(
+            "compliance_matrix_generation",
+            t_cm_start,
+            extra={
+                "items_count": len(compliance_obj.items),
+                "docs_count": len(compliance_obj.required_documents),
+            },
+        )
+
         if task_id:
             processing_progress_tracker.update_stage(
                 task_id, "evaluating_commercial", "Commercial, EMD, and payment conditions evaluated", status="completed"
@@ -442,6 +480,7 @@ class TenderIntelligenceEngine:
         default_risk_page = records[0].page_number if records else 1
 
         # Classify Procurement Domain & Document Role
+        t_class_start = time.time()
         text_sample = "\n".join(r.text for r in records[:10])
         proc_profile = universal_classifier.classify_document(
             text_sample=text_sample,
@@ -450,10 +489,48 @@ class TenderIntelligenceEngine:
         )
         overview_obj.tender_category = proc_profile.get("primary_category")
         overview_obj.contract_type = proc_profile.get("contract_type")
+        resource_monitor.log_stage(
+            "document_classification",
+            t_class_start,
+            extra={
+                "category": proc_profile.get("primary_category"),
+                "contract_type": proc_profile.get("contract_type"),
+            },
+        )
 
         # 2. Build Structured Context Supplied to Gemma
         t_ctx_start = time.time()
         current_date_str = datetime.now().strftime("%Y-%m-%d")
+
+        # Phase 6: Shared Hybrid RAG Evidence Layer across all 11 Dimensions
+        primary_doc = enriched_docs[0] if enriched_docs else (documents[0] if documents else {})
+        doc_hash = str(primary_doc.get("file_hash") or compute_bundle_signature(documents))[:16]
+        strategic_rag_evidence: List[Any] = []
+        try:
+            from backend.app.services.rag.structure_chunker import structure_chunker
+            from backend.app.services.rag.tender_vector_index import tender_index_registry
+            from backend.app.services.rag.hybrid_retriever import hybrid_retriever
+
+            t_chunk_start = time.time()
+            rag_chunks = structure_chunker.chunk_document(primary_doc, doc_id=doc_hash, filename=primary_filename)
+            resource_monitor.log_stage(
+                "semantic_chunking",
+                t_chunk_start,
+                extra={
+                    "chunks_created": len(rag_chunks),
+                    "pages": len(records),
+                },
+            )
+            tender_index_registry.get_or_create(doc_hash, chunks=rag_chunks)
+            strategic_rag_evidence = hybrid_retriever.search(
+                doc_hash,
+                "bidder eligibility criteria financial turnover penalties risks MAF OEM submission deadline",
+                chunks=rag_chunks,
+                top_k=4,
+            )
+        except Exception as rag_err:
+            logger.debug(f"[TENDER_CONSULTANT] Hybrid RAG retrieval skipped: {rag_err}")
+
         structured_context = self._build_gemma_context(
             overview=overview_obj,
             scope=scope_obj,
@@ -466,6 +543,7 @@ class TenderIntelligenceEngine:
             primary_doc_id=primary_doc_id,
             primary_filename=primary_filename,
             proc_profile=proc_profile,
+            rag_evidence=strategic_rag_evidence,
         )
         prompt = FAST_STRATEGIC_REASONING_PROMPT.format(
             structured_context=structured_context,
@@ -483,7 +561,7 @@ class TenderIntelligenceEngine:
                 task_id, "preparing_recommendations", "Preparing tender consultant recommendations...", status="running"
             )
         try:
-            res_json = self._call_gemma_json(prompt, max_tokens=420)
+            res_json = self._call_gemma_json(prompt, max_tokens=220)
         except Exception as gemma_err:
             logger.warning(f"Gemma inference error: {gemma_err}")
             if task_id:
@@ -492,6 +570,14 @@ class TenderIntelligenceEngine:
                 )
             raise
         t_gemma = round(time.time() - t_gemma_start, 3)
+        resource_monitor.log_stage(
+            "gemma_inference",
+            t_gemma_start,
+            extra={
+                "prompt_chars": len(prompt),
+                "model": "Gemma-4-E2B-It-Q4_K_M",
+            },
+        )
         if task_id:
             processing_progress_tracker.update_stage(
                 task_id, "preparing_recommendations", "Consultant recommendations formulated", status="completed"
@@ -838,7 +924,7 @@ class TenderIntelligenceEngine:
         }
 
         # Cross-Dimension Source of Truth Synchronization
-        self._synchronize_cross_dimension_facts(overview_obj, commercial_obj, legal_obj)
+        self._synchronize_cross_dimension_facts(overview_obj, commercial_obj, legal_obj, eligibility=eligibility_obj)
 
         report = TenderConsultantReport(
             report_id=f"rep_{uuid.uuid4().hex[:10]}",
@@ -876,8 +962,17 @@ class TenderIntelligenceEngine:
         report = intelligence_validator.validate_report(report, records)
 
         # Presentation Markdown
+        t_rep_start = time.time()
         report = intelligence_report_builder.generate_markdown(report)
         report.elapsed_seconds = round(time.time() - start_t, 2)
+        resource_monitor.log_stage(
+            "final_report_generation",
+            t_rep_start,
+            extra={
+                "report_id": report.report_id,
+                "total_pages": len(records),
+            },
+        )
 
         # Disk Caching
         intelligence_report_builder.store_cached_report(bundle_signature, report)
@@ -911,6 +1006,26 @@ class TenderIntelligenceEngine:
         # Stage 4: Commercial, Financial & Contractual Legal
         commercial_obj, legal_obj = self._run_stage_4(index, records, anchor_data)
 
+        # Stage 2: Advanced Intelligent 6-Category Compliance Matrix & Readiness Assessment
+        t_cm_start = time.time()
+        compliance_obj = build_intelligent_compliance_matrix(
+            spec_analysis=spec_obj,
+            oem_analysis=oem_obj,
+            eligibility_analysis=eligibility_obj,
+            commercial_analysis=commercial_obj,
+            legal_analysis=legal_obj,
+            records=records,
+            index=index,
+        )
+        resource_monitor.log_stage(
+            "compliance_matrix_generation",
+            t_cm_start,
+            extra={
+                "items_count": len(compliance_obj.items),
+                "docs_count": len(compliance_obj.required_documents),
+            },
+        )
+
         # Stage 5: Risks, Contradictions, Bid Strategy & Action Roadmap
         risks_obj, strategy_obj, roadmap_obj = self._run_stage_5(
             index, records, overview_obj, eligibility_obj, commercial_obj
@@ -922,7 +1037,7 @@ class TenderIntelligenceEngine:
         file_hashes = [str(d.get("file_hash") or "") for d in documents]
 
         # Cross-Dimension Source of Truth Synchronization
-        self._synchronize_cross_dimension_facts(overview_obj, commercial_obj, legal_obj)
+        self._synchronize_cross_dimension_facts(overview_obj, commercial_obj, legal_obj, eligibility=eligibility_obj)
 
         report = TenderConsultantReport(
             report_id=f"rep_{uuid.uuid4().hex[:10]}",
@@ -951,8 +1066,17 @@ class TenderIntelligenceEngine:
         report = intelligence_validator.validate_report(report, records)
 
         # Presentation Markdown
+        t_rep_start = time.time()
         report = intelligence_report_builder.generate_markdown(report)
         report.elapsed_seconds = round(time.time() - start_t, 2)
+        resource_monitor.log_stage(
+            "final_report_generation",
+            t_rep_start,
+            extra={
+                "report_id": report.report_id,
+                "total_pages": len(records),
+            },
+        )
 
         # Disk Caching
         intelligence_report_builder.store_cached_report(bundle_signature, report)
@@ -1501,11 +1625,11 @@ class TenderIntelligenceEngine:
                     )
 
         if not roadmap_items:
-            turnover_p = eligibility.annual_turnover_citation.page_number if eligibility.annual_turnover_citation else p_num
-            oem_p = oem.source_page if oem.source_page else p_num
-            sched_p = overview.bid_submission_deadline_citation.page_number if overview.bid_submission_deadline_citation else p_num
-            spec_p = specs.items[0].source_page if specs.items else p_num
-            emd_p = overview.emd_value_citation.page_number if overview.emd_value_citation else p_num
+            turnover_p = getattr(eligibility, "annual_turnover_page", None) or p_num
+            oem_p = getattr(oem, "source_page", None) or p_num
+            sched_p = getattr(overview, "bid_submission_deadline_page", None) or p_num
+            spec_p = specs.items[0].source_page if getattr(specs, "items", None) else p_num
+            emd_p = getattr(overview, "emd_page", None) or p_num
 
             roadmap_items = [
                 ActionRoadmapItem(step_number=1, activity="Verify Annual Turnover Eligibility", reason="Prevent PQ disqualification", relevant_tender_page=turnover_p, priority="High", deadline_or_stage="Immediate"),
@@ -2054,8 +2178,38 @@ class TenderIntelligenceEngine:
 
         index, records, _ = intelligence_retriever.prepare_index(documents)
 
-        # Retrieve relevant pages for question
-        evidence_block, sources = retrieve_evidence_for_query(index, question, max_pages=4, max_chars=3500)
+        # Phase 7: Hybrid RAG Evidence Retrieval for Follow-Up Question
+        evidence_block = ""
+        sources: List[Dict[str, Any]] = []
+        try:
+            from backend.app.services.rag.structure_chunker import structure_chunker
+            from backend.app.services.rag.tender_vector_index import tender_index_registry
+            from backend.app.services.rag.hybrid_retriever import hybrid_retriever
+
+            primary_doc = documents[0] if documents else {}
+            doc_hash = str(primary_doc.get("file_hash") or bundle_signature)[:16]
+            primary_fname = str(primary_doc.get("filename") or "tender.pdf")
+
+            # Obtain index
+            rag_chunks = structure_chunker.chunk_document(primary_doc, doc_id=doc_hash, filename=primary_fname)
+            tender_index_registry.get_or_create(doc_hash, chunks=rag_chunks)
+
+            hybrid_results = hybrid_retriever.search(doc_hash, question, chunks=rag_chunks, top_k=4, expand_context=True)
+            if hybrid_results:
+                ev_parts = []
+                seen_pages = set()
+                for hr in hybrid_results:
+                    ev_parts.append(f"--- [Page {hr.page_number} | {hr.section_heading or 'Clause'}] ---\n{hr.raw_content}")
+                    if hr.page_number not in seen_pages:
+                        seen_pages.add(hr.page_number)
+                        sources.append({"filename": hr.filename, "page_number": hr.page_number})
+                evidence_block = "\n\n".join(ev_parts)
+        except Exception as rag_qa_err:
+            logger.debug(f"[CONSULTANT_QA] Hybrid RAG fallback to lexical retriever: {rag_qa_err}")
+
+        # Fallback to lexical index if hybrid produced nothing
+        if not evidence_block:
+            evidence_block, sources = retrieve_evidence_for_query(index, question, max_pages=4, max_chars=3500)
 
         # Prepare concise summary report context
         report_context = ""

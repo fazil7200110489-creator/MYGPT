@@ -292,51 +292,35 @@ INSTRUCTIONS:
 
 FAST_STRATEGIC_REASONING_PROMPT = """\
 You are MYGPT's Senior AI Tender Consultant.
-Analyze the structured tender facts and evidence below. Deliver a professional, evidence-grounded bid evaluation, strategic recommendations, and a concise consultant briefing.
+Analyze the structured tender facts and evidence below. Deliver a professional, evidence-grounded bid evaluation, strategic recommendations, and key qualification hurdles.
 
 RULES:
 1. Base all conclusions strictly on the provided factual context. Never invent prices, dates, turnover numbers, or conditions.
 2. Distinguish facts stated in the tender from your strategic recommendations. Label advice clearly with "[CONSULTANT RECOMMENDATION]".
 3. For critical risks and pre-bid questions, cite the exact source page provided in the context (e.g. Page X).
-4. If a condition is missing or unstated in the tender, explain it clearly or state "[ NOT SPECIFIED IN TENDER ]".
+4. If a condition is missing or unstated in the tender, state "[ NOT SPECIFIED IN TENDER ]".
 5. Provide a clear bid recommendation verdict: "PROCEED", "PROCEED WITH CAUTION", "HIGH RISK", "NOT RECOMMENDED", "DEADLINE PASSED", or "INSUFFICIENT INFORMATION".
 6. Check the submission deadline against the current reference date ({current_date}). If the deadline has already passed and no active extension corrigendum is present, set recommendation to "DEADLINE PASSED".
-7. Deliver a fluent, professional conversational consultant briefing answering the bidder's key concerns:
-   - What this tender is about (procurement purpose & business scope)
-   - Issuing authority vs actual end-user department or project beneficiary
-   - Main work / supply requirement (equipment types, subsystems, quantities)
-   - Mandatory eligibility requirements (turnover, similar work experience alternatives preserving OR logic, OEM authorization)
-   - Financial commitments & cash flow risks (EMD, PBG, milestone payments, back-to-back receipt clause)
-   - Critical technical and contractual risks (liquidated damages, warranty terms, payment blockage)
-   - Business viability and whether it is worth pursuing
-   - What the bidder must verify before participating (site survey, OEM back-to-back SLA commitment)
 
 STRUCTURED TENDER CONTEXT:
 {structured_context}
 
 OUTPUT FORMAT:
-Return ONLY a valid JSON object matching this schema (do not wrap in markdown or backticks):
+Return ONLY a valid, compact JSON object matching this schema (do not wrap in markdown or backticks):
 {{
   "recommendation": "PROCEED" | "PROCEED WITH CAUTION" | "HIGH RISK" | "NOT RECOMMENDED" | "DEADLINE PASSED" | "INSUFFICIENT INFORMATION",
   "recommendation_rationale": "<2-3 sentences explaining reasons considering eligibility, cash flow exposure, warranty obligations, and deadline status>",
-  "consultant_briefing": "<A professional conversational tender consultant briefing answering the key bidder questions in fluent markdown with exact [Page X] citations>",
   "overall_tender_assessment": "<1-2 sentences summarizing project viability and major hurdles>",
   "key_qualification_hurdles": [
     "<hurdle 1 based on actual turnover/experience/OEM conditions>",
     "<hurdle 2>"
   ],
-  "critical_risks": [
-    {{
-      "risk_title": "<concise risk title>",
-      "risk_level": "High" | "Medium" | "Critical",
-      "source_page": <integer page number from context or 1>,
-      "why_it_matters": "<explain the business implication and financial impact on the bidder>",
-      "potential_impact": "<cash flow blockage or penalty>",
-      "recommended_action": "[CONSULTANT RECOMMENDATION] <mitigation advice>"
-    }}
-  ],
   "prebid_clarification_questions": [
     "<actionable query citing Page X and the ambiguous clause>"
+  ],
+  "bid_preparation_priorities": [
+    "<Priority 1: e.g. secure OEM MAF for specified equipment>",
+    "<Priority 2: e.g. assemble CA turnover certificate with UDIN>"
   ]
 }}
 """

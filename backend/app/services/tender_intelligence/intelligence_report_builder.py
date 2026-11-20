@@ -298,7 +298,7 @@ class IntelligenceReportBuilder:
             "> ℹ️ **Bidder eligibility**: Not assessed — company credentials have not been provided. Click any suggested question below or ask me directly to evaluate your profile.",
             "",
             "#### 💳 Key Financial Commitments",
-            f"- **EMD / Bid Security**: {_clean(ov.emd_value or cm.emd_amount, 'Exemption available for registered MSMEs/MSEs as per policy')} (Tender Fee: {_clean(ov.tender_fee, 'Nil / As per portal')})",
+            f"- **EMD / Bid Security**: {_clean(ov.emd_value or cm.emd_amount, 'As stipulated in Tender Notice')}{f' (Exemption: {cm.emd_exemption_rules})' if cm.emd_exemption_rules and cm.emd_exemption_rules not in ('NOT FOUND', 'None', 'N/A') else ' (Exemption: None specified; online transfer mandatory)'} (Tender Fee: {_clean(ov.tender_fee, 'Nil / As per portal')})",
             f"- **Performance Security (PBG)**: {_clean(cm.performance_bank_guarantee_pbg or cm.security_deposit, 'Refer to Commercial Terms / As per GCC')}",
             f"- **Payment Terms**: {_clean(cm.payment_terms, 'Milestone payments linked to delivery, installation, and final acceptance testing')}",
             f"- **Warranty Period**: {_clean(ov.warranty_maintenance_period, 'Comprehensive on-site OEM warranty')}",
@@ -683,7 +683,7 @@ class IntelligenceReportBuilder:
             f"- **Submission Deadline**: **{_f(ov.bid_submission_deadline, 'Refer to Tender Schedule')}**",
             f"- **Technical Bid Opening**: {_f(ov.bid_opening_date, 'Following bid submission deadline')}",
             f"- **Estimated Tender Value**: {_f(ov.estimated_project_value, 'Not disclosed in NIT; rates to be quoted in BOQ')}",
-            f"- **Earnest Money Deposit (EMD)**: {_f(ov.emd_value or cm.emd_amount, 'Exemption for eligible MSME/MSE bidders')}",
+            f"- **Earnest Money Deposit (EMD)**: {_f(ov.emd_value or cm.emd_amount, 'As stipulated in Tender Notice')}{f' (Exemption: {cm.emd_exemption_rules})' if cm.emd_exemption_rules and cm.emd_exemption_rules not in ('NOT FOUND', 'None', 'N/A') else ' (Exemption: None specified; online transfer mandatory)'}",
             f"- **Tender Document Fee**: {_f(ov.tender_fee, 'Nil / Online portal charge')}",
             f"- **Implementation & Delivery Period**: {_f(ov.delivery_implementation_period, 'As per delivery milestone schedule')}",
             f"- **Contract & Warranty Duration**: {_f(ov.contract_duration, '3 Years')} (Warranty: {_f(ov.warranty_maintenance_period, 'Comprehensive on-site OEM warranty')})",
@@ -834,18 +834,64 @@ class IntelligenceReportBuilder:
             "- Secure written OEM commitment for back-to-back warranty support and spare parts availability for 3-5 years.",
             "",
             "---",
-            "## 6. 📊 Item-Wise Compliance Analysis Matrix",
+            "## 6. 📊 Item-Wise Compliance Analysis Matrix & Bidder Readiness",
             "### 📌 Requirement Summary",
-            "Clause-by-clause compliance verification matrix comparing tender requirements against bidder solution proposals.",
+            "Intelligent evidence-based compliance tracking across Technical, Administrative, Statutory, Eligibility, OEM, and Commercial categories.",
             "",
-            "### 🔍 Key Findings & Verified Evidence",
-            "| Item | Tender Requirement | Mandatory Specification | Tender Reference | Compliance Assessment | Remarks |",
-            "| :--- | :--- | :--- | :--- | :--- | :--- |",
+            "### 📋 Bidder Submission Readiness Summary",
+        ])
+
+        rd_summary = cp.readiness_summary
+        if rd_summary:
+            lines.extend([
+                f"- **Overall Tender Submission Readiness**: **{rd_summary.overall_readiness_percentage}%** ({rd_summary.compliant_count} of {rd_summary.mandatory_requirements} mandatory items certified with evidence)",
+                f"- **Total Requirements Cataloged**: {rd_summary.total_requirements} ({rd_summary.mandatory_requirements} Mandatory)",
+                f"- **Status Breakdown**: `{rd_summary.compliant_count} COMPLIANT` | `{rd_summary.pending_count} PENDING BIDDER PROPOSAL` | `{rd_summary.needs_review_count} NEEDS REVIEW` | `{rd_summary.non_compliant_count} NON-COMPLIANT`",
+                f"- **Missing / Required Submission Documents**: {rd_summary.missing_documents_count} mandatory documents identified",
+                "",
+                "#### Category Readiness Breakdown:",
+            ])
+            for cat_name, cat_rd in rd_summary.categories.items():
+                lines.append(
+                    f"- **{cat_name}**: {cat_rd.readiness_percentage}% ready ({cat_rd.compliant_count}/{cat_rd.mandatory_count} mandatory certified; {cat_rd.pending_count} pending evidence)"
+                )
+
+            if rd_summary.critical_blockers:
+                lines.extend([
+                    "",
+                    "#### ⚠️ Critical Unresolved Mandatory Blockers:",
+                ])
+                for blocker in rd_summary.critical_blockers:
+                    lines.append(f"- 🛑 {blocker}")
+        else:
+            lines.append(f"> {cp.compliance_summary or 'Compliance evaluation pending bidder document submission.'}")
+
+        # Required Bidder Document Checklist
+        if cp.required_documents:
+            lines.extend([
+                "",
+                "### 📑 Mandatory Bidder Document Submission Checklist",
+                "| Document Name | Category | Mandatory? | Submission Format | Reference | Notes |",
+                "| :--- | :--- | :--- | :--- | :--- | :--- |",
+            ])
+            for doc in cp.required_documents:
+                lines.append(
+                    f"| **{doc.document_name}** | `{doc.category}` | {'Yes' if doc.is_mandatory else 'No'} | {doc.submission_format or 'Prescribed tender format'} | {doc.tender_reference or f'Page {doc.source_page}'} | {doc.notes or 'Required for qualification'} |"
+                )
+
+        # Full Clause-by-Clause Compliance Matrix
+        lines.extend([
+            "",
+            "### 🔍 Detailed Clause-by-Clause Compliance Matrix",
+            "| ID | Category | Item / Requirement | Mandatory Specification | Status | Reference | Required Bidder Proof |",
+            "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
         ])
 
         for m in cp.items:
+            req_id_str = f"`{m.requirement_id}`" if m.requirement_id else ""
+            status_str = f"`{m.compliance_status or m.compliance_assessment}`"
             lines.append(
-                f"| **{m.item}** | {m.tender_requirement} | {m.mandatory_specification} | {m.tender_reference} | `{m.compliance_assessment}` | {m.remarks} |"
+                f"| {req_id_str} | **{m.category or 'Technical'}** | {m.item} | {m.mandatory_specification} | {status_str} | {m.tender_reference} | {m.required_document_type or m.remarks} |"
             )
 
         lines.extend([
@@ -870,7 +916,8 @@ class IntelligenceReportBuilder:
             f"- **Advance Payment Allowed**: {_f(cm.advance_payment_allowed, 'Nil / Not permitted')}",
             f"- **Milestone Payments**: {_f(cm.milestone_payments, 'Milestone-based disbursements against delivery, testing, and acceptance')}",
             f"- **Performance Bank Guarantee (PBG)**: {_f(cm.performance_bank_guarantee_pbg, 'Refer to Commercial Terms / GCC')}",
-            f"- **Security Deposit / Retention**: {_f(cm.security_deposit or cm.retention_amount, 'Refer to GCC conditions')}",
+            f"- **Security Deposit**: {_f(cm.security_deposit, 'Unified with PBG')}",
+            f"- **Retention Amount**: {_f(cm.retention_amount, 'Nil / None stipulated (governed by 10% PBG)')}",
             f"- **Price Validity Period**: {_f(cm.price_validity_period, 'Refer to ITB / Tender Schedule')}",
             f"- **Price Escalation Clause**: {_f(cm.price_escalation_clause, 'Firm fixed price contract; no escalation permitted')}",
             f"- **Liquidated Damages (LD)**: {_f(cm.penalties_and_liquidated_damages, 'Refer to Penalty Schedule in tender')}",

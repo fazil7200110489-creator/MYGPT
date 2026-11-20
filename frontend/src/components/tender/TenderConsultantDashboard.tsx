@@ -121,6 +121,9 @@ export const TenderConsultantDashboard: React.FC<TenderConsultantDashboardProps>
   const [specsSearch, setSpecsSearch] = useState('')
   const [specsSubsystem, setSpecsSubsystem] = useState<string>('all')
   const [complianceFilter, setComplianceFilter] = useState<string>('all')
+  const [complianceCategoryFilter, setComplianceCategoryFilter] = useState<string>('all')
+  const [complianceSearch, setComplianceSearch] = useState<string>('')
+  const [showDocumentsChecklist, setShowDocumentsChecklist] = useState<boolean>(true)
   const [riskSeverityFilter, setRiskSeverityFilter] = useState<string>('all')
 
   // PDF Evidence Inspector Modal State
@@ -228,9 +231,32 @@ export const TenderConsultantDashboard: React.FC<TenderConsultantDashboardProps>
 
   // Filtered Compliance Matrix
   const filteredCompliance = (cp.items || []).filter((it: any) => {
-    if (complianceFilter === 'all') return true
-    const stat = (it.compliance_assessment || '').toLowerCase()
-    return stat.includes(complianceFilter.toLowerCase())
+    // 1. Category Filter
+    if (complianceCategoryFilter !== 'all') {
+      const itCat = (it.category || 'Technical').toLowerCase()
+      if (itCat !== complianceCategoryFilter.toLowerCase()) return false
+    }
+
+    // 2. Status Filter
+    if (complianceFilter !== 'all') {
+      const statusVal = (it.compliance_status || it.compliance_assessment || '').toLowerCase()
+      if (!statusVal.includes(complianceFilter.toLowerCase())) return false
+    }
+
+    // 3. Search Filter
+    if (complianceSearch.trim()) {
+      const q = complianceSearch.trim().toLowerCase()
+      const match =
+        (it.item || '').toLowerCase().includes(q) ||
+        (it.tender_requirement || '').toLowerCase().includes(q) ||
+        (it.mandatory_specification || '').toLowerCase().includes(q) ||
+        (it.requirement_id || '').toLowerCase().includes(q) ||
+        (it.required_document_type || '').toLowerCase().includes(q) ||
+        (it.remarks || '').toLowerCase().includes(q)
+      if (!match) return false
+    }
+
+    return true
   })
 
   // Filtered Risks
@@ -1376,75 +1402,348 @@ export const TenderConsultantDashboard: React.FC<TenderConsultantDashboardProps>
           )}
 
           {/* -------------------------------------------------------------- */}
-          {/* DIMENSION 7: ITEM-WISE COMPLIANCE ANALYSIS MATRIX              */}
+          {/* DIMENSION 7: ADVANCED INTELLIGENT COMPLIANCE & READINESS       */}
           {/* -------------------------------------------------------------- */}
           {(activeDimension === 'all' || activeDimension === 7) && (
-            <section id="dim-7" className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-blue-900 flex items-center gap-2">
-                  <Scale className="w-4 h-4 text-blue-600" />
-                  Dimension 7 — Item-Wise Compliance Analysis Matrix
-                </h3>
+            <section id="dim-7" className="space-y-4">
+              {/* Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                    <Scale className="w-4 h-4 text-blue-600" />
+                    Dimension 7 — Intelligent Compliance Matrix & Bidder Readiness
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Evidence-based requirement tracking across 6 canonical procurement categories.
+                  </p>
+                </div>
 
-                {/* Filter */}
-                <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-slate-500 font-medium">Filter:</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search requirements..."
+                      value={complianceSearch}
+                      onChange={e => setComplianceSearch(e.target.value)}
+                      className="pl-8 pr-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white text-slate-700 w-44 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Status Filter */}
                   <select
                     value={complianceFilter}
                     onChange={e => setComplianceFilter(e.target.value)}
-                    className="px-2 py-1 rounded border border-slate-200 bg-white text-slate-700 text-xs"
+                    className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-medium"
                   >
-                    <option value="all">All ({cp.items?.length || 0})</option>
-                    <option value="requirement extracted">Requirement Extracted</option>
+                    <option value="all">All Statuses ({cp.items?.length || 0})</option>
+                    <option value="pending">Pending Evidence</option>
                     <option value="compliant">Compliant</option>
-                    <option value="partially">Partially Compliant</option>
-                    <option value="non-compliant">Non-Compliant</option>
-                    <option value="verification required">Verification Required</option>
-                    <option value="not evaluated">Not Evaluated</option>
+                    <option value="non_compliant">Non-Compliant</option>
+                    <option value="needs_review">Needs Review</option>
+                    <option value="not_applicable">Not Applicable</option>
                   </select>
                 </div>
               </div>
 
-              <div className="p-3 bg-amber-50/70 rounded-lg border border-amber-200 text-xs text-amber-950 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <strong>Separation of Extraction from Bidder Evaluation:</strong> The clauses below are extracted directly from the tender specification. Bidder compliance cannot be certified until proposed product datasheets and make/model details are provided. Status is cataloged as <code>REQUIREMENT EXTRACTED</code>.
+              {/* Category Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-xs font-semibold text-slate-500 mr-1">Category:</span>
+                {['all', 'Technical', 'Eligibility', 'OEM', 'Statutory', 'Commercial', 'Administrative'].map(cat => {
+                  const count = cat === 'all'
+                    ? (cp.items?.length || 0)
+                    : (cp.items || []).filter((it: any) => (it.category || 'Technical').toLowerCase() === cat.toLowerCase()).length
+                  const isSelected = complianceCategoryFilter.toLowerCase() === cat.toLowerCase()
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setComplianceCategoryFilter(cat)}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
+                      }`}
+                    >
+                      {cat === 'all' ? 'All Categories' : cat} ({count})
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Bidder Readiness KPI Summary Strip */}
+              {cp.readiness_summary && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {/* KPI 1: Readiness Score */}
+                    <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold uppercase text-slate-500">Readiness Score</span>
+                        <span className="text-xs font-bold text-blue-600 font-mono">
+                          {cp.readiness_summary.overall_readiness_percentage}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div
+                          className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${Math.max(cp.readiness_summary.overall_readiness_percentage, 4)}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-slate-500 mt-1 block">
+                        {cp.readiness_summary.compliant_count} of {cp.readiness_summary.mandatory_requirements} mandatory certified
+                      </span>
+                    </div>
+
+                    {/* KPI 2: Total Tracked */}
+                    <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs">
+                      <span className="text-[11px] font-semibold uppercase text-slate-500 block">Requirements Tracked</span>
+                      <span className="text-base font-bold text-slate-900 mt-0.5 block font-mono">
+                        {cp.readiness_summary.total_requirements}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">
+                        {cp.readiness_summary.mandatory_requirements} marked mandatory
+                      </span>
+                    </div>
+
+                    {/* KPI 3: Pending Evidence */}
+                    <div className="p-3 bg-amber-50/60 rounded-lg border border-amber-200 shadow-2xs">
+                      <span className="text-[11px] font-semibold uppercase text-amber-800 block">Pending Evidence</span>
+                      <span className="text-base font-bold text-amber-900 mt-0.5 block font-mono">
+                        {cp.readiness_summary.pending_count}
+                      </span>
+                      <span className="text-[10px] text-amber-700 block">
+                        Awaiting bidder proposal / datasheets
+                      </span>
+                    </div>
+
+                    {/* KPI 4: Missing Documents */}
+                    <div className="p-3 bg-indigo-50/60 rounded-lg border border-indigo-200 shadow-2xs">
+                      <span className="text-[11px] font-semibold uppercase text-indigo-800 block">Required Documents</span>
+                      <span className="text-base font-bold text-indigo-900 mt-0.5 block font-mono">
+                        {cp.required_documents?.length || 0}
+                      </span>
+                      <span className="text-[10px] text-indigo-700 block">
+                        Mandatory submission proofs
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Category Readiness Progress Meters */}
+                  {cp.readiness_summary.categories && (
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      <span className="text-xs font-bold text-slate-800 block mb-2">Category Readiness Breakdown</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                        {Object.entries(cp.readiness_summary.categories).map(([cName, cData]: [string, any]) => (
+                          <div key={cName} className="p-2 bg-white rounded border border-slate-200 text-center">
+                            <span className="text-[11px] font-semibold text-slate-700 block truncate">{cName}</span>
+                            <span className="text-xs font-bold font-mono text-blue-700 block mt-0.5">
+                              {cData.readiness_percentage}%
+                            </span>
+                            <span className="text-[9.5px] text-slate-500 block">
+                              {cData.compliant_count}/{cData.mandatory_count} certified
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Critical Blockers Alert */}
+                  {cp.readiness_summary.critical_blockers && cp.readiness_summary.critical_blockers.length > 0 && (
+                    <div className="p-3 bg-rose-50/80 rounded-lg border border-rose-200 text-xs text-rose-950 space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-bold text-rose-900">
+                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                        Critical Unresolved Readiness Blockers ({cp.readiness_summary.critical_blockers.length}):
+                      </div>
+                      <ul className="list-disc list-inside space-y-0.5 text-rose-900/90 pl-1 text-[11.5px]">
+                        {cp.readiness_summary.critical_blockers.map((b: string, bIdx: number) => (
+                          <li key={bIdx}>{b}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Notice: Separation of Extraction from Bidder Evaluation */}
+              <div className="p-2.5 bg-blue-50/70 rounded-lg border border-blue-200 text-xs text-blue-950 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <strong>Intelligent Compliance Guard:</strong> All tender clauses default strictly to <code>PENDING</code>. Bidder compliance cannot be certified until proposed product datasheets, CA certificates, and MAF authorizations are submitted.
                 </div>
               </div>
 
+              {/* Mandatory Documents Checklist Accordion */}
+              {cp.required_documents && cp.required_documents.length > 0 && (
+                <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-2xs">
+                  <div
+                    onClick={() => setShowDocumentsChecklist(!showDocumentsChecklist)}
+                    className="p-2.5 bg-slate-100/80 hover:bg-slate-200/60 cursor-pointer flex items-center justify-between text-xs font-bold text-slate-800 transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Briefcase className="w-3.5 h-3.5 text-blue-600" />
+                      Mandatory Bidder Document Submission Checklist ({cp.required_documents.length} Required)
+                    </span>
+                    <span className="text-[11px] text-blue-600 font-normal underline">
+                      {showDocumentsChecklist ? 'Hide Checklist' : 'Show Checklist'}
+                    </span>
+                  </div>
+
+                  {showDocumentsChecklist && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-[11px]">
+                          <tr>
+                            <th className="p-2 w-1/4">Document Required</th>
+                            <th className="p-2 w-24 text-center">Category</th>
+                            <th className="p-2 w-20 text-center">Mandatory?</th>
+                            <th className="p-2">Submission Format / Certification</th>
+                            <th className="p-2 w-28 text-center">Reference</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {cp.required_documents.map((doc: any, dIdx: number) => (
+                            <tr key={dIdx} className="hover:bg-slate-50/60">
+                              <td className="p-2 font-semibold text-slate-900">{doc.document_name}</td>
+                              <td className="p-2 text-center">
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                  {doc.category || 'Administrative'}
+                                </span>
+                              </td>
+                              <td className="p-2 text-center">
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                  {doc.is_mandatory ? 'YES' : 'OPTIONAL'}
+                                </span>
+                              </td>
+                              <td className="p-2 text-slate-700 text-[11.5px]">{doc.submission_format || doc.notes || 'As per tender format'}</td>
+                              <td className="p-2 text-center font-mono text-slate-600 text-[11px]">
+                                {doc.tender_reference || (doc.source_page ? `Page ${doc.source_page}` : 'Tender Notice')}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Clause-by-Clause Compliance Matrix Table */}
               <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-2xs">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
-                    <tr>
-                      <th className="p-2.5 w-1/4">Item / Clause</th>
-                      <th className="p-2.5">Mandatory Specification</th>
-                      <th className="p-2.5 w-1/4 text-center">Compliance Status</th>
-                      <th className="p-2.5 w-28 text-center">Reference</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredCompliance.length > 0 ? (
-                      filteredCompliance.map((it: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-slate-50/60">
-                          <td className="p-2.5 font-bold text-slate-900">{it.item}</td>
-                          <td className="p-2.5 text-slate-800">{it.mandatory_specification || it.tender_requirement}</td>
-                          <td className="p-2.5 text-center">
-                            <span className="px-2 py-0.5 rounded text-[10.5px] font-mono font-semibold bg-blue-50 text-blue-800 border border-blue-200">
-                              REQUIREMENT EXTRACTED
-                            </span>
-                          </td>
-                          <td className="p-2.5 text-center font-mono text-slate-600">{it.tender_reference}</td>
-                        </tr>
-                      ))
-                    ) : (
+                <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">
+                    Detailed Compliance Matrix ({filteredCompliance.length} Clauses Showing)
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-700 font-semibold text-[11px]">
                       <tr>
-                        <td colSpan={4} className="p-4 text-center text-slate-500 italic">
-                          No compliance items match the filter.
-                        </td>
+                        <th className="p-2.5 w-24">Req ID</th>
+                        <th className="p-2.5 w-24 text-center">Category</th>
+                        <th className="p-2.5 w-1/4">Requirement / Clause</th>
+                        <th className="p-2.5">Mandatory Specification</th>
+                        <th className="p-2.5 w-32 text-center">Compliance Status</th>
+                        <th className="p-2.5 w-1/5">Required Proof / Action</th>
+                        <th className="p-2.5 w-24 text-center">Reference</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredCompliance.length > 0 ? (
+                        filteredCompliance.map((it: any, idx: number) => {
+                          const statusLower = (it.compliance_status || it.compliance_assessment || '').toLowerCase()
+                          let statusBadgeClass = 'bg-amber-50 text-amber-800 border-amber-300'
+                          let statusLabel = 'PENDING'
+                          if (statusLower.includes('compliant') && !statusLower.includes('non') && !statusLower.includes('partially')) {
+                            statusBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                            statusLabel = 'COMPLIANT'
+                          } else if (statusLower.includes('non')) {
+                            statusBadgeClass = 'bg-rose-50 text-rose-800 border-rose-300'
+                            statusLabel = 'NON-COMPLIANT'
+                          } else if (statusLower.includes('review') || statusLower.includes('unclear')) {
+                            statusBadgeClass = 'bg-purple-50 text-purple-800 border-purple-300'
+                            statusLabel = 'NEEDS REVIEW'
+                          } else if (statusLower.includes('not applicable')) {
+                            statusBadgeClass = 'bg-slate-100 text-slate-600 border-slate-300'
+                            statusLabel = 'NOT APPLICABLE'
+                          }
+
+                          const catLower = (it.category || 'technical').toLowerCase()
+                          let catBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200'
+                          if (catLower === 'eligibility') catBadgeClass = 'bg-purple-50 text-purple-700 border-purple-200'
+                          else if (catLower === 'oem') catBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          else if (catLower === 'statutory') catBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200'
+                          else if (catLower === 'commercial') catBadgeClass = 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                          else if (catLower === 'administrative') catBadgeClass = 'bg-slate-100 text-slate-700 border-slate-300'
+
+                          return (
+                            <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
+                              <td className="p-2.5 font-mono text-[11px] font-bold text-slate-600">
+                                {it.requirement_id || `REQ-${idx + 1}`}
+                              </td>
+                              <td className="p-2.5 text-center">
+                                <span className={`px-2 py-0.5 rounded text-[10.5px] font-semibold border ${catBadgeClass}`}>
+                                  {it.category || 'Technical'}
+                                </span>
+                              </td>
+                              <td className="p-2.5">
+                                <div className="font-bold text-slate-900">{it.item}</div>
+                                {it.tender_requirement && it.tender_requirement !== it.item && (
+                                  <div className="text-[11px] text-slate-500 mt-0.5">{it.tender_requirement}</div>
+                                )}
+                              </td>
+                              <td className="p-2.5 text-slate-800 leading-snug">
+                                {it.mandatory_specification || it.tender_requirement}
+                              </td>
+                              <td className="p-2.5 text-center">
+                                <span className={`px-2 py-0.5 rounded text-[10.5px] font-mono font-bold border ${statusBadgeClass}`}>
+                                  {statusLabel}
+                                </span>
+                              </td>
+                              <td className="p-2.5 text-slate-600 text-[11.5px]">
+                                {it.required_document_type || it.remarks || 'Datasheet evidence required'}
+                              </td>
+                              <td className="p-2.5 text-center">
+                                {it.source_page ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setEvidenceViewerState({
+                                        isOpen: true,
+                                        targetPage: it.source_page,
+                                        filename: it.source_file || report.source_files?.[0] || 'tender.pdf',
+                                        documentId: it.document_id,
+                                        evidenceText: it.mandatory_specification || it.tender_requirement,
+                                        clauseHeading: it.item,
+                                        category: it.category || 'Technical',
+                                        verificationStatus: 'VERIFIED',
+                                      })
+                                    }
+                                    className="px-2 py-0.5 rounded text-[11px] font-mono text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                                    title="Inspect original tender PDF evidence"
+                                  >
+                                    Page {it.source_page}
+                                  </button>
+                                ) : (
+                                  <span className="font-mono text-slate-500 text-[11px]">
+                                    {it.tender_reference || 'Tender'}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="p-6 text-center text-slate-500 italic">
+                            No compliance items match the filter criteria.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Consultant Compliance Guidance */}
@@ -1454,7 +1753,7 @@ export const TenderConsultantDashboard: React.FC<TenderConsultantDashboardProps>
                   Compliance Matrix Strategy & Audit Notes:
                 </strong>
                 <p className="text-slate-700 leading-relaxed">
-                  Mark 'COMPLIED' only with direct page and clause references to OEM published datasheets. Avoid ambiguous responses such as 'Will Comply Post-Award' which are treated as non-compliant deviations.
+                  Mark 'COMPLIED' only with direct page and clause references to OEM published datasheets. Avoid ambiguous responses such as 'Will Comply Post-Award' which are treated as non-compliant deviations. Ensure all mandatory documents (GST, PAN, MAF, Balance Sheets with UDIN) are compiled in Envelope 1 before final bid submission.
                 </p>
               </div>
             </section>

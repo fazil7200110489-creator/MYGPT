@@ -180,6 +180,43 @@ export interface OEMRequirementsData {
   consultant_notes: string
 }
 
+export interface RequiredBidderDocument {
+  document_name: string
+  category?: string
+  is_mandatory?: boolean
+  submission_format?: string
+  tender_reference?: string
+  source_page?: number
+  source_file?: string
+  document_id?: string
+  notes?: string
+}
+
+export interface CategoryReadiness {
+  category: string
+  total_requirements: number
+  mandatory_count: number
+  pending_count: number
+  compliant_count: number
+  non_compliant_count: number
+  needs_review_count: number
+  readiness_percentage: number
+}
+
+export interface BidderReadinessSummary {
+  total_requirements: number
+  mandatory_requirements: number
+  pending_count: number
+  compliant_count: number
+  non_compliant_count: number
+  needs_review_count: number
+  overall_readiness_percentage: number
+  critical_unresolved_count: number
+  critical_blockers?: string[]
+  missing_documents_count?: number
+  categories?: Record<string, CategoryReadiness>
+}
+
 export interface ComplianceMatrixItem {
   item: string
   tender_requirement: string
@@ -188,11 +225,25 @@ export interface ComplianceMatrixItem {
   compliance_assessment: string
   remarks: string
   document_id?: string
+
+  // Enhanced Stage 2 Fields
+  requirement_id?: string
+  category?: string
+  is_mandatory?: boolean
+  compliance_status?: string
+  bidder_evidence?: string
+  source_page?: number
+  source_file?: string
+  clause_reference?: string
+  required_document_type?: string
+  validation_status?: string
 }
 
 export interface ComplianceMatrixData {
   items: ComplianceMatrixItem[]
   compliance_summary: string
+  required_documents?: RequiredBidderDocument[]
+  readiness_summary?: BidderReadinessSummary
 }
 
 export interface CommercialFinancialData {

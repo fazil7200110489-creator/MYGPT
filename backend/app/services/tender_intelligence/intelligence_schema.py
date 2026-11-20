@@ -41,6 +41,23 @@ class ComplianceStatus(str, Enum):
     CANNOT_VERIFY = "Cannot be verified from the tender"
 
 
+class RequirementCategory(str, Enum):
+    TECHNICAL = "Technical"
+    ADMINISTRATIVE = "Administrative"
+    STATUTORY = "Statutory"
+    ELIGIBILITY = "Eligibility"
+    OEM = "OEM"
+    COMMERCIAL = "Commercial"
+
+
+class IntelligentComplianceStatus(str, Enum):
+    PENDING = "PENDING"
+    COMPLIANT = "COMPLIANT"
+    NON_COMPLIANT = "NON_COMPLIANT"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
 class TenderEvidenceCitation(BaseModel):
     """Explicit source citation for any finding or condition."""
 
@@ -50,6 +67,7 @@ class TenderEvidenceCitation(BaseModel):
     clause_or_section: Optional[str] = None
     source_text: Optional[str] = None
     classification: str = EvidenceClassification.TENDER_REQUIREMENT.value
+    verification_status: str = "VERIFIED"
 
 
 # ============================================================================
@@ -218,22 +236,73 @@ class OEMRequirementAnalysis(BaseModel):
 
 
 # ============================================================================
-# Section F: Item-Wise Compliance Analysis Matrix
+# Section F: Item-Wise Compliance Analysis Matrix & Bidder Readiness
 # ============================================================================
+
+class RequiredBidderDocument(BaseModel):
+    document_name: str
+    category: str = "Administrative"  # Technical, Administrative, Statutory, Eligibility, OEM, Commercial
+    is_mandatory: bool = True
+    submission_format: Optional[str] = None  # e.g., "Original on Stamp Paper", "CA Audited Copy with UDIN", "OEM Letterhead"
+    tender_reference: Optional[str] = None
+    source_page: Optional[int] = None
+    source_file: Optional[str] = None
+    document_id: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class CategoryReadiness(BaseModel):
+    category: str
+    total_requirements: int = 0
+    mandatory_count: int = 0
+    pending_count: int = 0
+    compliant_count: int = 0
+    non_compliant_count: int = 0
+    needs_review_count: int = 0
+    readiness_percentage: float = 0.0
+
+
+class BidderReadinessSummary(BaseModel):
+    total_requirements: int = 0
+    mandatory_requirements: int = 0
+    pending_count: int = 0
+    compliant_count: int = 0
+    non_compliant_count: int = 0
+    needs_review_count: int = 0
+    overall_readiness_percentage: float = 0.0
+    critical_unresolved_count: int = 0
+    critical_blockers: List[str] = Field(default_factory=list)
+    missing_documents_count: int = 0
+    categories: Dict[str, CategoryReadiness] = Field(default_factory=dict)
+
 
 class ComplianceMatrixItem(BaseModel):
     item: str
     tender_requirement: str
     mandatory_specification: str
     tender_reference: str  # e.g., "Tendernotice.pdf | Page 14"
-    compliance_assessment: str  # one of ComplianceStatus
-    remarks: str
+    compliance_assessment: str = "PENDING"  # one of ComplianceStatus or IntelligentComplianceStatus
+    remarks: str = ""
     document_id: Optional[str] = None
+
+    # Enhanced Stage 2 Fields
+    requirement_id: str = ""
+    category: str = "Technical"  # Technical, Administrative, Statutory, Eligibility, OEM, Commercial
+    is_mandatory: bool = True
+    compliance_status: str = "PENDING"  # PENDING, COMPLIANT, NON_COMPLIANT, NEEDS_REVIEW, NOT_APPLICABLE
+    bidder_evidence: Optional[str] = None
+    source_page: Optional[int] = None
+    source_file: Optional[str] = None
+    clause_reference: Optional[str] = None
+    required_document_type: Optional[str] = None
+    validation_status: str = "VERIFIED"
 
 
 class ItemWiseComplianceMatrix(BaseModel):
     items: List[ComplianceMatrixItem] = Field(default_factory=list)
     compliance_summary: str = Field(default="")
+    required_documents: List[RequiredBidderDocument] = Field(default_factory=list)
+    readiness_summary: Optional[BidderReadinessSummary] = None
 
 
 # ============================================================================

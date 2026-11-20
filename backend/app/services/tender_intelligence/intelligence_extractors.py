@@ -22,6 +22,8 @@ from loguru import logger
 
 from backend.app.services.tender.tender_section_retriever import PageRecord, TenderDocumentIndex
 from .intelligence_schema import (
+    BidderReadinessSummary,
+    CategoryReadiness,
     CommercialFinancialAnalysis,
     ComplianceMatrixItem,
     ComplianceStatus,
@@ -30,9 +32,12 @@ from .intelligence_schema import (
     EligibilityAnalysis,
     EligibilityCondition,
     EvidenceClassification,
+    IntelligentComplianceStatus,
     ItemWiseComplianceMatrix,
     OEMRequirementAnalysis,
     OEMRequirementItem,
+    RequirementCategory,
+    RequiredBidderDocument,
     RiskLevel,
     TechnicalScopeAnalysis,
     TechnicalScopeItem,
@@ -1178,14 +1183,50 @@ def extract_technical_specifications(
     seen_params: Set[str] = set()
     specific_brands: Set[str] = set()
     structured_tables_count = 0
+    subsystem_quantities: Dict[str, str] = {}
 
-    # Discover brands mentioned in text
-    brand_keywords = ["cisco", "aruba", "ruckus", "hp", "dell", "fortinet", "hikvision", "intel", "nvidia", "windows", "realtek"]
+    def _is_administrative_table(tbl_lines: List[str]) -> bool:
+        """Classifies whether a table is administrative/notice/milestones rather than equipment specs."""
+        tbl_text = " ".join(tbl_lines).lower()
+        tbl_compact = re.sub(r"[^a-z0-9]", "", tbl_text)
+        admin_cues = [
+            # Schedule & dates
+            "biddocumentdownload", "clarificationstart", "clarificationend",
+            "onlinebidsubmission", "dateofopeningtechnicalbid", "openingoftechnicalbid",
+            "openingoffinancialbid", "contactdetailsofbuyer", "purchaseofficer",
+            "prebidconference", "datetimevenueofprebid", "timeforsupplyofitem",
+            "timeforcompletionofsupply", "orderplacedby", "fulladdressofthepurchaser",
+            "hasbeeninstalledsatisfactorily", "financialbid", "pricebidformat",
+            "annexurei", "annexuree", "yesno", "pgno", "particularsdetailstobefurnished",
+            "annualturnoverstatement", "auditedbalancesheet", "nonblacklisting",
+            # IFB / General Notice / Scope / Eligibility cues
+            "dateofissuance", "dateofissuanceofifb", "nitbiddocument", "nameoftheemployer",
+            "eprocurementportal", "briefscopeofwork", "qualifyingrequirements",
+            "biddingdocuments", "deadlineforsubmission", "bidopening", "prebidmeeting",
+            "biddingdocumenttenderfee", "tenderfee", "bidsecurityemd", "bidsecurity",
+            "empanelmentfee", "addressforcorrespondence", "invitationforbid",
+            "invitationforbids", "section1invitation"
+        ]
+        tech_indicators = [
+            "processor", "mhz", "ghz", "ddr4", "ddr5", "nvme", "ssd", "harddisk", "sata",
+            "graphics", "nvidia", "intel", "fhd", "ips", "megapixel", "sensor", "bullet",
+            "dome", "ptz", "ethernet", "rj45", "switch", "router", "smps", "watts"
+        ]
+        has_tech = any(ind in tbl_text for ind in tech_indicators)
+        admin_count = sum(1 for cue in admin_cues if cue in tbl_compact)
+        if admin_count >= 2 and not has_tech:
+            return True
+        return False
+
+    # Discover explicitly mandated brands (e.g. "Approved Makes: Cisco, HP")
+    # Strictly exclude operating systems ("Windows", "Linux"), processors ("Intel"), or generic keywords
     for rec in records:
-        txt_low = rec.text.lower()
-        for b in brand_keywords:
-            if re.search(r"\b" + re.escape(b) + r"\b", txt_low):
-                specific_brands.add(b.title())
+        txt = rec.text
+        for m_brand in re.finditer(r"(?:preferred|approved|mandated|suggested)\s*(?:makes?|brands?)\s*[:\-]\s*([^\n\r.]+)", txt, re.IGNORECASE):
+            for b in m_brand.group(1).split(","):
+                b_clean = b.strip()
+                if b_clean and b_clean.lower() not in ["windows", "linux", "ubuntu", "intel", "amd", "not specified", "any"]:
+                    specific_brands.add(b_clean.title())
 
     current_subsystem = "General Technical Specifications"
     last_table_headers: List[str] = []
@@ -1290,32 +1331,62 @@ def extract_technical_specifications(
 
     # Universal Line-Item & Tabular BOQ Parser for All Tenders (e.g. Singappen BWC or other public tenders)
     boq_line_pat = re.compile(
-        r"^\s*(\d{1,3})\.?\s+([A-Za-z0-9][A-Za-z0-9\s/&,()\-+]{4,80}?)\s+(\d{1,6})\s*(?:Nos?\.?|Units?|Sets?|Sites?|Each)?\s*$",
-        re.M,
+        r"^\s*(\d{1,3})\.?\s+([A-Za-z0-9][A-Za-z0-9\s/&,()\-+]{4,80}?)\s+(\d{1,6})\s*(Nos?\.?|Units?|Sets?|Sites?|Each|Lots?|Pkts?|Mtrs?|Metres?|Km)?\s*$",
+        re.M | re.I,
     )
     for b_rec in records:
         if b_rec.page_number in parsed_boq_pages:
             continue
         b_text = b_rec.text
         b_low = b_text.lower()
+
+        # Semantic Table of Contents / Index detection:
+        # Never exclude a page merely because of its page number.
+        is_toc_page = False
+        if any(toc_cue in b_low for toc_cue in ["table of contents", "index of documents", "index:"]) or (
+            re.search(r"\bcontents\b", b_low) and any(sec_cue in b_low for sec_cue in ["section -", "section –", "annexure", "chapter", "part -"])
+        ):
+            # Check if lines look like TOC entries with page numbers (e.g. "... 12" or "... 138")
+            toc_lines_count = len(re.findall(r"(?:section|annexure|part|form|chapter|schedule)[\s\w\-–]+(?:\.{3,}|\s{3,})\s*\d{1,4}", b_low))
+            has_tech_specs = any(t in b_low for t in ["processor", "mhz", "ddr", "nvme", "resolution", "ptz", "camera", "switch", "router", "sensor", "megapixel"])
+            if (toc_lines_count >= 2 or "model form for emd" in b_low) and not has_tech_specs:
+                is_toc_page = True
+
+        if is_toc_page:
+            continue
+
         if any(h in b_low for h in [
             "bill of material", "bill of materials", "bill of quantities",
             "schedule of requirements", "schedule for delivery", "commercial bid",
             "item / description qty", "bill of final materials"
         ]):
+            # Verify this page actually contains technical or hardware requirements, not a list of forms/annexures
+            if "model form for emd" in b_low or "list of forms" in b_low or "list of annexures" in b_low:
+                continue
+
             parsed_boq_pages.add(b_rec.page_number)
             for m in boq_line_pat.finditer(b_text):
                 num = int(m.group(1))
                 desc = _clean_text_span(m.group(2))
                 qty = m.group(3)
+                matched_uom = m.group(4)
+
+                # Entity classification check: exclude administrative forms, undertakings, sections, declarations
+                desc_low = desc.lower().strip()
+                if (
+                    any(desc_low.startswith(pfx) for pfx in ["form ", "form-", "annexure", "section", "part ", "appendix", "format "])
+                    or any(k in desc_low for k in ["model form", "undertaking", "declaration", "bank guarantee", "power of attorney", "integrity pact", "general instructions", "terms and conditions"])
+                ):
+                    continue
+
                 wp_cat = _classify_work_package(desc)
                 root = re.sub(r"[^a-z0-9]", "", desc.lower())[:20]
 
-                # Deduplicate against already extracted items
+                # Safe deduplication against already extracted items
                 is_dup = False
                 for ex in tech_items:
                     ex_root = re.sub(r"[^a-z0-9]", "", ex.item_name.lower())
-                    if root in ex_root or ex_root in root:
+                    if root == ex_root or (len(root) >= 8 and (root in ex_root or ex_root in root)):
                         is_dup = True
                         break
                     if ex.clause_heading and f"Item {num}" in ex.clause_heading and wp_cat in ex.subsystem_or_category:
@@ -1325,18 +1396,22 @@ def extract_technical_specifications(
                 if not is_dup and len(root) >= 3:
                     if wp_cat not in detected_subsystems:
                         detected_subsystems.append(wp_cat)
+                    
+                    unit_clean = matched_uom.strip().title() if matched_uom else None
+                    qty_display = f"{qty} {unit_clean}" if unit_clean else str(qty)
+
                     tech_items.append(
                         TechnicalSpecificationItem(
                             item_name=f"{desc}",
-                            required_quantity=f"{qty} Nos",
-                            unit_of_measurement="Nos",
+                            required_quantity=qty_display,
+                            unit_of_measurement=unit_clean,
                             technical_specifications=desc,
                             subsystem_or_category=wp_cat,
                             clause_heading=f"Bill of Materials (Page {b_rec.page_number})",
                             table_source=f"{b_rec.filename} | Page {b_rec.page_number} | Item {num}",
-                            table_columns=["Item No", "Item Description", "Qty"],
-                            table_row_data={"Item No": str(num), "Description": desc, "Qty": qty},
-                            verbatim_evidence=f"Item {num}: {desc} | Quantity: {qty}",
+                            table_columns=["Item No", "Item Description", "Qty", "UoM"] if unit_clean else ["Item No", "Item Description", "Qty"],
+                            table_row_data={"Item No": str(num), "Description": desc, "Qty": qty, "UoM": unit_clean or ""},
+                            verbatim_evidence=f"Item {num}: {desc} | Quantity: {qty_display}",
                             minimum_performance="As per Technical Specification Schedule",
                             mandatory_standards="Tender requirement identified — Bidder compliance not yet assessed",
                             source_page=b_rec.page_number,
@@ -1347,7 +1422,7 @@ def extract_technical_specifications(
                     compliance_items.append(
                         ComplianceMatrixItem(
                             item=desc,
-                            tender_requirement=f"Supply and deployment of {qty} Nos as per tender specifications",
+                            tender_requirement=f"Supply and deployment of {qty_display} as per tender specifications",
                             mandatory_specification="Must strictly match minimum technical parameters and standards",
                             tender_reference=f"{b_rec.filename} | Page {b_rec.page_number}",
                             compliance_assessment="Tender Requirement Identified — Bidder Compliance Not Yet Assessed",
@@ -1384,28 +1459,40 @@ def extract_technical_specifications(
             continue
 
         if "[Table" in text:
-            structured_tables_count += 1
-            lines = text.split("\n")
-            in_table = False
-            current_table_headers: List[str] = []
-            table_idx = 1
+            # Group lines into individual tables
+            table_blocks: List[Tuple[int, List[str]]] = []
+            curr_t_idx = 1
+            curr_t_lines: List[str] = []
 
-            for line in lines:
+            for line in text.split("\n"):
                 if line.startswith("[Table"):
-                    in_table = True
-                    current_table_headers = []
+                    if curr_t_lines:
+                        table_blocks.append((curr_t_idx, curr_t_lines))
+                        curr_t_lines = []
                     m_tnum = re.search(r"\[Table\s*(\d+)\]", line)
-                    if m_tnum:
-                        table_idx = int(m_tnum.group(1))
+                    curr_t_idx = int(m_tnum.group(1)) if m_tnum else curr_t_idx + 1
+                    continue
+                if "|" in line:
+                    curr_t_lines.append(line)
+            if curr_t_lines:
+                table_blocks.append((curr_t_idx, curr_t_lines))
+
+            for table_idx, tbl_lines in table_blocks:
+                # Semantic Table Zoning: Is this table an administrative / milestone / notice schedule?
+                if _is_administrative_table(tbl_lines):
                     continue
 
-                if in_table and "|" in line:
+                structured_tables_count += 1
+                current_table_headers: List[str] = []
+
+                for line in tbl_lines:
                     parts = [p.strip() for p in line.split("|")]
                     if len(parts) < 2:
                         continue
 
-                    # Semantic Table Classification: Ignore non-technical tables (Date schedules, turnover forms, blank declarations, price bid formats)
+                    # Semantic Row Classification: Ignore non-technical rows
                     row_lower = line.lower()
+                    row_compact = re.sub(r"[^a-z0-9]", "", row_lower)
                     if any(cue in row_lower for cue in [
                         "tender publication", "closing of submission", "opening of technical bid",
                         "opening of financial bid", "schedule of dates", "pre-bid meeting", "critical date",
@@ -1414,7 +1501,12 @@ def extract_technical_specifications(
                         "non-blacklisting", "bid form", "bidder's undertaking", "technical support personnel",
                         "implementation and project execution plan", "price bid format", "total price in inr",
                         "unit rate", "basic rate", "basic price", "gst %", "tax amount",
-                        "particulars details to be furnished", "name of the bidder/firm"
+                        "particulars details to be furnished", "name of the bidder/firm",
+                        "order placed by", "order no. and date", "financial- bid", "specified delivery date"
+                    ]) or any(c_cue in row_compact for c_cue in [
+                        "biddocumentdownload", "clarificationstart", "clarificationend",
+                        "onlinebidsubmission", "dateofopeningtechnicalbid", "contactdetailsofbuyer",
+                        "purchaseofficer", "datetimevenueofprebid", "addressforsubmission"
                     ]):
                         continue
 
@@ -1452,16 +1544,16 @@ def extract_technical_specifications(
                     spec_val = parts[1]
 
                     # In 3-column tables: [Sl.No | Parameter | Specification]
-                    if len(parts) >= 3 and len(parts[0]) <= 4 and (parts[0].replace(".", "").isdigit() or parts[0] == ""):
-                        item_number_val = parts[0].replace(".", "").strip() if parts[0] else None
+                    # Robust numeric check handling spaced serial numbers (e.g. '1 . ', '10 . ', '26')
+                    clean_p0 = re.sub(r"[^0-9]", "", parts[0].strip())
+                    is_numeric_p0 = (clean_p0.isdigit() and len(clean_p0) <= 4) or parts[0].strip() == ""
+                    if len(parts) >= 3 and is_numeric_p0:
+                        item_number_val = clean_p0 if clean_p0 else None
                         param_name = parts[1]
                         spec_val = parts[2]
                     # In 2-column tables: [S.No | Minimum required Technical Features]
-                    elif len(parts) == 2 and (
-                        parts[0].replace(".", "").strip().isdigit()
-                        or (len(parts[0].strip()) <= 4 and re.match(r"^\d+", parts[0].strip()))
-                    ):
-                        item_number_val = parts[0].replace(".", "").strip()
+                    elif len(parts) == 2 and (clean_p0.isdigit() and len(clean_p0) <= 4):
+                        item_number_val = clean_p0 if clean_p0 else None
                         raw_spec = parts[1].strip()
                         spec_val = raw_spec
 
@@ -1475,16 +1567,39 @@ def extract_technical_specifications(
                             cand_name = " ".join(words[:8])
                             param_name = cand_name if len(cand_name) <= 70 else cand_name[:67] + "..."
 
+                    # Require spec_val to contain meaningful substantive content (at least 1 alphanumeric char)
+                    # Excludes punctuation-only values (e.g. ":", "-", " ")
+                    if len(re.sub(r"[^a-zA-Z0-9]", "", spec_val)) == 0:
+                        continue
+
                     # Skip header residual rows
-                    if param_name.lower() in [
-                        "sl.no", "sl.n o", "number", "parameter", "description", "item", "s n", "s. no.",
+                    if param_name.lower().strip() in [
+                        "sl.no", "sl.n o", "sl n . o", "number", "parameter", "description", "item", "s n", "s. no.",
                         "pre-qualification criteria", "documentary proof to be submitted", "qualifying requirements"
                     ]:
                         continue
 
+                    # Semantic Row Exclusion: Reject Administrative, Scope, Eligibility, Commercial, Contact entries
+                    p_low = param_name.lower().strip()
+                    p_compact = re.sub(r"[^a-z0-9]", "", p_low)
+
+                    # Regex patterns for non-technical tender parameters
+                    ADMIN_PARAM_PATTERNS = [
+                        r"\b(?:deadline|submission|download|issuance|opening|pre[- ]?bid|clarification|corrigendum)\b",
+                        r"\b(?:qualifying requirements?|eligibility criteria|pre[- ]?qualification|annual turnover|net worth|past experience|similar work)\b",
+                        r"\b(?:brief scope of work|scope of work|bidding documents?|bidding procedure|name of the employer|name of buyer|funding|publication|invitation for bids?|ifb|empanelment of agencies|name of the work)\b",
+                        r"\b(?:bid security|earnest money|emd|tender fee|document fee|empanelment fee|security deposit|pbg|performance security)\b",
+                        r"\b(?:address for correspondence|contact person|contact details|nodal officer|buyer details|inquiry)\b",
+                        r"\b(?:sr\.?\s*no\.?|section no\.?|format of|checklist)\b",
+                        r"^tender\s*notice\b",
+                        r"^tender\s*document\b",
+                        r"^enclosure\b",
+                    ]
+                    if any(re.search(pat, p_low) for pat in ADMIN_PARAM_PATTERNS):
+                        continue
+
                     # Skip Table of Contents / Index entries
                     p_norm = re.sub(r"[\s_]+", " ", param_name.strip()).lower()
-                    p_compact = re.sub(r"[^a-z0-9]", "", param_name.lower())
                     if (
                         re.match(r"^(?:section\s*[-–]?\s*[ivxlcdm\d]+|annexure\s*[-–]?\s*[a-z\d]+|part\s*[-–]?\s*[ivxlcdm\d]+|appendix\s*[-–]?\s*[a-z\d]+)\b", p_norm, re.I)
                         or any(toc_kw in p_norm for toc_kw in (
@@ -1501,7 +1616,9 @@ def extract_technical_specifications(
                         "tenderfee", "costoftender", "timeforsupply", "completionperiod",
                         "deliveryschedule", "dateofissuance", "nitbiddocumentno",
                         "funding", "nameoftheemployer", "publication", "eprocurementportal",
-                        "biddingprocedure", "prebiddate", "lastdateandtime", "dateandtimeofopening"
+                        "biddingprocedure", "prebiddate", "lastdateandtime", "dateandtimeofopening",
+                        "datetimevenueofprebid", "biddocumentdownload", "clarificationstart",
+                        "onlinebidsubmission", "addressforsubmission", "contactdetailsofbuyer"
                     )
                     if any(mkw in p_compact for mkw in meta_keywords):
                         continue
@@ -1511,13 +1628,16 @@ def extract_technical_specifications(
                     item_unit: Optional[str] = None
 
                     # Check if table row itself specifies Quantity e.g. [Quantity | 35]
-                    if param_name.lower() in ["quantity", "qty", "required quantity"]:
-                        item_qty = spec_val
-                        # If a parent equipment item exists in this subsystem, update its quantity
+                    if param_name.lower().strip() in ["quantity", "qty", "required quantity", "total quantity"]:
+                        clean_qty = spec_val.strip()
+                        subsystem_quantities[current_subsystem] = clean_qty
+                        # If a parent equipment exists in this subsystem, update its quantity
                         for it in reversed(tech_items):
-                            if it.subsystem_or_category == current_subsystem and not it.required_quantity:
-                                it.required_quantity = spec_val
-                                break
+                            if it.subsystem_or_category == current_subsystem and it.item_name.lower().strip() not in ["quantity", "qty"]:
+                                if not it.required_quantity or it.required_quantity in ["As per BOQ", "None"]:
+                                    it.required_quantity = clean_qty
+                                    break
+                        continue  # FIX: NEVER EMIT "Quantity" AS A TECH SPEC ITEM!
 
                     # Check if any column is a Quantity column
                     for col_k, col_v in row_dict.items():
@@ -1531,8 +1651,34 @@ def extract_technical_specifications(
                         if any("qty" in h.lower() for h in headers) and any(it_kw in h.lower() for h in headers for it_kw in ["item", "description", "material"]):
                             if current_subsystem in ["General Technical Specifications", "NOT FOUND"]:
                                 eff_subsystem = "Bill of Quantities (BOQ)"
-                        norm_key = f"{eff_subsystem}_{param_name.lower()[:30]}"
-                        if norm_key not in seen_params:
+
+                        # Bind subsystem quantity to primary equipment item
+                        if current_subsystem in subsystem_quantities and not item_qty:
+                            is_primary = (
+                                param_name.lower().strip() in ["make & model", "make and model", "make/model", "equipment", "model", "desktop", "workstation"]
+                                or not any(it.subsystem_or_category == current_subsystem and it.required_quantity for it in tech_items)
+                            )
+                            if is_primary:
+                                item_qty = subsystem_quantities[current_subsystem]
+
+                        p_canon = re.sub(r"[^a-z0-9]", "", param_name.lower())
+                        v_canon = re.sub(r"[^a-z0-9]", "", spec_val.lower())[:40]
+                        s_canon = re.sub(r"[^a-z0-9]", "", eff_subsystem.lower())[:25]
+                        norm_key = f"{s_canon}_{p_canon}_{v_canon[:15]}"
+
+                        # Robust deduplication: do NOT merge items across different subsystems
+                        # or items that have different specification values
+                        is_dup_item = False
+                        for ex in tech_items:
+                            ex_p = re.sub(r"[^a-z0-9]", "", ex.item_name.lower())
+                            ex_s = re.sub(r"[^a-z0-9]", "", (ex.subsystem_or_category or "").lower())[:25]
+                            if ex_p == p_canon and ex_s == s_canon:
+                                ex_v = re.sub(r"[^a-z0-9]", "", (ex.technical_specifications or "").lower())[:40]
+                                if ex_v == v_canon or ex.source_page == rec.page_number:
+                                    is_dup_item = True
+                                    break
+
+                        if not is_dup_item and norm_key not in seen_params:
                             seen_params.add(norm_key)
                             clause_label = f"{eff_subsystem} (Page {rec.page_number})"
                             if is_inherited:
@@ -1562,11 +1708,19 @@ def extract_technical_specifications(
                             )
                             compliance_items.append(
                                 ComplianceMatrixItem(
+                                    requirement_id=f"REQ-TECH-{len(tech_items):03d}",
+                                    category=RequirementCategory.TECHNICAL.value,
                                     item=param_name,
                                     tender_requirement=param_name,
                                     mandatory_specification=spec_val,
                                     tender_reference=f"{rec.filename} | Page {rec.page_number}",
-                                    compliance_assessment=ComplianceStatus.CLEARLY_SPECIFIED.value,
+                                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                                    is_mandatory=True,
+                                    source_page=rec.page_number,
+                                    source_file=rec.filename,
+                                    clause_reference=eff_subsystem,
+                                    required_document_type="OEM Technical Datasheet / Specification Compliance Sheet",
                                     remarks="Must be substantiated by official OEM datasheet",
                                     document_id=rec.document_id,
                                 )
@@ -1602,11 +1756,19 @@ def extract_technical_specifications(
                                 )
                                 compliance_items.append(
                                     ComplianceMatrixItem(
+                                        requirement_id=f"REQ-TECH-{len(tech_items):03d}",
+                                        category=RequirementCategory.TECHNICAL.value,
                                         item=key,
                                         tender_requirement=key,
                                         mandatory_specification=val,
                                         tender_reference=f"{rec.filename} | Page {rec.page_number}",
-                                        compliance_assessment=ComplianceStatus.CLEARLY_SPECIFIED.value,
+                                        compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                                        compliance_status=IntelligentComplianceStatus.PENDING.value,
+                                        is_mandatory=True,
+                                        source_page=rec.page_number,
+                                        source_file=rec.filename,
+                                        clause_reference=f"Specification Schedule (Page {rec.page_number})",
+                                        required_document_type="OEM Technical Datasheet / Specification Compliance Sheet",
                                         remarks="OEM datasheet verification required",
                                         document_id=rec.document_id,
                                     )
@@ -1626,30 +1788,74 @@ def extract_technical_specifications(
         )
         compliance_items.append(
             ComplianceMatrixItem(
+                requirement_id="REQ-TECH-001",
+                category=RequirementCategory.TECHNICAL.value,
                 item="Technical Specification Schedule",
                 tender_requirement="Detailed Technical Specification Schedule",
                 mandatory_specification="NOT FOUND in uploaded document",
                 tender_reference=f"{default_file} | Page {default_page}",
                 compliance_assessment=ComplianceStatus.NOT_FOUND.value,
+                compliance_status=IntelligentComplianceStatus.NEEDS_REVIEW.value,
+                is_mandatory=True,
+                source_page=default_page,
+                source_file=default_file,
                 remarks="Technical schedule not found or requires separate volume attachment",
                 document_id=default_doc_id,
             )
         )
 
-    # 4. OEM Requirements
+    # 4. OEM Requirements: Clause-targeted MAF discovery with equipment mapping
     has_oem_mandate = False
+    maf_clause_found = False
+
+    # Priority 1: Search for explicit MAF / Manufacturer's Authorization Form clause with equipment scope
     for rec in records:
         txt = rec.text
-        txt_low = txt.lower()
-        if "oem" in txt_low or "manufacturer" in txt_low:
-            if "maf" in txt_low or "authorization" in txt_low:
+        m_maf = re.search(
+            r"((?:The bidder must submit (?:the )?|submit (?:the )?)?Manufacturers?\s*(?:Authentication|Authorization|Authorisation)\s*Form\s*(?:\(MAF\))?[\s\S]*?(?:as per prescribed format enclosed|format enclosed|\.[ \t]|\n\s*\n))",
+            txt,
+            re.IGNORECASE,
+        )
+        if m_maf:
+            has_oem_mandate = True
+            maf_clause_found = True
+            full_clause = " ".join(m_maf.group(1).split()).rstrip(".")
+
+            # Extract target equipment scope from clause (e.g. "for IP Based CCTV, Networking Switches & Network Passive component")
+            m_scope = re.search(
+                r"(?:for|covering|pertaining to)\s+([^.]+?)(?:as per|in the prescribed|format enclosed|\Z)",
+                full_clause,
+                re.IGNORECASE,
+            )
+            scope_equipment = m_scope.group(1).strip() if m_scope else "Designated Core Equipment"
+
+            oem_items.append(
+                OEMRequirementItem(
+                    requirement_name="Manufacturer Authorization Form (MAF)",
+                    is_mandatory=True,
+                    details=full_clause,
+                    specific_brands_mentioned=f"Required for: {scope_equipment} (Not brand restricted)",
+                    authorization_form_required=True,
+                    warranty_support_conditions="Direct OEM comprehensive back-to-back warranty support",
+                    source_page=rec.page_number,
+                    source_file=rec.filename,
+                    document_id=rec.document_id,
+                )
+            )
+            break
+
+    # Priority 2: Fallback if no specific MAF clause found but generic OEM authorization mentioned
+    if not maf_clause_found:
+        for rec in records:
+            txt_low = rec.text.lower()
+            if any(k in txt_low for k in ["maf", "manufacturer authorization", "manufacturer authorisation", "oem authorization", "oem authorisation"]):
                 has_oem_mandate = True
                 oem_items.append(
                     OEMRequirementItem(
                         requirement_name="Manufacturer Authorization Form (MAF)",
                         is_mandatory=True,
-                        details="Tender-specific Manufacturer Authorization Form (MAF) confirming genuine equipment supply and back-to-back warranty backing",
-                        specific_brands_mentioned=", ".join(sorted(specific_brands)) if specific_brands else "NOT SPECIFIED",
+                        details="Manufacturer Authorization Form (MAF) confirming genuine equipment supply and back-to-back warranty backing",
+                        specific_brands_mentioned="Not brand restricted" if not specific_brands else ", ".join(sorted(specific_brands)),
                         authorization_form_required=True,
                         warranty_support_conditions="Direct OEM comprehensive warranty support",
                         source_page=rec.page_number,
@@ -1801,7 +2007,7 @@ def extract_commercial_and_legal(
             )
             if m_pbg_det:
                 pbg = m_pbg_det.group(0).strip()
-                security_deposit = pbg
+                security_deposit = "Unified with PBG (Security Deposit -cum- Performance Guarantee as per tender GCC/Section O)"
                 if "PBG" not in seen_clauses:
                     seen_clauses.add("PBG")
                     legal_clauses.append(
@@ -1820,7 +2026,7 @@ def extract_commercial_and_legal(
                 m_pbg = re.search(r"((?:performance security|performance bank guarantee|pbg)[^\n\r.:]*?(?:\d+%\s*of\s*(?:the\s*)?(?:purchase order|contract value)|(?:₹|Rs\.?)\s*[\d,]+|\d+%\s*amount)[^\n\r.]*)", flat_text, re.I)
                 if m_pbg:
                     pbg = m_pbg.group(1).strip()
-                    security_deposit = pbg
+                    security_deposit = "Unified with PBG (Security Deposit -cum- Performance Guarantee)"
                     if "PBG" not in seen_clauses:
                         seen_clauses.add("PBG")
                         legal_clauses.append(
@@ -2049,19 +2255,56 @@ def extract_commercial_and_legal(
     if inherited_fee in ("Not specified", "NOT_FOUND"):
         inherited_fee = None
 
+    # Discover explicit EMD exemption rules strictly from tender document text (Zero hallucinations)
+    emd_exemption_found = "NOT FOUND"
+    for rec in records:
+        txt_low = rec.text.lower()
+        if any(kw in txt_low for kw in ["exemption", "exempted", "msme", "nsic", "udyam"]):
+            m_ex = re.search(
+                r"((?:exemption|exempted|msme|nsic|udyam)[^\n\r.:]*?(?:from\s*(?:payment\s*of\s*)?(?:emd|bid security|tender fee)|is\s*exempted|are\s*exempted)[^\n\r.]*)",
+                rec.text,
+                re.I,
+            )
+            if m_ex:
+                emd_exemption_found = m_ex.group(1).strip()
+                break
+            m_ex2 = re.search(
+                r"((?:emd|bid security|tender fee)[^\n\r.:]*?(?:exemption|exempted|concession)[^\n\r.]*)",
+                rec.text,
+                re.I,
+            )
+            if m_ex2:
+                emd_exemption_found = m_ex2.group(1).strip()
+                break
+
+    # Discover explicit bill-retention clause (separate from PBG) strictly from tender text
+    retention_val = "NOT FOUND"
+    for rec in records:
+        txt_low = rec.text.lower()
+        if "retention money" in txt_low or "retained from each" in txt_low or "retained from running" in txt_low:
+            m_ret = re.search(
+                r"((?:retention money|retained from (?:each|running|interim) (?:bill|account))[^\n\r.]+)",
+                rec.text,
+                re.I,
+            )
+            if m_ret:
+                retention_val = m_ret.group(1).strip()
+                break
+
     commercial = CommercialFinancialAnalysis(
         estimated_value=inherited_est_val,
         estimated_value_page=default_page if inherited_est_val else None,
         emd_amount=inherited_emd,
         emd_page=default_page if inherited_emd else None,
         emd_amount_and_mode=inherited_emd or "NOT FOUND",
+        emd_exemption_rules=emd_exemption_found,
         tender_fee=inherited_fee,
         tender_fee_details=inherited_fee or "As per tender notice",
         payment_terms=payment_terms,
         payment_terms_page=payment_terms_page,
         advance_payment_allowed=advance_payment,
-        milestone_payments="90% upon completion & commissioning, 10% retained as security deposit; Manpower paid semi-annually over 3 years" if "90%" in payment_terms else ("As stipulated in payment schedule" if payment_terms != "NOT FOUND" else "NOT FOUND"),
-        retention_amount="10% of Contract Price retained as security deposit" if "10%" in security_deposit or "10%" in payment_terms else (security_deposit if (security_deposit != "NOT FOUND" and ("retained" in security_deposit.lower() or "%" in security_deposit)) else "NOT FOUND"),
+        milestone_payments=payment_terms if payment_terms != "NOT FOUND" else "Milestone payments as per tender schedule",
+        retention_amount=retention_val,
         performance_bank_guarantee_pbg=pbg,
         security_deposit=security_deposit,
         security_deposit_page=security_deposit_page,
@@ -2090,3 +2333,859 @@ def extract_commercial_and_legal(
     )
 
     return commercial, legal
+
+
+# ---------------------------------------------------------------------------
+# Section 5: Stage 2 Advanced Intelligent Compliance Matrix & Readiness Engine
+# ---------------------------------------------------------------------------
+
+def _find_page_for_keywords(
+    records: Optional[List[PageRecord]],
+    keywords: List[str],
+) -> Tuple[Optional[int], str, Optional[str]]:
+    """Locates the first page containing any of the specified keywords."""
+    if not records:
+        return None, "tender.pdf", None
+    for rec in records:
+        text_low = rec.text.lower()
+        if any(kw in text_low for kw in keywords):
+            return rec.page_number, rec.filename, rec.document_id
+    return None, records[0].filename, records[0].document_id
+
+
+def build_intelligent_compliance_matrix(
+    spec_analysis: Optional[TechnicalSpecificationAnalysis],
+    oem_analysis: Optional[OEMRequirementAnalysis],
+    eligibility_analysis: Optional[EligibilityAnalysis],
+    commercial_analysis: Optional[CommercialFinancialAnalysis],
+    legal_analysis: Optional[ContractualLegalAnalysis] = None,
+    records: Optional[List[PageRecord]] = None,
+    index: Optional[TenderDocumentIndex] = None,
+) -> ItemWiseComplianceMatrix:
+    """Builds a comprehensive, grounded 6-category compliance matrix and readiness assessment.
+    
+    Categories:
+    1. Technical: Equipment parameters, physical specs, performance standards
+    2. Eligibility: Annual turnover, experience, past projects, consortium limits
+    3. OEM: Manufacturer Authorization Form (MAF), direct warranty commitments, datasheets
+    4. Statutory: GST, PAN, EPF, ESIC, ISO, incorporation certifications
+    5. Commercial: EMD / bid security, PBG, payment milestones, price validity
+    6. Administrative: Power of attorney, non-blacklisting affidavits, tender submission forms
+    
+    STRICT ACCURACY GUARANTEE:
+    All extracted tender requirements default strictly to PENDING. No requirement is
+    falsely certified as COMPLIANT without submitted bidder evidence.
+    """
+    records = records or []
+    default_page = records[0].page_number if records else 1
+    default_file = records[0].filename if records else "tender.pdf"
+    default_doc_id = records[0].document_id if records else None
+
+    all_items: List[ComplianceMatrixItem] = []
+    required_docs: List[RequiredBidderDocument] = []
+    seen_req_keys: Set[str] = set()
+
+    # =========================================================================
+    # 1. CATEGORY: Technical Specifications
+    # =========================================================================
+    tech_count = 0
+    if spec_analysis and spec_analysis.items:
+        for t_item in spec_analysis.items:
+            # Skip empty or "NOT FOUND" placeholders if genuine items exist
+            if t_item.item_name == "NOT FOUND" or "no structured technical specification" in (t_item.technical_specifications or "").lower():
+                if len(spec_analysis.items) > 1:
+                    continue
+                # Single fallback placeholder
+                all_items.append(
+                    ComplianceMatrixItem(
+                        requirement_id="REQ-TECH-001",
+                        category=RequirementCategory.TECHNICAL.value,
+                        item="Technical Specification Schedule",
+                        tender_requirement="Detailed Technical Specification Schedule",
+                        mandatory_specification="NOT FOUND in uploaded document",
+                        tender_reference=f"{t_item.source_file or default_file} | Page {t_item.source_page or default_page}",
+                        compliance_assessment=ComplianceStatus.NOT_FOUND.value,
+                        compliance_status=IntelligentComplianceStatus.NEEDS_REVIEW.value,
+                        is_mandatory=True,
+                        source_page=t_item.source_page or default_page,
+                        source_file=t_item.source_file or default_file,
+                        clause_reference="Technical Schedule",
+                        required_document_type="Technical Specification Schedule & BOQ",
+                        remarks="Technical schedule not found or requires separate volume attachment",
+                        document_id=t_item.document_id or default_doc_id,
+                    )
+                )
+                continue
+
+            tech_count += 1
+            req_id = f"REQ-TECH-{tech_count:03d}"
+            eff_sub = t_item.subsystem_or_category or ""
+            req_title = f"{t_item.item_name} ({eff_sub})" if eff_sub and eff_sub != t_item.item_name else t_item.item_name
+
+            # Differentiate core active equipment requiring OEM datasheets vs BOQ line items/accessories/parameters
+            item_low = (t_item.item_name + " " + eff_sub).lower()
+            is_active_equipment = any(
+                k in item_low for k in [
+                    "camera", "cctv", "ptz", "bullet", "dome", "switch", "nvr", "server",
+                    "workstation", "router", "firewall", "storage", "nas", "san", "ups"
+                ]
+            ) and not any(
+                p_kw in item_low for p_kw in [
+                    "mounting", "bracket", "patch cord", "rj45", "clamp", "screw", "nut", "conduit",
+                    "pipe", "pigtail", "faceplate", "operating temperature", "humidity", "dimension",
+                    "weight", "connector", "pole", "wire"
+                ]
+            )
+
+            if is_active_equipment:
+                req_doc_type = "OEM Technical Datasheet / Specification Compliance Sheet"
+                remarks_str = "Must be substantiated by official OEM published datasheet with highlighted clause references"
+            else:
+                req_doc_type = "Technical Specification Compliance Schedule"
+                remarks_str = "To be certified by bidder in the consolidated Technical Specification Compliance Schedule"
+
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=req_id,
+                    category=RequirementCategory.TECHNICAL.value,
+                    item=t_item.item_name,
+                    tender_requirement=req_title,
+                    mandatory_specification=t_item.technical_specifications or t_item.verbatim_evidence or "Conforming to specifications",
+                    tender_reference=f"{t_item.source_file or default_file} | Page {t_item.source_page}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=True,
+                    source_page=t_item.source_page,
+                    source_file=t_item.source_file or default_file,
+                    clause_reference=t_item.clause_heading or eff_sub or f"Page {t_item.source_page}",
+                    required_document_type=req_doc_type,
+                    remarks=remarks_str,
+                    document_id=t_item.document_id,
+                )
+            )
+
+    if tech_count > 0:
+        required_docs.append(
+            RequiredBidderDocument(
+                document_name="Technical Specification Compliance Schedule & BOQ",
+                category=RequirementCategory.TECHNICAL.value,
+                is_mandatory=True,
+                submission_format="Clause-by-clause compliance sheet signed & stamped by bidder on letterhead",
+                tender_reference="Technical Specifications Schedule & BOQ",
+                source_page=all_items[0].source_page if all_items else default_page,
+                source_file=all_items[0].source_file if all_items else default_file,
+                notes=f"Consolidated point-by-point compliance schedule covering {tech_count} BOQ specifications",
+            )
+        )
+        required_docs.append(
+            RequiredBidderDocument(
+                document_name="OEM Technical Datasheets for Core Equipment",
+                category=RequirementCategory.TECHNICAL.value,
+                is_mandatory=True,
+                submission_format="Original published OEM datasheets for Cameras, Switches, and Core Equipment",
+                tender_reference="Technical Specifications Schedule",
+                source_page=all_items[0].source_page if all_items else default_page,
+                source_file=all_items[0].source_file if all_items else default_file,
+                notes="Required to substantiate major active equipment specifications; accessories covered via compliance schedule",
+            )
+        )
+
+    # =========================================================================
+    # 2. CATEGORY: Eligibility & Pre-Qualification
+    # =========================================================================
+    elig_count = 0
+    if eligibility_analysis:
+        # 2a. Annual Financial Turnover
+        turnover_val = eligibility_analysis.annual_turnover_requirement or eligibility_analysis.average_turnover_requirement
+        if turnover_val and turnover_val.strip().upper() not in ("NOT FOUND", "NONE", "N/A"):
+            elig_count += 1
+            t_page = default_page
+            t_file = default_file
+            t_doc_id = default_doc_id
+            for cond in eligibility_analysis.conditions:
+                if "turnover" in cond.category.lower() or "turnover" in cond.department_requirement.lower():
+                    t_page = cond.source_page
+                    t_file = cond.source_file
+                    t_doc_id = cond.document_id
+                    break
+
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=f"REQ-ELIG-{elig_count:03d}",
+                    category=RequirementCategory.ELIGIBILITY.value,
+                    item="Annual Financial Turnover Criteria",
+                    tender_requirement=f"Minimum Average Annual Turnover: {turnover_val}",
+                    mandatory_specification=f"Turnover threshold: {turnover_val}",
+                    tender_reference=f"{t_file} | Page {t_page}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=True,
+                    source_page=t_page,
+                    source_file=t_file,
+                    clause_reference="Eligibility / Pre-Qualification Criteria",
+                    required_document_type="CA Audited Balance Sheets (3 Years) with UDIN / Turnover Certificate",
+                    remarks="Audited financial statements and CA turnover certificate with UDIN mandatory",
+                    document_id=t_doc_id,
+                )
+            )
+            required_docs.append(
+                RequiredBidderDocument(
+                    document_name="CA Audited Balance Sheets & Turnover Certificate with UDIN",
+                    category=RequirementCategory.ELIGIBILITY.value,
+                    is_mandatory=True,
+                    submission_format="Chartered Accountant Audited Copy with Unique Document Identification Number (UDIN)",
+                    tender_reference=f"Page {t_page}",
+                    source_page=t_page,
+                    source_file=t_file,
+                    notes=f"Minimum financial threshold: {turnover_val}",
+                )
+            )
+
+        # 2b. Similar Work Experience & Past Supply Track Record
+        exp_val = eligibility_analysis.similar_work_experience
+        has_exp_val = exp_val and exp_val.strip().upper() not in ("NOT FOUND", "NONE", "N/A")
+        exp_kw_page, exp_kw_file, exp_kw_doc_id = _find_page_for_keywords(records, [
+            "completion certificate", "purchase orders", "past performance", "similar items", "similar works", "similar supply"
+        ])
+
+        if has_exp_val or exp_kw_page is not None:
+            elig_count += 1
+            e_page = exp_kw_page if exp_kw_page is not None else default_page
+            e_file = exp_kw_file if exp_kw_page is not None else default_file
+            e_doc_id = exp_kw_doc_id if exp_kw_page is not None else default_doc_id
+            for cond in eligibility_analysis.conditions:
+                if "experience" in cond.category.lower() or "experience" in cond.department_requirement.lower():
+                    e_page = cond.source_page
+                    e_file = cond.source_file
+                    e_doc_id = cond.document_id
+                    break
+
+            eff_exp_spec = exp_val if has_exp_val else "Agreements / Purchase Orders / Completion certificates for supply of similar equipment from clients"
+
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=f"REQ-ELIG-{elig_count:03d}",
+                    category=RequirementCategory.ELIGIBILITY.value,
+                    item="Past Experience & Similar Supply Execution",
+                    tender_requirement=f"Past Project Experience: {eff_exp_spec}",
+                    mandatory_specification=eff_exp_spec,
+                    tender_reference=f"{e_file} | Page {e_page}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=True,
+                    source_page=e_page,
+                    source_file=e_file,
+                    clause_reference="Technical Eligibility / Past Track Record",
+                    required_document_type="Client Work Orders & Satisfactory Completion Certificates",
+                    remarks="Work orders and client completion certificates verifying qualifying project scope required",
+                    document_id=e_doc_id,
+                )
+            )
+            required_docs.append(
+                RequiredBidderDocument(
+                    document_name="Past Work Orders & Client Completion Certificates",
+                    category=RequirementCategory.ELIGIBILITY.value,
+                    is_mandatory=True,
+                    submission_format="Client work orders and satisfactory completion certificates signed by authorized authorities",
+                    tender_reference=f"Page {e_page}",
+                    source_page=e_page,
+                    source_file=e_file,
+                    notes="Proof of similar project execution experience",
+                )
+            )
+
+        # 2c. Other Pre-Qualification Conditions
+        for cond in eligibility_analysis.conditions:
+            c_low = cond.department_requirement.lower()
+            if any(k in c_low for k in ["turnover", "experience", "similar work", "pan card", "gstin", "gst "]):
+                continue
+            item_key = f"elig_{cond.department_requirement[:35].lower()}"
+            if item_key in seen_req_keys:
+                continue
+            seen_req_keys.add(item_key)
+
+            elig_count += 1
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=f"REQ-ELIG-{elig_count:03d}",
+                    category=RequirementCategory.ELIGIBILITY.value,
+                    item=cond.category if cond.category and cond.category != "General" else cond.department_requirement[:70],
+                    tender_requirement=cond.department_requirement,
+                    mandatory_specification=cond.department_requirement,
+                    tender_reference=f"{cond.source_file} | Page {cond.source_page}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=cond.is_mandatory,
+                    source_page=cond.source_page,
+                    source_file=cond.source_file,
+                    clause_reference=cond.clause_heading or "Eligibility Conditions",
+                    required_document_type="Documentary Evidence of Pre-Qualification Compliance",
+                    remarks="Bidder documentary proof required for qualification evaluation",
+                    document_id=cond.document_id,
+                )
+            )
+
+    # =========================================================================
+    # 3. CATEGORY: OEM Requirements & Authorizations
+    # =========================================================================
+    oem_count = 0
+    if oem_analysis:
+        for req in oem_analysis.oem_requirements:
+            if "no specific oem" in req.details.lower():
+                continue
+            oem_count += 1
+            req_id = f"REQ-OEM-{oem_count:03d}"
+            brands_str = f" (Specified Brands: {', '.join(oem_analysis.specific_brands_in_tender)})" if oem_analysis.specific_brands_in_tender else ""
+
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=req_id,
+                    category=RequirementCategory.OEM.value,
+                    item=req.requirement_name,
+                    tender_requirement=f"{req.details}{brands_str}",
+                    mandatory_specification=f"{req.details} [Warranty Support: {req.warranty_support_conditions or 'OEM Direct Support'}]",
+                    tender_reference=f"{req.source_file} | Page {req.source_page}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=req.is_mandatory,
+                    source_page=req.source_page,
+                    source_file=req.source_file,
+                    clause_reference="OEM Authorization & Warranty Undertakings",
+                    required_document_type="Manufacturer Authorization Form (MAF) on OEM Letterhead" if req.authorization_form_required else "OEM Warranty & Service Support Undertaking",
+                    remarks="Tender-specific MAF and direct OEM warranty commitment required; generic distributor letters rejected",
+                    document_id=req.document_id,
+                )
+            )
+
+            if req.authorization_form_required:
+                required_docs.append(
+                    RequiredBidderDocument(
+                        document_name="Manufacturer Authorization Form (MAF)",
+                        category=RequirementCategory.OEM.value,
+                        is_mandatory=True,
+                        submission_format="Original letter on OEM letterhead signed by authorized OEM signatory, referencing tender number",
+                        tender_reference=f"Page {req.source_page}",
+                        source_page=req.source_page,
+                        source_file=req.source_file,
+                        notes="Tender-specific MAF with back-to-back warranty commitment",
+                    )
+                )
+            else:
+                required_docs.append(
+                    RequiredBidderDocument(
+                        document_name="OEM Authorization & Warranty Commitment Letter",
+                        category=RequirementCategory.OEM.value,
+                        is_mandatory=True,
+                        submission_format="Signed undertaking on OEM letterhead",
+                        tender_reference=f"Page {req.source_page}",
+                        source_page=req.source_page,
+                        source_file=req.source_file,
+                        notes="Confirmation of manufacturer authorization, warranty support and spare parts availability",
+                    )
+                )
+
+    # =========================================================================
+    # 4. CATEGORY: Statutory Compliance
+    # =========================================================================
+    stat_count = 0
+    # 4a. GST Registration
+    gst_page, gst_file, gst_doc_id = _find_page_for_keywords(records, ["gstin", "gst registration", "goods and service tax", "gst "])
+    eff_gst_page = gst_page if gst_page is not None else default_page
+    stat_count += 1
+    all_items.append(
+        ComplianceMatrixItem(
+            requirement_id=f"REQ-STAT-{stat_count:03d}",
+            category=RequirementCategory.STATUTORY.value,
+            item="GST Registration Certificate (GSTIN)",
+            tender_requirement="Valid Goods and Services Tax (GST) registration certificate in the state of project execution",
+            mandatory_specification="Active GSTIN registration certificate in bidder legal entity name with recent return filing proof",
+            tender_reference=f"{gst_file} | Page {eff_gst_page}",
+            compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+            compliance_status=IntelligentComplianceStatus.PENDING.value,
+            is_mandatory=True,
+            source_page=eff_gst_page,
+            source_file=gst_file,
+            clause_reference="Statutory Registrations",
+            required_document_type="Self-attested Copy of GST Registration Certificate",
+            remarks="Active GST registration certificate required at the time of bid submission",
+            document_id=gst_doc_id,
+        )
+    )
+    required_docs.append(
+        RequiredBidderDocument(
+            document_name="GST Registration Certificate",
+            category=RequirementCategory.STATUTORY.value,
+            is_mandatory=True,
+            submission_format="Self-attested copy of valid GST certificate with latest GSTR return filing proof",
+            tender_reference=f"Page {eff_gst_page}",
+            source_page=eff_gst_page,
+            source_file=gst_file,
+            notes="Active status mandatory",
+        )
+    )
+
+    # 4b. Permanent Account Number (PAN)
+    pan_page, pan_file, pan_doc_id = _find_page_for_keywords(records, ["pan card", "permanent account number", "pan "])
+    eff_pan_page = pan_page if pan_page is not None else default_page
+    stat_count += 1
+    all_items.append(
+        ComplianceMatrixItem(
+            requirement_id=f"REQ-STAT-{stat_count:03d}",
+            category=RequirementCategory.STATUTORY.value,
+            item="Permanent Account Number (PAN) Card",
+            tender_requirement="Valid PAN card allotted by Income Tax Department in bidder legal entity name",
+            mandatory_specification="Income Tax PAN allotment card copy",
+            tender_reference=f"{pan_file} | Page {eff_pan_page}",
+            compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+            compliance_status=IntelligentComplianceStatus.PENDING.value,
+            is_mandatory=True,
+            source_page=eff_pan_page,
+            source_file=pan_file,
+            clause_reference="Statutory Income Tax Allotment",
+            required_document_type="Self-attested Copy of PAN Card",
+            remarks="PAN must match bidder entity legal name",
+            document_id=pan_doc_id,
+        )
+    )
+    required_docs.append(
+        RequiredBidderDocument(
+            document_name="Permanent Account Number (PAN) Card",
+            category=RequirementCategory.STATUTORY.value,
+            is_mandatory=True,
+            submission_format="Self-attested copy of PAN card",
+            tender_reference=f"Page {eff_pan_page}",
+            source_page=eff_pan_page,
+            source_file=pan_file,
+            notes="Income tax registration proof",
+        )
+    )
+
+    # 4c. EPF and ESIC (if mentioned in tender text)
+    epf_page, epf_file, epf_doc_id = _find_page_for_keywords(records, ["epf", "esic", "provident fund", "employee state insurance"])
+    if epf_page is not None:
+        stat_count += 1
+        all_items.append(
+            ComplianceMatrixItem(
+                requirement_id=f"REQ-STAT-{stat_count:03d}",
+                category=RequirementCategory.STATUTORY.value,
+                item="EPF and ESIC Statutory Registrations",
+                tender_requirement="Valid registration with EPFO and ESIC as per statutory workforce labour regulations",
+                mandatory_specification="Active EPF and ESIC registration numbers with latest monthly paid contribution challans",
+                tender_reference=f"{epf_file} | Page {epf_page}",
+                compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                compliance_status=IntelligentComplianceStatus.PENDING.value,
+                is_mandatory=True,
+                source_page=epf_page,
+                source_file=epf_file,
+                clause_reference="Labour Law Statutory Compliance",
+                required_document_type="Copies of EPF & ESIC Registration Certificates & Challans",
+                remarks="Mandatory workforce social security compliance",
+                document_id=epf_doc_id,
+            )
+        )
+        required_docs.append(
+            RequiredBidderDocument(
+                document_name="EPF and ESIC Registration Certificates",
+                category=RequirementCategory.STATUTORY.value,
+                is_mandatory=False,
+                submission_format="Copies of registration certificates & latest contribution payment receipts",
+                tender_reference=f"Page {epf_page}",
+                source_page=epf_page,
+                source_file=epf_file,
+                notes="Conditional: Statutory workforce labour law adherence if deploying workforce",
+            )
+        )
+
+    # 4d. ISO Certifications (if mentioned in tender text)
+    for iso_kw in ["iso 9001", "iso 27001", "iso 20000", "iso 14001"]:
+        iso_page, iso_file, iso_doc_id = _find_page_for_keywords(records, [iso_kw])
+        if iso_page is not None:
+            iso_label = iso_kw.upper()
+            stat_count += 1
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=f"REQ-STAT-{stat_count:03d}",
+                    category=RequirementCategory.STATUTORY.value,
+                    item=f"Quality Certification ({iso_label})",
+                    tender_requirement=f"Valid {iso_label} Quality / Management System Certification",
+                    mandatory_specification=f"Accredited {iso_label} certificate valid through the tender bid validity period",
+                    tender_reference=f"{iso_file} | Page {iso_page}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=True,
+                    source_page=iso_page,
+                    source_file=iso_file,
+                    clause_reference="Quality Management Certifications",
+                    required_document_type=f"Valid {iso_label} Certificate issued by accredited certification body",
+                    remarks=f"Active accredited {iso_label} certificate required",
+                    document_id=iso_doc_id,
+                )
+            )
+            required_docs.append(
+                RequiredBidderDocument(
+                    document_name=f"{iso_label} Quality Certification",
+                    category=RequirementCategory.STATUTORY.value,
+                    is_mandatory=False,
+                    submission_format="Copy of valid certificate issued by NABCB/IAF accredited certification body",
+                    tender_reference=f"Page {iso_page}",
+                    source_page=iso_page,
+                    source_file=iso_file,
+                    notes=f"Conditional: Quality assurance accreditation ({iso_label})",
+                )
+            )
+            break
+
+    # =========================================================================
+    # 5. CATEGORY: Commercial & Financial Conditions
+    # =========================================================================
+    comm_count = 0
+    if commercial_analysis:
+        # 5a. EMD / Bid Security
+        emd_val = commercial_analysis.emd_amount if commercial_analysis else None
+        has_emd_val = emd_val and emd_val.strip().upper() not in ("NOT FOUND", "NONE", "N/A")
+        emd_kw_page, emd_kw_file, emd_kw_doc_id = _find_page_for_keywords(records, [
+            "earnest money", "emd", "bid security"
+        ])
+
+        if has_emd_val or emd_kw_page is not None:
+            comm_count += 1
+            eff_emd_val = emd_val if has_emd_val else "As stipulated in Tender Notice"
+            emd_p = (commercial_analysis.emd_page if commercial_analysis and commercial_analysis.emd_page else None) or emd_kw_page or default_page
+            emd_f = emd_kw_file if emd_kw_page is not None else default_file
+
+            has_exemption = (
+                commercial_analysis
+                and commercial_analysis.emd_exemption_rules
+                and commercial_analysis.emd_exemption_rules not in ("NOT FOUND", "None", "N/A")
+            )
+            ex_rules = commercial_analysis.emd_exemption_rules if has_exemption else "None specified in tender notice; online portal transfer mandatory for all bidders"
+            doc_type_str = "EMD Payment Proof / Bank Guarantee / Exemption Certificate" if has_exemption else "EMD Payment Proof / Online Portal Receipt"
+            remarks_str = "Proof of online payment or bank guarantee mandatory; exemption permitted as per tender terms" if has_exemption else "Proof of online payment or bank guarantee mandatory; no exemptions specified in tender notice"
+            sub_format_str = "Online portal payment receipt / Original Bank Guarantee / Valid Exemption Certificate" if has_exemption else "Online portal payment receipt / Original Bank Guarantee"
+
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=f"REQ-COMM-{comm_count:03d}",
+                    category=RequirementCategory.COMMERCIAL.value,
+                    item="Earnest Money Deposit (EMD) / Bid Security",
+                    tender_requirement=f"Deposit of EMD: {eff_emd_val}",
+                    mandatory_specification=f"{eff_emd_val} (Exemption rules: {ex_rules})",
+                    tender_reference=f"{emd_f} | Page {emd_p}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=True,
+                    source_page=emd_p,
+                    source_file=emd_f,
+                    clause_reference="Earnest Money Deposit (EMD)",
+                    required_document_type=doc_type_str,
+                    remarks=remarks_str,
+                    document_id=emd_kw_doc_id or default_doc_id,
+                )
+            )
+            required_docs.append(
+                RequiredBidderDocument(
+                    document_name="EMD / Bid Security Deposit Receipt",
+                    category=RequirementCategory.COMMERCIAL.value,
+                    is_mandatory=True,
+                    submission_format=sub_format_str,
+                    tender_reference=f"Page {emd_p}",
+                    source_page=emd_p,
+                    source_file=emd_f,
+                    notes=f"EMD amount: {eff_emd_val}",
+                )
+            )
+
+        # 5b. Performance Bank Guarantee (PBG)
+        pbg_val = commercial_analysis.performance_bank_guarantee_pbg
+        if pbg_val and pbg_val.strip().upper() not in ("NOT FOUND", "NONE", "N/A"):
+            comm_count += 1
+            pbg_p = commercial_analysis.security_deposit_page or default_page
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=f"REQ-COMM-{comm_count:03d}",
+                    category=RequirementCategory.COMMERCIAL.value,
+                    item="Performance Bank Guarantee (PBG) / Security Deposit",
+                    tender_requirement=f"Performance security obligation: {pbg_val}",
+                    mandatory_specification=f"Furnish PBG of {pbg_val} within stipulated timeline from LOA award",
+                    tender_reference=f"{default_file} | Page {pbg_p}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=True,
+                    source_page=pbg_p,
+                    source_file=default_file,
+                    clause_reference="Performance Guarantee & Security Deposit",
+                    required_document_type="Written Acceptance / Undertaking to furnish PBG",
+                    remarks="Commitment to submit bank guarantee in tender prescribed format",
+                    document_id=default_doc_id,
+                )
+            )
+            required_docs.append(
+                RequiredBidderDocument(
+                    document_name="Performance Security / PBG Acceptance Undertaking",
+                    category=RequirementCategory.COMMERCIAL.value,
+                    is_mandatory=True,
+                    submission_format="Written acceptance of PBG terms on Bidder Letterhead",
+                    tender_reference=f"Page {pbg_p}",
+                    source_page=pbg_p,
+                    source_file=default_file,
+                    notes=f"PBG requirement: {pbg_val}",
+                )
+            )
+
+        # 5c. Payment Terms Acceptance
+        pay_val = commercial_analysis.payment_terms
+        if pay_val and pay_val.strip().upper() not in ("NOT FOUND", "NONE", "N/A"):
+            comm_count += 1
+            pay_p = commercial_analysis.payment_terms_page or default_page
+            all_items.append(
+                ComplianceMatrixItem(
+                    requirement_id=f"REQ-COMM-{comm_count:03d}",
+                    category=RequirementCategory.COMMERCIAL.value,
+                    item="Commercial Payment Terms Acceptance",
+                    tender_requirement=pay_val,
+                    mandatory_specification="Unconditional acceptance of tender payment schedule without counter-conditions",
+                    tender_reference=f"{default_file} | Page {pay_p}",
+                    compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                    compliance_status=IntelligentComplianceStatus.PENDING.value,
+                    is_mandatory=True,
+                    source_page=pay_p,
+                    source_file=default_file,
+                    clause_reference="Commercial Payment Terms",
+                    required_document_type="Commercial Acceptance Statement",
+                    remarks="Commercial bid must adhere to payment terms without deviation",
+                    document_id=default_doc_id,
+                )
+            )
+
+    # =========================================================================
+    # 6. CATEGORY: Administrative & Submission Undertakings
+    # =========================================================================
+    adm_count = 0
+    # 6a. Power of Attorney / Board Resolution
+    poa_page, poa_file, poa_doc_id = _find_page_for_keywords(records, ["power of attorney", "board resolution", "authorized signatory", "authorization letter"])
+    eff_poa_page = poa_page if poa_page is not None else default_page
+    adm_count += 1
+    all_items.append(
+        ComplianceMatrixItem(
+            requirement_id=f"REQ-ADM-{adm_count:03d}",
+            category=RequirementCategory.ADMINISTRATIVE.value,
+            item="Power of Attorney / Signatory Authorization",
+            tender_requirement="Authorization of signatory to sign and submit the bid on behalf of the bidder entity",
+            mandatory_specification="Power of Attorney on non-judicial stamp paper duly notarized or Board Resolution",
+            tender_reference=f"{poa_file} | Page {eff_poa_page}",
+            compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+            compliance_status=IntelligentComplianceStatus.PENDING.value,
+            is_mandatory=True,
+            source_page=eff_poa_page,
+            source_file=poa_file,
+            clause_reference="Authorization of Signatory",
+            required_document_type="Notarized Power of Attorney on Stamp Paper / Board Resolution",
+            remarks="Must explicitly empower the authorized signatory for this tender",
+            document_id=poa_doc_id,
+        )
+    )
+    required_docs.append(
+        RequiredBidderDocument(
+            document_name="Power of Attorney / Board Resolution",
+            category=RequirementCategory.ADMINISTRATIVE.value,
+            is_mandatory=True,
+            submission_format="Original on non-judicial stamp paper duly notarized with Board Resolution copy",
+            tender_reference=f"Page {eff_poa_page}",
+            source_page=eff_poa_page,
+            source_file=poa_file,
+            notes="Legal signing authority",
+        )
+    )
+
+    # 6b. Non-Blacklisting / Debarment Undertaking
+    blk_page, blk_file, blk_doc_id = _find_page_for_keywords(records, ["blacklisting", "debarred", "not blacklisted", "debarment"])
+    eff_blk_page = blk_page if blk_page is not None else default_page
+    adm_count += 1
+    all_items.append(
+        ComplianceMatrixItem(
+            requirement_id=f"REQ-ADM-{adm_count:03d}",
+            category=RequirementCategory.ADMINISTRATIVE.value,
+            item="Non-Blacklisting / Debarment Undertaking",
+            tender_requirement="Self-declaration / affidavit that the bidder has not been blacklisted or debarred by Central/State Govt/PSU",
+            mandatory_specification="Declaration / affidavit confirming clean regulatory track record in prescribed format",
+            tender_reference=f"{blk_file} | Page {eff_blk_page}",
+            compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+            compliance_status=IntelligentComplianceStatus.PENDING.value,
+            is_mandatory=True,
+            source_page=eff_blk_page,
+            source_file=blk_file,
+            clause_reference="Undertaking of Non-Debarment",
+            required_document_type="Affidavit / Declaration of Non-Blacklisting",
+            remarks="Mandatory undertaking to prevent immediate technical disqualification",
+            document_id=blk_doc_id,
+        )
+    )
+    required_docs.append(
+        RequiredBidderDocument(
+            document_name="Non-Blacklisting / Debarment Undertaking",
+            category=RequirementCategory.ADMINISTRATIVE.value,
+            is_mandatory=True,
+            submission_format="Self-declaration on bidder letterhead or notarized affidavit on stamp paper",
+            tender_reference=f"Page {eff_blk_page}",
+            source_page=eff_blk_page,
+            source_file=blk_file,
+            notes="Undertaking of non-debarment",
+        )
+    )
+
+    # 6c. Duly Signed Tender Submission Forms & Annexures
+    annex_page, annex_file, annex_doc_id = _find_page_for_keywords(records, ["annexure", "bid form", "tender form", "submission form"])
+    eff_annex_page = annex_page if annex_page is not None else default_page
+    adm_count += 1
+    all_items.append(
+        ComplianceMatrixItem(
+            requirement_id=f"REQ-ADM-{adm_count:03d}",
+            category=RequirementCategory.ADMINISTRATIVE.value,
+            item="Duly Executed Tender Forms & Annexures",
+            tender_requirement="Submission of all prescribed tender forms, declarations, and technical checklists",
+            mandatory_specification="Complete execution of all tender forms with authorized signature and corporate seal",
+            tender_reference=f"{annex_file} | Page {eff_annex_page}",
+            compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+            compliance_status=IntelligentComplianceStatus.PENDING.value,
+            is_mandatory=True,
+            source_page=eff_annex_page,
+            source_file=annex_file,
+            clause_reference="Tender Submission Formats & Annexures",
+            required_document_type="Duly Signed and Stamped Tender Annexures",
+            remarks="All tender forms must be executed without modifications or conditions",
+            document_id=annex_doc_id,
+        )
+    )
+    required_docs.append(
+        RequiredBidderDocument(
+            document_name="Executed Tender Forms & Annexures",
+            category=RequirementCategory.ADMINISTRATIVE.value,
+            is_mandatory=True,
+            submission_format="Filled, signed & stamped tender forms on bidder letterhead",
+            tender_reference=f"Page {eff_annex_page}",
+            source_page=eff_annex_page,
+            source_file=annex_file,
+            notes="Standard tender declaration formats",
+        )
+    )
+
+    # 6d. Make in India / Local Content Declaration (if mentioned)
+    mii_page, mii_file, mii_doc_id = _find_page_for_keywords(records, ["make in india", "local content", "class-i", "class-ii", "ppp-mii"])
+    if mii_page is not None:
+        adm_count += 1
+        all_items.append(
+            ComplianceMatrixItem(
+                requirement_id=f"REQ-ADM-{adm_count:03d}",
+                category=RequirementCategory.ADMINISTRATIVE.value,
+                item="Make in India (MII) / Local Content Certificate",
+                tender_requirement="Self-certificate declaring percentage of local content as per Public Procurement Order",
+                mandatory_specification="Declaration specifying percentage of local value addition and manufacturing location",
+                tender_reference=f"{mii_file} | Page {mii_page}",
+                compliance_assessment=IntelligentComplianceStatus.PENDING.value,
+                compliance_status=IntelligentComplianceStatus.PENDING.value,
+                is_mandatory=True,
+                source_page=mii_page,
+                source_file=mii_file,
+                clause_reference="Public Procurement (Make in India) Preference",
+                required_document_type="Local Content Certificate signed by Bidder / Statutory Auditor",
+                remarks="Required for domestic procurement preference eligibility",
+                document_id=mii_doc_id,
+            )
+        )
+        required_docs.append(
+            RequiredBidderDocument(
+                document_name="Local Content / Make in India Certificate",
+                category=RequirementCategory.ADMINISTRATIVE.value,
+                is_mandatory=False,
+                submission_format="Self-declaration / CA certificate confirming local content percentage",
+                tender_reference=f"Page {mii_page}",
+                source_page=mii_page,
+                source_file=mii_file,
+                notes="Conditional: Required if claiming purchase preference under Public Procurement (Make in India) Order",
+            )
+        )
+
+    # =========================================================================
+    # 7. BIDDER READINESS SUMMARY & CATEGORY BREAKDOWN
+    # =========================================================================
+    total_reqs = len(all_items)
+    mandatory_reqs = sum(1 for it in all_items if it.is_mandatory)
+    pending_count = sum(1 for it in all_items if it.compliance_status == IntelligentComplianceStatus.PENDING.value)
+    compliant_count = sum(1 for it in all_items if it.compliance_status == IntelligentComplianceStatus.COMPLIANT.value)
+    non_compliant_count = sum(1 for it in all_items if it.compliance_status == IntelligentComplianceStatus.NON_COMPLIANT.value)
+    needs_review_count = sum(1 for it in all_items if it.compliance_status == IntelligentComplianceStatus.NEEDS_REVIEW.value)
+
+    categories_breakdown: Dict[str, CategoryReadiness] = {}
+    for cat in [
+        RequirementCategory.TECHNICAL.value,
+        RequirementCategory.ELIGIBILITY.value,
+        RequirementCategory.OEM.value,
+        RequirementCategory.STATUTORY.value,
+        RequirementCategory.COMMERCIAL.value,
+        RequirementCategory.ADMINISTRATIVE.value,
+    ]:
+        cat_items = [it for it in all_items if it.category == cat]
+        cat_total = len(cat_items)
+        cat_mand = sum(1 for it in cat_items if it.is_mandatory)
+        cat_pend = sum(1 for it in cat_items if it.compliance_status == IntelligentComplianceStatus.PENDING.value)
+        cat_comp = sum(1 for it in cat_items if it.compliance_status == IntelligentComplianceStatus.COMPLIANT.value)
+        cat_non = sum(1 for it in cat_items if it.compliance_status == IntelligentComplianceStatus.NON_COMPLIANT.value)
+        cat_rev = sum(1 for it in cat_items if it.compliance_status == IntelligentComplianceStatus.NEEDS_REVIEW.value)
+        cat_pct = round((cat_comp / cat_mand * 100.0) if cat_mand > 0 else 0.0, 1)
+
+        categories_breakdown[cat] = CategoryReadiness(
+            category=cat,
+            total_requirements=cat_total,
+            mandatory_count=cat_mand,
+            pending_count=cat_pend,
+            compliant_count=cat_comp,
+            non_compliant_count=cat_non,
+            needs_review_count=cat_rev,
+            readiness_percentage=cat_pct,
+        )
+
+    # Critical unresolved blockers (High impact mandatory items pending bidder evidence)
+    critical_blockers: List[str] = []
+    if any(it.category == RequirementCategory.ELIGIBILITY.value and it.is_mandatory and it.compliance_status in (IntelligentComplianceStatus.PENDING.value, IntelligentComplianceStatus.NON_COMPLIANT.value) for it in all_items):
+        critical_blockers.append("Annual Turnover & Experience credentials pending CA certificates and client completion letters.")
+    if any(it.category == RequirementCategory.OEM.value and it.is_mandatory and it.compliance_status in (IntelligentComplianceStatus.PENDING.value, IntelligentComplianceStatus.NON_COMPLIANT.value) for it in all_items):
+        critical_blockers.append("Manufacturer Authorization Form (MAF) pending formal issuance from OEM for required equipment.")
+    if any(it.category == RequirementCategory.COMMERCIAL.value and "EMD" in it.item and it.compliance_status in (IntelligentComplianceStatus.PENDING.value, IntelligentComplianceStatus.NON_COMPLIANT.value) for it in all_items):
+        has_ex = commercial_analysis and commercial_analysis.emd_exemption_rules and commercial_analysis.emd_exemption_rules not in ("NOT FOUND", "None", "N/A")
+        emd_note = "EMD payment pending deposit via online portal before submission deadline." if not has_ex else "EMD payment or verified exemption certificate pending deposit."
+        critical_blockers.append(emd_note)
+    tech_mand_count = len([it for it in all_items if it.category == RequirementCategory.TECHNICAL.value and it.is_mandatory])
+    if tech_mand_count > 0:
+        critical_blockers.append(f"Technical BOQ Schedule: Complete clause-by-clause compliance statement for {tech_mand_count} technical specifications.")
+
+    overall_readiness_pct = round((compliant_count / mandatory_reqs * 100.0) if mandatory_reqs > 0 else 0.0, 1)
+    mand_docs_count = sum(1 for d in required_docs if d.is_mandatory)
+    cond_docs_count = len(required_docs) - mand_docs_count
+    cond_str = f", {cond_docs_count} conditional" if cond_docs_count > 0 else ""
+
+    readiness_summary = BidderReadinessSummary(
+        total_requirements=total_reqs,
+        mandatory_requirements=mandatory_reqs,
+        pending_count=pending_count,
+        compliant_count=compliant_count,
+        non_compliant_count=non_compliant_count,
+        needs_review_count=needs_review_count,
+        overall_readiness_percentage=overall_readiness_pct,
+        critical_unresolved_count=len(critical_blockers),
+        critical_blockers=critical_blockers,
+        missing_documents_count=mand_docs_count,
+        categories=categories_breakdown,
+    )
+
+    summary_text = (
+        f"Intelligent Compliance Matrix tracking {total_reqs} tender obligations and technical items across 6 categories "
+        f"({mand_docs_count} mandatory submission documents{cond_str}). "
+        f"Current Bidder Readiness: {overall_readiness_pct}% — {pending_count} items PENDING bidder submission."
+    )
+
+    return ItemWiseComplianceMatrix(
+        items=all_items,
+        compliance_summary=summary_text,
+        required_documents=required_docs,
+        readiness_summary=readiness_summary,
+    )

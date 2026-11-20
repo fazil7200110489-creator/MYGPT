@@ -913,8 +913,16 @@ export function exportDossierMarkdown(report: MasterTenderReport): void {
       `- **Authorization Required**: ${report.oem_requirements?.oem_authorization_required ? 'Yes' : 'No'}`,
       `- **Notes**: ${report.oem_requirements?.consultant_notes || 'Standard'}`,
       '',
-      `## 6. Item-Wise Compliance Matrix`,
-      ...(report.compliance_matrix?.items || []).map((c: any) => `- **${c.item}**: ${c.compliance_assessment} (${c.remarks || ''})`),
+      `## 6. Item-Wise Compliance Matrix & Bidder Readiness`,
+      `- **Overall Readiness**: ${report.compliance_matrix?.readiness_summary?.overall_readiness_percentage || 0}%`,
+      `- **Total Tracked**: ${report.compliance_matrix?.items?.length || 0} (${report.compliance_matrix?.readiness_summary?.mandatory_requirements || 0} Mandatory)`,
+      ...(report.compliance_matrix?.required_documents?.length ? [
+        '### Mandatory Submission Documents',
+        ...report.compliance_matrix.required_documents.map(d => `- **${d.document_name}** (${d.category || 'Administrative'}): ${d.submission_format || 'Prescribed format'} [${d.tender_reference || `Page ${d.source_page}`}]`),
+        ''
+      ] : []),
+      '### Compliance Clauses',
+      ...(report.compliance_matrix?.items || []).map((c: any) => `- [${c.category || 'Technical'}] **${c.item}**: \`${c.compliance_status || c.compliance_assessment || 'PENDING'}\` - ${c.mandatory_specification || c.tender_requirement} (Ref: ${c.tender_reference || `Page ${c.source_page}`})`),
       '',
       `## 7. Commercial & Financial Terms`,
       `- **EMD / Bid Security**: ${cm.emd_amount || ov.emd_value || 'Refer to Tender Schedule'}`,
@@ -986,20 +994,28 @@ export function exportTechnicalSpecificationsCsv(report: MasterTenderReport): vo
 export function exportComplianceMatrixCsv(report: MasterTenderReport): void {
   const items = report.compliance_matrix?.items || []
   const headers = [
+    'Requirement ID',
+    'Category',
     'Item',
     'Tender Requirement',
     'Mandatory Specification',
+    'Mandatory?',
     'Compliance Status',
+    'Required Document / Action',
     'Tender Reference',
     'Consultant Remarks'
   ]
 
-  const rows = items.map(it => [
+  const rows = items.map((it, idx) => [
+    it.requirement_id || `REQ-${idx + 1}`,
+    it.category || 'Technical',
     it.item || 'NOT FOUND',
     it.tender_requirement || 'NOT FOUND',
     it.mandatory_specification || 'NOT FOUND',
-    it.compliance_assessment || 'CLEARLY SPECIFIED',
-    it.tender_reference || 'NOT SPECIFIED',
+    it.is_mandatory !== false ? 'YES' : 'NO',
+    it.compliance_status || it.compliance_assessment || 'PENDING',
+    it.required_document_type || 'Datasheet evidence required',
+    it.tender_reference || (it.source_page ? `Page ${it.source_page}` : 'NOT SPECIFIED'),
     it.remarks || ''
   ])
 

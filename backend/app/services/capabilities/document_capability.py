@@ -24,6 +24,7 @@ from backend.app.services.tender_intelligence import (
     tender_intelligence_engine,
     intelligence_report_builder,
     TenderConsultantReport,
+    TenderEvaluationBusyError,
 )
 from backend.app.services.tender.tender_section_retriever import (
     collect_page_records,
@@ -235,7 +236,17 @@ class DocumentCapability(BaseCapability):
                 if self._is_consultant_trigger(query) or (request.operation or "").upper() in (
                     "TENDER_CONSULTANT", "CONSULTANT", "TENDER_INTELLIGENCE"
                 ):
-                    report = tender_intelligence_engine.evaluate_tender(docs, user_query=query, task_id=task_id)
+                    try:
+                        report = tender_intelligence_engine.evaluate_tender(docs, user_query=query, task_id=task_id)
+                    except TenderEvaluationBusyError as be:
+                        logger.warning(f"[DOCUMENT_CAPABILITY] Evaluation rejected (busy): {be.message}")
+                        return CapabilityResult(
+                            success=False,
+                            answer=be.message,
+                            result_type="SYSTEM_BUSY",
+                            status="COMPLETED",
+                            confidence=1.0,
+                        )
                     report_dict = report.model_dump()
 
                     # Cache structured intelligence back on primary active doc metadata in memory/store

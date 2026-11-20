@@ -687,6 +687,11 @@ async def extract_tender_fields(
         is_tender, val_reason = is_authentic_tender_document(docs)
         if not is_tender:
             logger.warning(f"[EXTRACTION_ENDPOINT] Rejected non-tender document: {val_reason}")
+            for d in docs:
+                did = str(d.get("document_id") or d.get("id") or "")
+                fname = d.get("filename") or ""
+                if did and fname not in document_manager.PROTECTED_FILENAMES:
+                    document_manager.delete_document(did)
             raise HTTPException(
                 status_code=400,
                 detail="This document does not appear to be a tender document. Please upload a valid tender or bid document."
@@ -720,7 +725,7 @@ async def evaluate_tender_consultant_endpoint(
 ) -> Dict[str, Any]:
     """Generates a comprehensive AI Tender Consultant evaluation and bid strategy report with strict document isolation."""
     try:
-        from backend.app.services.tender_intelligence import tender_intelligence_engine
+        from backend.app.services.tender_intelligence import tender_intelligence_engine, TenderEvaluationBusyError
 
         eff_doc_ids = request.document_ids if (request and request.document_ids is not None) else document_ids
         eff_session_id = request.session_id if request else session_id
@@ -759,6 +764,11 @@ async def evaluate_tender_consultant_endpoint(
         is_tender, val_reason = is_authentic_tender_document(docs)
         if not is_tender:
             logger.warning(f"[CONSULTANT_ENDPOINT] Rejected non-tender document: {val_reason}")
+            for d in docs:
+                did = str(d.get("document_id") or d.get("id") or "")
+                fname = d.get("filename") or ""
+                if did and fname not in document_manager.PROTECTED_FILENAMES:
+                    document_manager.delete_document(did)
             raise HTTPException(
                 status_code=400,
                 detail="This document does not appear to be a tender document. Please upload a valid tender or bid document."
@@ -773,6 +783,12 @@ async def evaluate_tender_consultant_endpoint(
             "executive_summary": report.executive_summary_markdown,
             "full_report_markdown": report.full_report_markdown,
         }
+    except TenderEvaluationBusyError as be:
+        logger.warning(f"Tender consultant request rejected (busy): {be.message}")
+        raise HTTPException(
+            status_code=429,
+            detail=be.message,
+        )
     except HTTPException:
         raise
     except ValueError as ve:

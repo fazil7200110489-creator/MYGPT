@@ -48,6 +48,26 @@ class ConversationContextManager:
         """Alias for clear_state."""
         self.clear_state(session_id)
 
+    def remove_document(self, doc_id: str) -> None:
+        """Removes a document from all active session states to prevent session contamination."""
+        for state in self._states.values():
+            if state.active_document_id == doc_id:
+                state.active_document_id = None
+                state.active_document = None
+            if hasattr(state, "active_document_ids") and state.active_document_ids and doc_id in state.active_document_ids:
+                state.active_document_ids = [d for d in state.active_document_ids if d != doc_id]
+            if hasattr(state, "conversation_documents") and state.conversation_documents:
+                state.conversation_documents = [
+                    d for d in state.conversation_documents
+                    if str(d.get("id") or d.get("document_id") or "") != doc_id
+                ]
+            if hasattr(state, "documents") and state.documents:
+                state.documents = [
+                    d for d in state.documents
+                    if str(d.get("id") or d.get("document_id") or "") != doc_id
+                ]
+        logger.info(f"ConversationContextManager: Removed document {doc_id} from all sessions.")
+
     # ------------------------------------------------------------------
     # Explicit Department Context Declaration
     # ------------------------------------------------------------------

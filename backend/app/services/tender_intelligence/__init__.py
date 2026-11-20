@@ -25,9 +25,14 @@ from .intelligence_schema import (
     ComplianceStatus,
 )
 from .intelligence_engine import tender_intelligence_engine
+from .evaluation_lock import tender_evaluation_lock, TenderEvaluationBusyError
+from .resource_monitor import resource_monitor
 
 __all__ = [
     "tender_intelligence_engine",
+    "tender_evaluation_lock",
+    "TenderEvaluationBusyError",
+    "resource_monitor",
     "TenderConsultantReport",
     "TenderOverview",
     "EligibilityAnalysis",

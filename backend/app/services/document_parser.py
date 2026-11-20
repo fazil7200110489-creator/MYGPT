@@ -53,7 +53,7 @@ BINARY_EXTENSIONS = {
     ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".pptx", ".ppt",
     ".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".webp", ".gif",
 }
-_PARSE_CACHE_VERSION = "v5"
+_PARSE_CACHE_VERSION = "v6"
 _PARSE_CACHE_DIR = os.path.join("data", "cache", "parsed")
 
 
@@ -295,6 +295,14 @@ class DocumentParser:
                 unreadable_pages.append(p_num)
             if entry["is_ocr"] and not p.get("unreadable_reason"):
                 ocr_pages.append(p_num)
+            if p.get("tables"):
+                entry["tables"] = p["tables"]
+            if p.get("headings"):
+                entry["headings"] = p["headings"]
+            if p.get("extraction_status"):
+                entry["extraction_status"] = p["extraction_status"]
+            if p.get("has_images") is not None:
+                entry["has_images"] = p["has_images"]
             cleaned_pages.append(entry)
 
         if cleaned_pages:
@@ -329,12 +337,26 @@ class DocumentParser:
             f"(clean={t_clean_ms:.1f}ms, details={sub_timings})"
         )
 
+        total_tables = sum(len(p.get("tables", [])) for p in cleaned_pages)
+        failed_pages = [p["page_number"] for p in cleaned_pages if p.get("extraction_status") in ("UNREADABLE", "EXTRACTION_FAILED")]
+        empty_pages = [p["page_number"] for p in cleaned_pages if p.get("extraction_status") == "EMPTY_PAGE"]
+
         result = {
             "text": cleaned_text,
             "pages": cleaned_pages,
             "file_type": ext,
             "file_hash": computed_hash,
             "total_pages": len(cleaned_pages),
+            "total_tables": total_tables,
+            "failed_pages": failed_pages,
+            "empty_pages": empty_pages,
+            "extraction_summary": {
+                "total_pages": len(cleaned_pages),
+                "successful_pages": len(cleaned_pages) - len(failed_pages) - len(empty_pages),
+                "failed_pages": failed_pages,
+                "empty_pages": empty_pages,
+                "total_tables": total_tables,
+            },
             "ocr_pages": ocr_pages,
             "unreadable_pages": unreadable_pages,
             "sheets": sheets,
@@ -346,32 +368,182 @@ class DocumentParser:
             self._store_cached_parse(computed_hash, result)
         return result
 
-    def _format_fitz_tables(self, page: Any) -> str:
-        """Extracts structured table rows from a PyMuPDF page cleanly."""
+    def _extract_page_headings(self, text: str) -> List[Dict[str, Any]]:
+        """Identifies section headings, clause numbers, and structural titles on a page."""
+        if not text:
+            return []
+        headings: List[Dict[str, Any]] = []
+        lines = [l.strip() for l in text.split("\n") if l.strip()]
+        for line_idx, line in enumerate(lines):
+            # 1. Numbered clauses e.g. "SECTION 3: SCOPE OF WORK", "CLAUSE 5.2"
+            m_sec = re.match(
+                r"^(?:(SECTION|CHAPTER|PART|ANNEXURE|SCHEDULE|APPENDIX|CLAUSE)\s+([A-Z0-9.\-]+))(?:\s*[:\-–—]\s*(.*))?$",
+                line,
+                re.IGNORECASE,
+            )
+            if m_sec:
+                sec_type = m_sec.group(1).upper()
+                sec_num = m_sec.group(2)
+                headings.append({
+                    "title": line,
+                    "section_type": sec_type,
+                    "section_number": sec_num,
+                    "level": 1,
+                    "line_index": line_idx,
+                })
+                continue
+
+            # 2. Decimal clauses: "2.1 Technical Criteria", "10.4 Payment Milestones"
+            m_num = re.match(r"^(\d+(?:\.\d+){1,4})\s+([A-Z][^\n\r]{2,80})$", line)
+            if m_num:
+                clause_num = m_num.group(1)
+                level = clause_num.count(".") + 1
+                headings.append({
+                    "title": line,
+                    "section_type": "CLAUSE",
+                    "section_number": clause_num,
+                    "level": min(level, 4),
+                    "line_index": line_idx,
+                })
+                continue
+
+            # 3. Prominent UPPERCASE section titles (length 4 to 65 chars)
+            if (
+                line.isupper()
+                and 4 <= len(line) <= 65
+                and not any(char in line for char in ("$", "@", "=", "|", "___"))
+                and any(k in line for k in (
+                    "NOTICE", "TENDER", "INVITATION", "ELIGIBILITY", "QUALIFICATION",
+                    "TECHNICAL", "SPECIFICATION", "COMMERCIAL", "FINANCIAL", "INSTRUCTION",
+                    "BIDDER", "SCOPE OF WORK", "DELIVERABLE", "PAYMENT", "WARRANTY", "PENALTY",
+                    "TERMINATION", "FORCE MAJEURE", "ARBITRATION", "CHECKLIST", "DECLARATION",
+                    "SUBMISSION", "SCHEDULE OF REQUIREMENTS", "BILL OF QUANTITIES"
+                ))
+            ):
+                headings.append({
+                    "title": line,
+                    "section_type": "HEADING",
+                    "section_number": None,
+                    "level": 2,
+                    "line_index": line_idx,
+                })
+
+        return headings
+
+    def _extract_fitz_tables_detailed(
+        self,
+        page: Any,
+        page_num: int,
+        prev_headers: Optional[List[str]] = None,
+        page_text: str = "",
+    ) -> Tuple[str, List[Dict[str, Any]], Optional[List[str]]]:
+        """Extracts structured table metadata, preserves row/col relationships, and formats markdown."""
         if not hasattr(page, "find_tables"):
-            return ""
+            return "", [], prev_headers
         try:
             tf = page.find_tables()
             tables = getattr(tf, "tables", None) or []
         except Exception:
-            return ""
+            return "", [], prev_headers
+
+        if not tables:
+            return "", [], prev_headers
 
         formatted_tables: List[str] = []
+        structured_tables: List[Dict[str, Any]] = []
+        latest_headers = prev_headers
+
         for t_idx, table in enumerate(tables, start=1):
             try:
-                rows = table.extract() or []
+                raw_rows = table.extract() or []
             except Exception:
                 continue
-            if not rows:
+            if not raw_rows:
                 continue
-            row_lines: List[str] = []
-            for row in rows:
-                cells = [re.sub(r"\s+", " ", str(c or "")).strip() for c in row]
+
+            clean_rows: List[List[str]] = []
+            for r in raw_rows:
+                cells = [re.sub(r"\s+", " ", str(c or "")).strip() for c in r]
                 if any(cells):
-                    row_lines.append(" | ".join(cells))
-            if row_lines:
-                formatted_tables.append(f"[Table {t_idx}]\n" + "\n".join(row_lines))
-        return "\n\n".join(formatted_tables)
+                    clean_rows.append(cells)
+
+            if not clean_rows:
+                continue
+
+            col_count = max(len(r) for r in clean_rows)
+            for r in clean_rows:
+                if len(r) < col_count:
+                    r.extend([""] * (col_count - len(r)))
+
+            # Table Header & Continuation Detection
+            is_continuation = False
+            first_row = clean_rows[0]
+            looks_like_data = bool(
+                re.match(r"^\d+$", first_row[0])
+                or any(k in first_row[0].lower() for k in ("rs.", "inr", "lakh", "crore", "%"))
+            )
+
+            if looks_like_data and prev_headers and len(prev_headers) == col_count:
+                headers = list(prev_headers)
+                data_rows = clean_rows
+                is_continuation = True
+            elif len(clean_rows) >= 2:
+                headers = first_row
+                data_rows = clean_rows[1:]
+                latest_headers = headers
+            else:
+                headers = [f"Col {j+1}" for j in range(col_count)]
+                data_rows = clean_rows
+                latest_headers = headers
+
+            # Title extraction: look at preceding lines
+            table_title = None
+            if page_text:
+                for line in page_text.split("\n"):
+                    line_s = line.strip()
+                    if re.match(
+                        r"^(Table\s+\d+|Schedule\s+of\s+Requirements|Technical\s+Specifications?|Bill\s+of\s+Quantities|BOQ|Annexure\s+[A-Z0-9]+)\b",
+                        line_s,
+                        re.IGNORECASE,
+                    ):
+                        table_title = line_s
+                        break
+
+            # Markdown Table formatting
+            md_lines: List[str] = []
+            header_str = " | ".join(h if h else f"Col {i+1}" for i, h in enumerate(headers))
+            md_lines.append(f"| {header_str} |")
+            md_lines.append("| " + " | ".join(["---"] * col_count) + " |")
+            for dr in data_rows:
+                md_lines.append("| " + " | ".join(dr) + " |")
+            markdown_table = "\n".join(md_lines)
+
+            # Plain text table formatting (backward compatibility)
+            plain_lines: List[str] = []
+            for r in clean_rows:
+                plain_lines.append(" | ".join(r))
+            plain_text_table = f"[Table {t_idx}]\n" + "\n".join(plain_lines)
+            formatted_tables.append(plain_text_table)
+
+            structured_tables.append({
+                "table_number": t_idx,
+                "page_number": page_num,
+                "title": table_title or f"Table {t_idx} (Page {page_num})",
+                "headers": headers,
+                "rows": data_rows,
+                "column_count": col_count,
+                "row_count": len(data_rows),
+                "markdown": markdown_table,
+                "plain_text": plain_text_table,
+                "is_continuation": is_continuation,
+            })
+
+        return "\n\n".join(formatted_tables), structured_tables, latest_headers
+
+    def _format_fitz_tables(self, page: Any) -> str:
+        """Extracts structured table rows from a PyMuPDF page cleanly (legacy wrapper)."""
+        formatted, _, _ = self._extract_fitz_tables_detailed(page, 0)
+        return formatted
 
     def _parse_pdf(self, filepath: str) -> Tuple[str, List[Dict[str, Any]], Optional[str], Dict[str, Any]]:
         """Parses text, tables, and mixed scanned pages from a PDF preserving page numbers."""
@@ -390,6 +562,7 @@ class DocumentParser:
             try:
                 num_pages = len(doc)
                 table_pages_scanned = 0
+                prev_table_headers: Optional[List[str]] = None
                 for idx, page in enumerate(doc, start=1):
                     t_txt_start = time.time()
                     native_text = (page.get_text("text") or "").strip()
@@ -421,9 +594,12 @@ class DocumentParser:
                         should_check_tables = has_table_signal and drawings_count >= 3
 
                     table_text = ""
+                    page_tables: List[Dict[str, Any]] = []
                     if should_check_tables:
                         t_tbl_start = time.time()
-                        table_text = self._format_fitz_tables(page)
+                        table_text, page_tables, prev_table_headers = self._extract_fitz_tables_detailed(
+                            page, idx, prev_headers=prev_table_headers, page_text=native_text
+                        )
                         timings["pdf_table_ms"] += (time.time() - t_tbl_start) * 1000.0
                         table_pages_scanned += 1
 
@@ -431,13 +607,31 @@ class DocumentParser:
                     if table_text and len(table_text) > 10:
                         combined = f"{native_text}\n\n{table_text}".strip() if native_text else table_text
 
+                    headings = self._extract_page_headings(combined)
                     compact_len = len(re.sub(r"\s+", "", native_text))
                     has_images = len(page.get_images()) > 0
+
+                    if combined.strip():
+                        status = "SUCCESS"
+                        unreadable_reason = None
+                    elif has_images:
+                        status = "UNREADABLE"
+                        unreadable_reason = "Page contains image/scans with no digital text."
+                    else:
+                        status = "EMPTY_PAGE"
+                        unreadable_reason = "Page contains no digital text, images, or tables."
+
                     pages.append({
                         "page_number": idx,
                         "text": combined,
+                        "native_text": native_text,
+                        "tables": page_tables,
+                        "headings": headings,
                         "is_ocr": False,
-                        "extraction_method": "pymupdf_text_table" if table_text else "pymupdf_text",
+                        "has_images": has_images,
+                        "extraction_method": "pymupdf_text_table" if page_tables else "pymupdf_text",
+                        "extraction_status": status,
+                        "unreadable_reason": unreadable_reason,
                     })
                     # Trigger per-page OCR on scanned/image-only pages (or mixed image pages with minimal text)
                     if (compact_len < 30 and (has_images or num_pages <= 45)) or (has_images and compact_len < 150):
@@ -450,11 +644,19 @@ class DocumentParser:
             reader = PdfReader(filepath)
             for idx, page in enumerate(reader.pages, start=1):
                 txt = (page.extract_text() or "").strip()
+                headings = self._extract_page_headings(txt)
+                status = "SUCCESS" if txt.strip() else "EMPTY_PAGE"
                 pages.append({
                     "page_number": idx,
                     "text": txt,
+                    "native_text": txt,
+                    "tables": [],
+                    "headings": headings,
                     "is_ocr": False,
+                    "has_images": False,
                     "extraction_method": "pypdf_text",
+                    "extraction_status": status,
+                    "unreadable_reason": None if txt.strip() else "Empty page",
                 })
                 if len(re.sub(r"\s+", "", txt)) < 30:
                     ocr_needed_pages.append(idx)
@@ -485,10 +687,14 @@ class DocumentParser:
                     entry["is_ocr"] = True
                     entry["ocr_confidence"] = ocr_res.get("ocr_confidence")
                     entry["extraction_method"] = f"ocr:{ocr_res.get('engine')}"
+                    entry["extraction_status"] = "SUCCESS"
+                    entry["unreadable_reason"] = None
+                    entry["headings"] = self._extract_page_headings(entry["text"])
                 elif not (entry.get("text") or "").strip():
                     entry["is_ocr"] = True
                     entry["ocr_confidence"] = 0.0
                     entry["extraction_method"] = "ocr_failed"
+                    entry["extraction_status"] = "UNREADABLE"
                     entry["unreadable_reason"] = ocr_res.get("unreadable_reason") or "Page image produced no OCR text."
 
         timings["pdf_text_ms"] = round(timings["pdf_text_ms"], 2)

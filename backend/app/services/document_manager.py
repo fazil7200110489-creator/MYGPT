@@ -209,14 +209,12 @@ class DocumentManager:
         Returns:
             Dict summary of quota enforcement results.
         """
-        if max_mb is None:
-            max_mb = getattr(settings, "TENDER_STORAGE_MAX_MB", 200)
         if max_docs is None:
             max_docs = getattr(settings, "TENDER_STORAGE_MAX_DOCUMENTS", 5)
         if exclude_doc_ids is None:
             exclude_doc_ids = set()
 
-        max_bytes = max_mb * 1024 * 1024
+        max_bytes = max_mb * 1024 * 1024 if max_mb is not None else None
         freed_bytes = 0
         deleted_count = 0
 
@@ -304,25 +302,17 @@ class DocumentManager:
             for item in docs_to_prune:
                 doc_id = item["doc_id"]
                 fp = item["file_path"]
-                fhash = item["file_hash"]
-
                 if fp and os.path.exists(fp):
                     try:
                         sz = os.path.getsize(fp)
-                        os.remove(fp)
                         freed_bytes += sz
                         deleted_count += 1
                         logger.info(f"[QUOTA LRU] Pruned oldest doc {item['filename']} ({doc_id}) [{sz / (1024*1024):.2f} MB]")
-                    except Exception as e:
-                        logger.warning(f"[QUOTA] Failed to delete file {fp}: {e}")
+                    except Exception:
+                        pass
+                self.delete_document(doc_id)
+                metadata_changed = True
 
-                self._clean_parse_cache(fhash)
-
-                if doc_id in db:
-                    del db[doc_id]
-                    metadata_changed = True
-
-        # Step 4: Enforce max_mb limit on total directory storage
         def get_total_upload_bytes() -> int:
             if not os.path.exists(self.upload_dir):
                 return 0
@@ -336,34 +326,23 @@ class DocumentManager:
                         pass
             return total
 
-        current_total_bytes = get_total_upload_bytes()
-        while current_total_bytes > max_bytes and non_protected_docs:
-            # Pop the oldest remaining non-protected document
-            item = non_protected_docs.pop(0)
-            doc_id = item["doc_id"]
-            fp = item["file_path"]
-            fhash = item["file_hash"]
-
-            if fp and os.path.exists(fp):
-                try:
-                    sz = os.path.getsize(fp)
-                    os.remove(fp)
-                    freed_bytes += sz
-                    deleted_count += 1
-                    logger.info(f"[QUOTA SIZE] Pruned doc for size limit: {item['filename']} ({doc_id}) [{sz / (1024*1024):.2f} MB]")
-                except Exception as e:
-                    logger.warning(f"[QUOTA] Failed to delete file {fp}: {e}")
-
-            self._clean_parse_cache(fhash)
-
-            if doc_id in db:
-                del db[doc_id]
-                metadata_changed = True
-
+        # Step 4: Optional Enforce max_mb limit on total directory storage (if specified)
+        if max_bytes is not None:
             current_total_bytes = get_total_upload_bytes()
-
-        if metadata_changed:
-            self._write_metadata(db)
+            while current_total_bytes > max_bytes and non_protected_docs:
+                item = non_protected_docs.pop(0)
+                doc_id = item["doc_id"]
+                fp = item["file_path"]
+                if fp and os.path.exists(fp):
+                    try:
+                        sz = os.path.getsize(fp)
+                        freed_bytes += sz
+                        deleted_count += 1
+                        logger.info(f"[QUOTA SIZE] Pruned doc for size limit: {item['filename']} ({doc_id}) [{sz / (1024*1024):.2f} MB]")
+                    except Exception:
+                        pass
+                self.delete_document(doc_id)
+                current_total_bytes = get_total_upload_bytes()
 
         final_total_bytes = get_total_upload_bytes()
         remaining_files = os.listdir(self.upload_dir) if os.path.exists(self.upload_dir) else []
@@ -444,7 +423,7 @@ class DocumentManager:
             self._write_metadata(db)
 
     def delete_document(self, doc_id: str) -> bool:
-        """Deletes a document physical file and removes it from metadata.
+        """Deletes a document physical file, vector index, consultant cache, and metadata.
         
         Args:
             doc_id: Document ID.
@@ -459,8 +438,9 @@ class DocumentManager:
 
         doc = db[doc_id]
         filepath = doc.get("file_path")
+        file_hash = doc.get("file_hash")
 
-        # Delete physical file
+        # 1. Delete physical file
         if filepath and os.path.exists(filepath):
             try:
                 os.remove(filepath)
@@ -468,13 +448,38 @@ class DocumentManager:
             except Exception as e:
                 logger.error(f"Failed to delete physical file {filepath}: {e}")
 
-        # Clean parse cache if exists
-        self._clean_parse_cache(doc.get("file_hash"))
+        # 2. Clean parse cache if exists
+        self._clean_parse_cache(file_hash)
 
-        # Remove from index
+        # 3. Purge Vector Index from disk & memory
+        try:
+            from backend.app.services.rag.tender_vector_index import tender_index_registry
+            if file_hash:
+                tender_index_registry.delete_index(file_hash[:16])
+                tender_index_registry.delete_index(file_hash)
+            tender_index_registry.delete_index(doc_id[:16])
+            tender_index_registry.delete_index(doc_id)
+        except Exception as ve:
+            logger.debug(f"Could not remove vector index for {doc_id}: {ve}")
+
+        # 4. Invalidate and purge cached consultant reports
+        try:
+            from backend.app.services.tender_intelligence.intelligence_report_builder import intelligence_report_builder
+            intelligence_report_builder.invalidate_cache_for_document(doc_id)
+        except Exception as re:
+            logger.debug(f"Could not remove cached consultant report for {doc_id}: {re}")
+
+        # 5. Remove from active conversation context states
+        try:
+            from backend.app.services.conversation_context_manager import conversation_context_manager
+            conversation_context_manager.remove_document(doc_id)
+        except Exception as ce:
+            logger.debug(f"Could not remove document from context states: {ce}")
+
+        # 6. Remove from metadata index
         del db[doc_id]
         self._write_metadata(db)
-        logger.info(f"Removed document {doc_id} from metadata database.")
+        logger.info(f"Removed document {doc_id} from metadata database and all associated caches.")
         return True
 
     def rename_document(self, doc_id: str, new_name: str) -> bool:

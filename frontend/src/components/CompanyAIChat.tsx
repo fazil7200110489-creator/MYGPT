@@ -297,7 +297,7 @@ export const CompanyAIChat: React.FC = () => {
   const chatTitle = currentConv?.title || 'New Chat'
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 text-slate-800 font-sans overflow-hidden">
+    <div className="flex h-full w-full bg-slate-50 text-slate-800 font-sans overflow-hidden">
       {/* 1. Left Sidebar */}
       <ConversationSidebar
         conversations={conversations}

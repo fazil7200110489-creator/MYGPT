@@ -6,6 +6,7 @@ tender/bidding documents from non-tender files (resumes, CVs, invoices, receipts
 Prevents false positives from common substring matches (e.g. 'gem' in 'management', 'nit' in 'unit').
 """
 
+import os
 import re
 from typing import List, Dict, Any, Tuple, Optional
 from loguru import logger
@@ -33,6 +34,10 @@ STRONG_TENDER_PATTERNS = [
     re.compile(r"\bspecial\s+conditions\s+of\s+contract\b", re.I),
     re.compile(r"\bcommercial\s+terms\s+and\s+conditions\b", re.I),
     re.compile(r"\btender\s+inviting\s+authority\b", re.I),
+    re.compile(r"\brequest\s+for\s+proposals?\b", re.I),
+    re.compile(r"\b(?:rfp|tender)\s+for\s+(?:supply|selection|implementation|procurement|cctv|surveillance|work|installation)\b", re.I),
+    re.compile(r"\bscope\s+of\s+work\b", re.I),
+    re.compile(r"\bpre-qualification\s+criteria\b", re.I),
 ]
 
 # Definite non-tender patterns
@@ -46,6 +51,16 @@ RESUME_PATTERNS = [
 INVOICE_PATTERNS = [
     re.compile(r"\b(?:tax\s+invoice|commercial\s+invoice|invoice\s+no|bill\s+to|ship\s+to|due\s+date|payment\s+due)\b", re.I),
     re.compile(r"\b(?:subtotal|amount\s+due|balance\s+due|remit\s+to)\b", re.I),
+]
+
+LETTER_PATTERNS = [
+    re.compile(r"\b(?:dear\s+sir|dear\s+madam|to\s+whom\s+it\s+may\s+concern|yours\s+faithfully|yours\s+sincerely)\b", re.I),
+    re.compile(r"\bsubject\s*:\s*(?:leave\s+application|resignation|recommendation\s+letter|appointment\s+letter|salary\s+slip)\b", re.I),
+]
+
+ACADEMIC_PATTERNS = [
+    re.compile(r"\b(?:abstract|literature\s+review|methodology|experimental\s+setup|ieee\s+transactions|arxiv:\d+)\b", re.I),
+    re.compile(r"\b(?:acknowledgments?|concluding\s+remarks|references\s+and\s+citations)\b", re.I),
 ]
 
 
@@ -72,8 +87,18 @@ def is_authentic_tender_document(
             
             raw_text = d.get("extracted_text") or d.get("text") or ""
             if not raw_text and isinstance(d.get("pages"), list):
-                raw_text = " ".join(p.get("text", "") for p in d.get("pages", [])[:6])
-            parts.append(raw_text[:4000])
+                raw_text = " ".join(p.get("text", "") for p in d.get("pages", [])[:25])
+            if not raw_text and d.get("file_path") and os.path.exists(d.get("file_path")):
+                try:
+                    import fitz
+                    doc_fitz = fitz.open(d["file_path"])
+                    parts_doc = []
+                    for pno in range(min(len(doc_fitz), 25)):
+                        parts_doc.append(doc_fitz[pno].get_text())
+                    raw_text = " ".join(parts_doc)
+                except Exception:
+                    pass
+            parts.append(raw_text[:8000])
         combined_text = " ".join(parts)
 
     if len(combined_text.strip()) < 40:
@@ -91,17 +116,29 @@ def is_authentic_tender_document(
 
     if invoice_hits >= 2 and tender_hits == 0:
         logger.warning(f"[DOCUMENT_VALIDATOR] Rejected non-tender: Matched {invoice_hits} invoice patterns with 0 tender cues.")
-        return False, "Document appears to be a commercial invoice or billing receipt, not a tender."
+        return False, "This document does not appear to be a tender document. It appears to be a commercial invoice or billing receipt."
 
-    # 3. Check for Strong Tender Patterns (require at least 2 distinct patterns)
+    # 3. Check for Ordinary Letters / Applications (without tender clauses)
+    letter_hits = sum(1 for p in LETTER_PATTERNS if p.search(combined_text))
+    if letter_hits >= 2 and tender_hits == 0:
+        logger.warning(f"[DOCUMENT_VALIDATOR] Rejected non-tender: Matched {letter_hits} letter patterns with 0 tender cues.")
+        return False, "This document does not appear to be a tender document. It appears to be an ordinary letter or personal application."
+
+    # 4. Check for Academic Papers / Theses (without tender clauses)
+    academic_hits = sum(1 for p in ACADEMIC_PATTERNS if p.search(combined_text))
+    if academic_hits >= 2 and tender_hits == 0:
+        logger.warning(f"[DOCUMENT_VALIDATOR] Rejected non-tender: Matched {academic_hits} academic patterns with 0 tender cues.")
+        return False, "This document does not appear to be a tender document. It appears to be an academic research paper or journal article."
+
+    # 5. Check for Strong Tender Patterns (require at least 2 distinct patterns)
     if tender_hits >= 2:
         return True, f"Verified tender document with {tender_hits} distinct tender indicators."
 
-    # 4. Check filename keywords if 1 strong pattern matched
+    # 6. Check filename keywords if 1 strong pattern matched
     if tender_hits == 1 and documents:
         fname = str(documents[0].get("filename") or "").lower()
         if any(k in fname for k in ("tender", "nit", "rfp", "bid", "gem_")):
             return True, "Verified tender document with strong tender pattern and filename confirmation."
 
     logger.warning(f"[DOCUMENT_VALIDATOR] Rejected non-tender: Only {tender_hits} tender patterns found (minimum 2 required).")
-    return False, "Document does not contain sufficient tender, procurement, or bidding indicators."
+    return False, "This document does not appear to be a tender document. Please upload a valid tender or bid document."
