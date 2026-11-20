@@ -1,8 +1,9 @@
+
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# System dependencies for PyMuPDF / Tesseract OCR fallback / llama-cpp-python build
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
@@ -10,17 +11,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements-tender.txt .
+# Install Python dependencies
+COPY backend/requirements-tender.txt ./requirements-tender.txt
+
 RUN pip install --no-cache-dir -r requirements-tender.txt
 
-COPY backend ./backend
-COPY pytest.ini .
+# Copy backend source
+COPY backend/ ./backend/
 
-# Persistent runtime volumes (models and job state are mounted at runtime, not baked into image)
-VOLUME ["/app/models", "/app/data", "/app/logs"]
+# Copy test configuration
+COPY pytest.ini ./pytest.ini
 
 ENV PYTHONUNBUFFERED=1
+
 EXPOSE 8000
 
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
